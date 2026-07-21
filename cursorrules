@@ -1,0 +1,49 @@
+# Project: [ProductName] — Garment Manufacturing & Retail System (Ethiopia)
+
+## Stack
+Next.js 14 (App Router) + TypeScript, Tailwind CSS, shadcn/ui, Prisma + PostgreSQL,
+Recharts, Zod + React Hook Form, NextAuth (role-based auth).
+
+## Design tokens (apply via CSS variables / Tailwind theme, do not deviate)
+- bg-page: #0E1116, bg-surface/card: #171B23
+- primary accent: #E08E45 (hover #C97A34) — primary buttons, active nav item, focus rings
+- secondary accent: #6C7BF5 — links, secondary actions
+- status colors: success #3FB27F, warning #E0B144, danger #E5615A
+- text: white/near-white headings, #9AA3B2 muted secondary text
+- font: Inter. Rounded-lg cards, subtle borders, no heavy shadows, 8px spacing scale.
+
+## Layout skeleton
+Persistent collapsible left sidebar with grouped nav sections (ACTION CENTER, NAVIGATE,
+PRODUCTION, INVENTORY, ACCOUNTING, ADMINISTRATION, ACCESS CONTROL, SYSTEM). Top bar:
+global search, notification bell, theme toggle, user profile menu. Standard page pattern:
+title + short description → KPI card row → charts/tables below.
+
+## Data model (Prisma — core entities, keep schema consistent with these names)
+User, Role, Branch, RawMaterial, CapitalAsset, Supplier, StockMovement, Product,
+ProductVariant, BillOfMaterial, PriceHistory, ProductionOrder, ProductionOutput, Employee,
+FinishedGoodsStock, StockTransfer, Sale, SaleItem, Payment, Customer, AuditLog,
+Notification, Approval.
+
+## Coding conventions
+- All money values in ETB, formatted with thousands separators (e.g. ETB 24,028.85).
+- Any stock-affecting operation (BOM deduction, sale, transfer, adjustment) MUST be a
+  single DB transaction. Never allow partial writes or silent negative stock — surface a
+  clear error/warning instead.
+- Folder pattern: app/(module)/page.tsx = list view, app/(module)/[id]/page.tsx = detail,
+  app/(module)/new/page.tsx = create/edit form.
+- Shared primitives in components/ui (shadcn); domain-specific components grouped under
+  components/(module-name).
+- All forms validated with a Zod schema in lib/validations/(module).ts, wired through
+  React Hook Form.
+- Prefer Next.js server actions for mutations over client-side fetch calls where possible.
+- Reuse existing components/patterns already in the codebase before creating new ones.
+
+## Rules for how you (Cursor) should work on this repo — token efficiency
+- Only read/edit files relevant to the current task. Do not scan or refactor unrelated
+  modules "while you're in there."
+- For any non-trivial feature, first output a short plan (files to touch, schema changes,
+  new components) and wait for confirmation before writing code.
+- Keep changes scoped to what was asked. If you notice an unrelated issue, mention it
+  briefly at the end rather than fixing it inline.
+- Assume the person will commit after each working feature — you don't need to hold
+  earlier uncommitted context in mind once a feature is confirmed working.
