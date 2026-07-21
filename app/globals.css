@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-page: #0e1116;
+  --bg-surface: #171b23;
+  --bg-card: #171b23;
+  --color-primary: #e08e45;
+  --color-primary-hover: #c97a34;
+  --color-secondary: #6c7bf5;
+  --color-success: #3fb27f;
+  --color-warning: #e0b144;
+  --color-danger: #e5615a;
+  --text-primary: #f8fafc;
+  --text-muted: #9aa3b2;
+  --border-color: rgba(154, 163, 178, 0.16);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-page text-[var(--text-primary)] font-sans antialiased;
+  }
+}
