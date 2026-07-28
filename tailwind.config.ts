@@ -27,6 +27,10 @@ const config: Config = {
         danger: "var(--color-danger)",
         muted: "var(--text-muted)",
         border: "var(--border-color)",
+        "on-primary": "var(--text-on-primary)",
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
       },
       borderRadius: {
         lg: "0.5rem",

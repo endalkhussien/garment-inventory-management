@@ -1,73 +1,169 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ClipboardList,
+  Factory,
+  FolderTree,
+  LayoutDashboard,
+  MapPin,
+  Package,
+  Settings,
+  Shirt,
+  ShoppingCart,
+  Store,
+  Users,
+  Wallet,
+} from "lucide-react";
+
+import { isAdminRole, isShopRole } from "@/lib/rbac-shared";
+
 export type NavItem = {
   label: string;
   href: string;
+  icon: LucideIcon;
+  description?: string;
 };
 
 export type NavSection = {
   title: string;
+  hint?: string;
   items: NavItem[];
 };
 
-export const navSections: NavSection[] = [
+/** Simple Admin nav — stock, production, team, shop, access. */
+const adminSections: NavSection[] = [
   {
-    title: "ACTION CENTER",
+    title: "HOME",
     items: [
-      { label: "Dashboard", href: "/" },
-      { label: "Approvals", href: "#" },
-      { label: "Notifications", href: "#" },
+      {
+        label: "Home",
+        href: "/",
+        icon: LayoutDashboard,
+        description: "Today at a glance",
+      },
+      {
+        label: "Getting started",
+        href: "/setup",
+        icon: FolderTree,
+        description: "First-week checklist",
+      },
     ],
   },
   {
-    title: "NAVIGATE",
+    title: "STOCK",
     items: [
-      { label: "Overview", href: "#" },
-      { label: "Reports", href: "#" },
+      {
+        label: "Raw materials",
+        href: "/inventory/raw-materials",
+        icon: Package,
+      },
+      {
+        label: "Finished goods",
+        href: "/shops/stock",
+        icon: Store,
+      },
+      {
+        label: "Transfer to shop",
+        href: "/shops/transfers",
+        icon: ArrowLeftRight,
+      },
     ],
   },
   {
     title: "PRODUCTION",
     items: [
-      { label: "Production Orders", href: "#" },
-      { label: "Output Entry", href: "#" },
-      { label: "Employees", href: "#" },
+      {
+        label: "Products & BOM",
+        href: "/products",
+        icon: Shirt,
+      },
+      {
+        label: "Orders",
+        href: "/production/orders",
+        icon: ClipboardList,
+      },
+      {
+        label: "Log output",
+        href: "/production/output",
+        icon: Factory,
+      },
     ],
   },
   {
-    title: "INVENTORY",
+    title: "TEAM & PAY",
     items: [
-      { label: "Raw Materials", href: "#" },
-      { label: "Capital Assets", href: "#" },
-      { label: "Stock Movements", href: "#" },
+      {
+        label: "Employees",
+        href: "/production/employees",
+        icon: Users,
+      },
+      {
+        label: "Payroll",
+        href: "/payroll",
+        icon: Wallet,
+      },
     ],
   },
   {
-    title: "ACCOUNTING",
+    title: "SELL",
     items: [
-      { label: "Sales", href: "#" },
-      { label: "Payments", href: "#" },
-      { label: "Cost & Pricing", href: "#" },
+      {
+        label: "POS / Sales",
+        href: "/sales",
+        icon: ShoppingCart,
+      },
     ],
   },
   {
-    title: "ADMINISTRATION",
+    title: "ACCESS",
     items: [
-      { label: "Branches", href: "#" },
-      { label: "Suppliers", href: "#" },
-      { label: "Customers", href: "#" },
-    ],
-  },
-  {
-    title: "ACCESS CONTROL",
-    items: [
-      { label: "Users", href: "#" },
-      { label: "Roles", href: "#" },
-    ],
-  },
-  {
-    title: "SYSTEM",
-    items: [
-      { label: "Audit Log", href: "#" },
-      { label: "Settings", href: "#" },
+      {
+        label: "Branches",
+        href: "/setup/branches",
+        icon: MapPin,
+      },
+      {
+        label: "Categories",
+        href: "/setup/categories",
+        icon: FolderTree,
+      },
+      {
+        label: "Users & roles",
+        href: "/users",
+        icon: Settings,
+      },
     ],
   },
 ];
+
+const shopSections: NavSection[] = [
+  {
+    title: "SHOP",
+    items: [
+      {
+        label: "Home",
+        href: "/",
+        icon: LayoutDashboard,
+      },
+      {
+        label: "Sell (POS)",
+        href: "/sales",
+        icon: ShoppingCart,
+      },
+      {
+        label: "Shop stock",
+        href: "/shops/stock",
+        icon: Store,
+      },
+    ],
+  },
+];
+
+export function getNavSectionsForRole(roleName?: string | null): NavSection[] {
+  if (isShopRole(roleName)) return shopSections;
+  if (isAdminRole(roleName)) return adminSections;
+  return adminSections;
+}
+
+/** @deprecated use getNavSectionsForRole */
+export const navSections = adminSections;

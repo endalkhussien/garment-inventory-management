@@ -2,19 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TextilePro-inspired light theme */
 :root {
-  --bg-page: #0e1116;
-  --bg-surface: #171b23;
-  --bg-card: #171b23;
-  --color-primary: #e08e45;
-  --color-primary-hover: #c97a34;
-  --color-secondary: #6c7bf5;
-  --color-success: #3fb27f;
-  --color-warning: #e0b144;
-  --color-danger: #e5615a;
-  --text-primary: #f8fafc;
-  --text-muted: #9aa3b2;
-  --border-color: rgba(154, 163, 178, 0.16);
+  --bg-page: #f3f5fa;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --color-primary: #5b5ce2;
+  --color-primary-hover: #4849c9;
+  --color-secondary: #4f6ef7;
+  --color-success: #22a06b;
+  --color-warning: #d97706;
+  --color-danger: #e5484d;
+  --text-primary: #0f1b33;
+  --text-muted: #6b7289;
+  --text-on-primary: #ffffff;
+  --border-color: rgba(15, 27, 51, 0.08);
+  --shadow-card: 0 1px 2px rgba(15, 27, 51, 0.04),
+    0 4px 16px rgba(15, 27, 51, 0.04);
 }
 
 @layer base {
@@ -22,7 +26,36 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     @apply bg-page text-[var(--text-primary)] font-sans antialiased;
+  }
+
+  /* Prefer readable form controls on iOS without zoom glitches */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: inherit;
+    }
+  }
+}
+
+@layer utilities {
+  .page-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between;
+  }
+
+  .page-title {
+    @apply text-xl font-semibold sm:text-2xl;
   }
 }

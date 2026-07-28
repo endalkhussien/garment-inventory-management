@@ -1,5 +1,5 @@
 import { Inter } from "next/font/google";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { AuthProvider } from "@/components/providers/session-provider";
 
@@ -11,8 +11,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Garment ERP",
+  title: "TextilePro",
   description: "Garment manufacturing and retail management system",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#5B5CE2",
 };
 
 export default function RootLayout({

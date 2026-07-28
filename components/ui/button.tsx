@@ -9,17 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-page hover:bg-primary-hover",
+        default: "bg-primary text-on-primary hover:bg-primary-hover shadow-sm",
         secondary:
-          "bg-surface text-[var(--text-primary)] border border-border hover:bg-card",
-        ghost: "hover:bg-surface text-muted hover:text-[var(--text-primary)]",
+          "bg-surface text-[var(--text-primary)] border border-border hover:bg-page",
+        ghost: "hover:bg-page text-muted hover:text-[var(--text-primary)]",
         danger: "bg-danger text-white hover:bg-danger/90",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-lg px-3 text-xs",
+        default: "h-11 px-4 py-2 sm:h-10",
+        sm: "h-9 rounded-lg px-3 text-xs sm:h-8",
         lg: "h-11 rounded-lg px-6",
-        icon: "h-10 w-10",
+        icon: "h-11 w-11 sm:h-10 sm:w-10",
       },
     },
     defaultVariants: {

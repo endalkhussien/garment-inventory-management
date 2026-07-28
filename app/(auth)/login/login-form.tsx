@@ -52,17 +52,17 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-lg border border-border bg-card p-6">
+    <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-card">
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm">
           <Factory className="h-5 w-5" />
         </div>
         <div>
           <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-            Sign in
+            TextilePro
           </h1>
           <p className="text-sm text-muted">
-            Garment manufacturing & retail system
+            Sign in to your factory workspace
           </p>
         </div>
       </div>

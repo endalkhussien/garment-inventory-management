@@ -7,6 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum StockMovementType {
+  IN
+  OUT
+}
+
+enum AssetCondition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  RETIRED
+}
+
 model Role {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -17,26 +30,490 @@ model Role {
 }
 
 model Branch {
+  id             String         @id @default(cuid())
+  name           String
+  code           String         @unique
+  address        String?
+  isWarehouse    Boolean        @default(false)
+  isShop         Boolean        @default(true)
+  isActive       Boolean        @default(true)
+  users          User[]
+  rawMaterials   RawMaterial[]
+  capitalAssets  CapitalAsset[]
+  employees      Employee[]
+  productionOrders ProductionOrder[] @relation("ProductionWarehouse")
+  finishedGoods  FinishedGoodsStock[]
+  transfersFrom  StockTransfer[] @relation("TransferFrom")
+  transfersTo    StockTransfer[] @relation("TransferTo")
+  sales          Sale[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String?
+  passwordHash    String
+  roleId          String
+  role            Role            @relation(fields: [roleId], references: [id])
+  branchId        String?
+  branch          Branch?         @relation(fields: [branchId], references: [id])
+  isActive        Boolean         @default(true)
+  stockMovements  StockMovement[]
+  priceChanges    PriceHistory[]
+  productionOrders ProductionOrder[]
+  stockTransfers  StockTransfer[]
+  sales           Sale[]
+  approvalsRequested Approval[]   @relation("ApprovalRequester")
+  approvalsReviewed  Approval[]   @relation("ApprovalReviewer")
+  notifications   Notification[]
+  payrollRuns     PayrollRun[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Supplier {
+  id           String        @id @default(cuid())
+  name         String
+  contactName  String?
+  phone        String?
+  email        String?
+  address      String?
+  isActive     Boolean       @default(true)
+  rawMaterials RawMaterial[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model MaterialCategory {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?
+  isActive    Boolean       @default(true)
+  materials   RawMaterial[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ProductCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AssetType {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  isActive    Boolean        @default(true)
+  assets      CapitalAsset[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model RawMaterial {
+  id               String           @id @default(cuid())
+  name             String
+  categoryId       String?
+  category         MaterialCategory? @relation(fields: [categoryId], references: [id])
+  unitOfMeasure    String
+  supplierId       String?
+  supplier         Supplier?        @relation(fields: [supplierId], references: [id])
+  costPerUnit      Decimal          @db.Decimal(12, 2)
+  reorderThreshold Decimal          @db.Decimal(12, 3)
+  quantity         Decimal          @default(0) @db.Decimal(12, 3)
+  location         String?
+  branchId         String?
+  branch           Branch?          @relation(fields: [branchId], references: [id])
+  isActive         Boolean          @default(true)
+  movements        StockMovement[]
+  bomLines         BillOfMaterial[]
+  wastage          ProductionWastage[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([name])
+}
+
+model CapitalAsset {
+  id           String         @id @default(cuid())
+  name         String
+  typeId       String?
+  type         AssetType?     @relation(fields: [typeId], references: [id])
+  typeName     String         @default("Equipment")
+  serialNumber String?        @unique
+  purchaseDate DateTime?
+  purchaseCost Decimal        @db.Decimal(12, 2)
+  condition    AssetCondition @default(GOOD)
+  location     String?
+  branchId     String?
+  branch       Branch?        @relation(fields: [branchId], references: [id])
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([typeName])
+  @@index([name])
+}
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  rawMaterialId String
+  rawMaterial   RawMaterial       @relation(fields: [rawMaterialId], references: [id])
+  type          StockMovementType
+  quantity      Decimal           @db.Decimal(12, 3)
+  reasonCode    String
+  note          String?
+  balanceAfter  Decimal           @db.Decimal(12, 3)
+  createdById   String?
+  createdBy     User?             @relation(fields: [createdById], references: [id])
+  createdAt     DateTime          @default(now())
+
+  @@index([rawMaterialId, createdAt])
+  @@index([createdAt])
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  categoryId  String?
+  category    ProductCategory? @relation(fields: [categoryId], references: [id])
+  description String?
+  isActive    Boolean          @default(true)
+  variants    ProductVariant[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([name])
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id                 String           @id @default(cuid())
+  productId          String
+  product            Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size               String
+  color              String
+  sku                String           @unique
+  laborCostPerUnit   Decimal          @default(0) @db.Decimal(12, 2)
+  overheadPercent    Decimal          @default(0) @db.Decimal(6, 2)
+  sellingPrice       Decimal          @default(0) @db.Decimal(12, 2)
+  materialCostCached Decimal          @default(0) @db.Decimal(12, 2)
+  totalCostCached    Decimal          @default(0) @db.Decimal(12, 2)
+  costIsStale        Boolean          @default(false)
+  isActive           Boolean          @default(true)
+  bomLines           BillOfMaterial[]
+  priceHistory       PriceHistory[]
+  productionOrders   ProductionOrder[]
+  finishedGoods      FinishedGoodsStock[]
+  stockTransfers     StockTransfer[]
+  saleItems          SaleItem[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([productId, size, color])
+  @@index([productId])
+}
+
+model BillOfMaterial {
+  id             String         @id @default(cuid())
+  variantId      String
+  variant        ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  rawMaterialId  String
+  rawMaterial    RawMaterial    @relation(fields: [rawMaterialId], references: [id])
+  quantityPerUnit Decimal       @db.Decimal(12, 4)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([variantId, rawMaterialId])
+  @@index([rawMaterialId])
+}
+
+model PriceHistory {
+  id          String         @id @default(cuid())
+  variantId   String
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  oldPrice    Decimal        @db.Decimal(12, 2)
+  newPrice    Decimal        @db.Decimal(12, 2)
+  changedById String?
+  changedBy   User?          @relation(fields: [changedById], references: [id])
+  createdAt   DateTime       @default(now())
+
+  @@index([variantId, createdAt])
+}
+
+enum ProductionOrderStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  MOBILE_MONEY
+  BANK_TRANSFER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalType {
+  STOCK_ADJUSTMENT
+  PRICE_OVERRIDE
+  LARGE_STOCK_OUT
+}
+
+enum PayrollStatus {
+  DRAFT
+  PAID
+}
+
+model Employee {
+  id                 String             @id @default(cuid())
+  name               String
+  code               String?            @unique
+  phone              String?
+  hireDate           DateTime?
+  monthlyBaseSalary  Decimal            @default(0) @db.Decimal(12, 2)
+  pieceRatePerUnit   Decimal            @default(0) @db.Decimal(12, 2)
+  isActive           Boolean            @default(true)
+  branchId           String?
+  branch             Branch?            @relation(fields: [branchId], references: [id])
+  outputs            ProductionOutput[]
+  supervisedOrders   ProductionOrder[]  @relation("OrderSupervisor")
+  payrollLines       PayrollLine[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([name])
+}
+
+model PayrollRun {
+  id          String         @id @default(cuid())
+  title       String
+  periodStart DateTime
+  periodEnd   DateTime
+  status      PayrollStatus  @default(DRAFT)
+  totalNet    Decimal        @default(0) @db.Decimal(12, 2)
+  note        String?
+  createdById String?
+  createdBy   User?          @relation(fields: [createdById], references: [id])
+  paidAt      DateTime?
+  lines       PayrollLine[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([periodStart, periodEnd])
+  @@index([status, createdAt])
+}
+
+model PayrollLine {
+  id           String     @id @default(cuid())
+  payrollRunId String
+  payrollRun   PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee   @relation(fields: [employeeId], references: [id])
+  baseSalary   Decimal    @db.Decimal(12, 2)
+  goodUnits    Int        @default(0)
+  piecePay     Decimal    @default(0) @db.Decimal(12, 2)
+  bonus        Decimal    @default(0) @db.Decimal(12, 2)
+  deductions   Decimal    @default(0) @db.Decimal(12, 2)
+  netPay       Decimal    @db.Decimal(12, 2)
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@unique([payrollRunId, employeeId])
+  @@index([employeeId])
+}
+
+model ProductionOrder {
+  id                 String                @id @default(cuid())
+  orderNumber        String                @unique
+  variantId          String
+  variant            ProductVariant        @relation(fields: [variantId], references: [id])
+  quantityTarget     Int
+  quantityGood       Int                   @default(0)
+  quantityRejected   Int                   @default(0)
+  targetDate         DateTime?
+  supervisorId       String?
+  supervisor         Employee?             @relation("OrderSupervisor", fields: [supervisorId], references: [id])
+  warehouseBranchId  String
+  warehouseBranch    Branch                @relation("ProductionWarehouse", fields: [warehouseBranchId], references: [id])
+  status             ProductionOrderStatus @default(DRAFT)
+  materialsIssued    Boolean               @default(false)
+  note               String?
+  createdById        String?
+  createdBy          User?                 @relation(fields: [createdById], references: [id])
+  startedAt          DateTime?
+  completedAt        DateTime?
+  outputs            ProductionOutput[]
+  wastage            ProductionWastage[]
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  @@index([status, createdAt])
+  @@index([variantId])
+}
+
+model ProductionOutput {
+  id                String          @id @default(cuid())
+  productionOrderId String
+  productionOrder   ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  employeeId        String?
+  employee          Employee?       @relation(fields: [employeeId], references: [id])
+  outputDate        DateTime        @default(now())
+  quantityGood      Int
+  quantityRejected  Int             @default(0)
+  note              String?
+  createdAt         DateTime        @default(now())
+
+  @@index([productionOrderId, outputDate])
+  @@index([employeeId, outputDate])
+}
+
+model ProductionWastage {
+  id                String          @id @default(cuid())
+  productionOrderId String
+  productionOrder   ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  rawMaterialId     String
+  rawMaterial       RawMaterial     @relation(fields: [rawMaterialId], references: [id])
+  quantity          Decimal         @db.Decimal(12, 3)
+  note              String?
+  createdAt         DateTime        @default(now())
+
+  @@index([productionOrderId])
+}
+
+model FinishedGoodsStock {
+  id        String         @id @default(cuid())
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  branchId  String
+  branch    Branch         @relation(fields: [branchId], references: [id])
+  quantity  Int            @default(0)
+  reorderAt Int            @default(5)
+  updatedAt DateTime       @updatedAt
+  createdAt DateTime       @default(now())
+
+  @@unique([variantId, branchId])
+  @@index([branchId])
+}
+
+model StockTransfer {
+  id            String         @id @default(cuid())
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  fromBranchId  String
+  fromBranch    Branch         @relation("TransferFrom", fields: [fromBranchId], references: [id])
+  toBranchId    String
+  toBranch      Branch         @relation("TransferTo", fields: [toBranchId], references: [id])
+  quantity      Int
+  note          String?
+  transferredById String?
+  transferredBy User?          @relation(fields: [transferredById], references: [id])
+  createdAt     DateTime       @default(now())
+
+  @@index([createdAt])
+}
+
+model Customer {
   id        String   @id @default(cuid())
   name      String
-  code      String   @unique
-  address   String?
-  isActive  Boolean  @default(true)
-  users     User[]
+  phone     String?
+  email     String?
+  isWalkIn  Boolean  @default(false)
+  sales     Sale[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String?
-  passwordHash String
-  roleId       String
-  role         Role     @relation(fields: [roleId], references: [id])
-  branchId     String?
-  branch       Branch?  @relation(fields: [branchId], references: [id])
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Sale {
+  id              String        @id @default(cuid())
+  receiptNumber   String        @unique
+  branchId        String
+  branch          Branch        @relation(fields: [branchId], references: [id])
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+  subtotal        Decimal       @db.Decimal(12, 2)
+  total           Decimal       @db.Decimal(12, 2)
+  isReturn        Boolean       @default(false)
+  returnReason    String?
+  originalSaleId  String?
+  originalSale    Sale?         @relation("SaleReturns", fields: [originalSaleId], references: [id])
+  returns         Sale[]        @relation("SaleReturns")
+  soldById        String?
+  soldBy          User?         @relation(fields: [soldById], references: [id])
+  items           SaleItem[]
+  payments        Payment[]
+  createdAt       DateTime      @default(now())
+
+  @@index([branchId, createdAt])
+}
+
+model SaleItem {
+  id        String         @id @default(cuid())
+  saleId    String
+  sale      Sale           @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int
+  unitPrice Decimal        @db.Decimal(12, 2)
+  lineTotal Decimal        @db.Decimal(12, 2)
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  saleId    String
+  sale      Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  method    PaymentMethod
+  amount    Decimal       @db.Decimal(12, 2)
+  createdAt DateTime      @default(now())
+}
+
+model Approval {
+  id          String         @id @default(cuid())
+  type        ApprovalType
+  status      ApprovalStatus @default(PENDING)
+  title       String
+  summary     String?
+  payload     Json
+  requestedById String?
+  requestedBy User?          @relation("ApprovalRequester", fields: [requestedById], references: [id])
+  reviewedById  String?
+  reviewedBy  User?          @relation("ApprovalReviewer", fields: [reviewedById], references: [id])
+  reviewNote  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  href      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead, createdAt])
+}
+
+model AppSetting {
+  id                    String @id @default("default")
+  largeStockOutThreshold Decimal @default(50) @db.Decimal(12, 3)
+  requirePriceOverrideApproval Boolean @default(false)
 }

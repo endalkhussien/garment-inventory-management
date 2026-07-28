@@ -1,7 +1,8 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { Bell, LogOut, Moon, Search, User } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 
 function getInitials(name?: string | null, email?: string | null) {
   if (name) {
@@ -28,40 +28,51 @@ function getInitials(name?: string | null, email?: string | null) {
   return email?.slice(0, 2).toUpperCase() ?? "U";
 }
 
-export function TopBar() {
+export function TopBarClient({
+  notificationSlot,
+  onOpenMobileNav,
+}: {
+  notificationSlot: ReactNode;
+  onOpenMobileNav: () => void;
+}) {
   const { data: session } = useSession();
   const user = session?.user;
 
   return (
-    <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-surface px-4">
-      <div className="relative w-full max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-        <Input
-          type="search"
-          placeholder="Search modules, records, reports..."
-          className="pl-9"
-          disabled
-        />
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-3 shadow-sm sm:h-16 sm:gap-4 sm:px-4">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="shrink-0 lg:hidden"
+          onClick={onOpenMobileNav}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
+            {user?.role?.name === "Shop" ? "Shop counter" : "Factory dashboard"}
+          </p>
+          <p className="truncate text-xs text-muted">
+            {user?.branch?.name ?? "All branches"}
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
-        </Button>
-
-        <Button variant="ghost" size="icon" aria-label="Toggle theme">
-          <Moon className="h-4 w-4" />
-        </Button>
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        {notificationSlot}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-10 gap-2 px-2">
+            <Button variant="ghost" className="h-10 gap-2 px-1.5 sm:px-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback>
                   {getInitials(user?.name, user?.email)}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden text-left sm:block">
+              <div className="hidden text-left md:block">
                 <p className="text-sm font-medium leading-none">
                   {user?.name ?? "User"}
                 </p>
@@ -84,10 +95,6 @@ export function TopBar() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => signOut({ callbackUrl: "/login" })}
             >

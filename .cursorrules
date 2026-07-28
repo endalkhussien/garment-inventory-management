@@ -4,13 +4,13 @@
 Next.js 14 (App Router) + TypeScript, Tailwind CSS, shadcn/ui, Prisma + PostgreSQL,
 Recharts, Zod + React Hook Form, NextAuth (role-based auth).
 
-## Design tokens (apply via CSS variables / Tailwind theme, do not deviate)
-- bg-page: #0E1116, bg-surface/card: #171B23
-- primary accent: #E08E45 (hover #C97A34) — primary buttons, active nav item, focus rings
-- secondary accent: #6C7BF5 — links, secondary actions
-- status colors: success #3FB27F, warning #E0B144, danger #E5615A
-- text: white/near-white headings, #9AA3B2 muted secondary text
-- font: Inter. Rounded-lg cards, subtle borders, no heavy shadows, 8px spacing scale.
+## Design tokens (TextilePro light — apply via CSS variables / Tailwind theme)
+- bg-page: #F3F5FA, bg-surface/card: #FFFFFF
+- primary accent: #5B5CE2 (hover #4849C9) — primary buttons, active nav item, focus rings
+- secondary accent: #4F6EF7 — links, secondary actions
+- status colors: success #22A06B, warning #D97706, danger #E5484D
+- text: #0F1B33 headings, #6B7289 muted secondary text; on-primary #FFFFFF
+- font: Inter. Rounded-xl cards, soft borders, light card shadow, 8px spacing scale.
 
 ## Layout skeleton
 Persistent collapsible left sidebar with grouped nav sections (ACTION CENTER, NAVIGATE,
