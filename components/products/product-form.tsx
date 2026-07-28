@@ -35,6 +35,34 @@ type ProductFormProps =
       defaultValues: ProductInput;
     };
 
+function CategorySelect({
+  categories,
+  error,
+  selectProps,
+}: {
+  categories: Option[];
+  error?: string;
+  selectProps: React.ComponentProps<typeof Select>;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>Category</Label>
+      <Select {...selectProps}>
+        {categories.length === 0 ? (
+          <option value="">Create categories in Setup first</option>
+        ) : (
+          categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))
+        )}
+      </Select>
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
 export function ProductForm(props: ProductFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -85,32 +113,6 @@ export function ProductForm(props: ProductFormProps) {
     router.refresh();
   });
 
-  const CategoryField = ({
-    name,
-    error,
-    register,
-  }: {
-    name: "categoryId";
-    error?: string;
-    register: typeof createForm.register;
-  }) => (
-    <div className="space-y-2">
-      <Label>Category</Label>
-      <Select {...register(name)}>
-        {categories.length === 0 ? (
-          <option value="">Create categories in Setup first</option>
-        ) : (
-          categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))
-        )}
-      </Select>
-      {error && <p className="text-xs text-danger">{error}</p>}
-    </div>
-  );
-
   if (isCreate) {
     const {
       register,
@@ -131,9 +133,9 @@ export function ProductForm(props: ProductFormProps) {
               <p className="text-xs text-danger">{errors.name.message}</p>
             )}
           </div>
-          <CategoryField
-            name="categoryId"
-            register={register}
+          <CategorySelect
+            categories={categories}
+            selectProps={register("categoryId")}
             error={errors.categoryId?.message}
           />
           <div className="space-y-2 md:col-span-2">
@@ -205,9 +207,9 @@ export function ProductForm(props: ProductFormProps) {
             <p className="text-xs text-danger">{errors.name.message}</p>
           )}
         </div>
-        <CategoryField
-          name="categoryId"
-          register={register as typeof createForm.register}
+        <CategorySelect
+          categories={categories}
+          selectProps={register("categoryId")}
           error={errors.categoryId?.message}
         />
         <div className="space-y-2 md:col-span-2">
