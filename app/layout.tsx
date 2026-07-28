@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TextilePro",
+  title: "Gabicon Textile",
   description: "Garment manufacturing and retail management system",
 };
 
