@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -42,7 +42,7 @@ function CategorySelect({
 }: {
   categories: Option[];
   error?: string;
-  selectProps: React.ComponentProps<typeof Select>;
+  selectProps: ComponentProps<typeof Select>;
 }) {
   return (
     <div className="space-y-2">
