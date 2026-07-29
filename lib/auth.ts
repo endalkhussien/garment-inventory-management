@@ -26,43 +26,51 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-          include: {
-            role: true,
-            branch: true,
-          },
-        });
+        const email = parsed.data.email.trim().toLowerCase();
 
-        if (!user || !user.isActive) {
-          return null;
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email },
+            include: {
+              role: true,
+              branch: true,
+            },
+          });
+
+          if (!user || !user.isActive) {
+            return null;
+          }
+
+          const isValidPassword = await compare(
+            parsed.data.password,
+            user.passwordHash,
+          );
+
+          if (!isValidPassword) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: {
+              id: user.role.id,
+              name: user.role.name,
+            },
+            branch: user.branch
+              ? {
+                  id: user.branch.id,
+                  name: user.branch.name,
+                  code: user.branch.code,
+                }
+              : null,
+          };
+        } catch (error) {
+          console.error("[auth] login failed:", error);
+          // Surface DB outage distinctly so UI can show a useful message
+          throw new Error("DATABASE_UNAVAILABLE");
         }
-
-        const isValidPassword = await compare(
-          parsed.data.password,
-          user.passwordHash,
-        );
-
-        if (!isValidPassword) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: {
-            id: user.role.id,
-            name: user.role.name,
-          },
-          branch: user.branch
-            ? {
-                id: user.branch.id,
-                name: user.branch.name,
-                code: user.branch.code,
-              }
-            : null,
-        };
       },
     }),
   ],

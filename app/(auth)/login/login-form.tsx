@@ -33,6 +33,21 @@ export function LoginForm() {
 
     setIsSubmitting(true);
 
+    try {
+      const health = await fetch("/api/health", { cache: "no-store" });
+      if (!health.ok) {
+        setIsSubmitting(false);
+        setError(
+          "Database is offline. Start Docker Desktop, then run: docker compose up -d",
+        );
+        return;
+      }
+    } catch {
+      setIsSubmitting(false);
+      setError("Cannot reach the app API. Is the server running?");
+      return;
+    }
+
     const result = await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
@@ -59,7 +74,7 @@ export function LoginForm() {
         </div>
         <div>
           <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-            TextilePro
+            Gabicon Textile
           </h1>
           <p className="text-sm text-muted">
             Sign in to your factory workspace
