@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { createNotificationForAdmins } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
+import { getAppSettings } from "@/lib/settings";
 import {
   employeeSchema,
   outputEntrySchema,
@@ -40,6 +41,7 @@ async function adjustFinishedGoods(
   variantId: string,
   branchId: string,
   delta: number,
+  defaultReorderAt = 5,
 ) {
   const existing = await tx.finishedGoodsStock.findUnique({
     where: { variantId_branchId: { variantId, branchId } },
@@ -57,7 +59,12 @@ async function adjustFinishedGoods(
     });
   } else {
     await tx.finishedGoodsStock.create({
-      data: { variantId, branchId, quantity: next },
+      data: {
+        variantId,
+        branchId,
+        quantity: next,
+        reorderAt: defaultReorderAt,
+      },
     });
   }
 }
@@ -397,6 +404,7 @@ export async function completeProductionOrder(
   orderId: string,
 ): Promise<ActionResult> {
   try {
+    const settings = await getAppSettings();
     const order = await prisma.$transaction(async (tx) => {
       const current = await tx.productionOrder.findUnique({
         where: { id: orderId },
@@ -414,6 +422,7 @@ export async function completeProductionOrder(
         current.variantId,
         current.warehouseBranchId,
         current.quantityGood,
+        settings.defaultFinishedGoodsReorderAt,
       );
 
       return tx.productionOrder.update({

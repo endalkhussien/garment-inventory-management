@@ -11,21 +11,25 @@ import { setProductActive, setVariantActive } from "@/lib/actions/products";
 import { formatEtb, toNumber } from "@/lib/format";
 import { marginFromPrice } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
+import { getAppSettings } from "@/lib/settings";
 
 type PageProps = {
   params: { id: string };
 };
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const product = await prisma.product.findUnique({
-    where: { id: params.id },
-    include: {
-      category: true,
-      variants: {
-        orderBy: [{ size: "asc" }, { color: "asc" }],
+  const [product, settings] = await Promise.all([
+    prisma.product.findUnique({
+      where: { id: params.id },
+      include: {
+        category: true,
+        variants: {
+          orderBy: [{ size: "asc" }, { color: "asc" }],
+        },
       },
-    },
-  });
+    }),
+    getAppSettings(),
+  ]);
 
   if (!product) {
     notFound();
@@ -162,7 +166,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
         )}
 
         <h3 className="mb-3 text-sm font-semibold">Add variant</h3>
-        <VariantForm productId={product.id} mode="create" />
+        <VariantForm
+          productId={product.id}
+          mode="create"
+          defaultOverheadPercent={settings.defaultOverheadPercent}
+        />
       </Card>
     </div>
   );

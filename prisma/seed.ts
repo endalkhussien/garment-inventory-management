@@ -466,11 +466,22 @@ async function main() {
 
   await prisma.appSetting.upsert({
     where: { id: "default" },
-    update: {},
+    update: {
+      companyName: "Esset Inventory",
+      companyTagline: "Ethiopia",
+    },
     create: {
       id: "default",
+      companyName: "Esset Inventory",
+      companyTagline: "Ethiopia",
+      currencyCode: "ETB",
+      locale: "en-ET",
       largeStockOutThreshold: new Prisma.Decimal("50"),
       requirePriceOverrideApproval: false,
+      defaultOverheadPercent: new Prisma.Decimal("10"),
+      defaultMarginPercent: new Prisma.Decimal("30"),
+      defaultFinishedGoodsReorderAt: 5,
+      payrollDaysPerMonth: 30,
     },
   });
 

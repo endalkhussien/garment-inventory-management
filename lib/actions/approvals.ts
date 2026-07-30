@@ -11,6 +11,8 @@ import { updateVariantPricing } from "@/lib/actions/products";
 import type { PricingInput } from "@/lib/validations/products";
 import type { StockMovementInput } from "@/lib/validations/inventory";
 
+import { getAppSettings } from "@/lib/settings";
+
 export type ActionResult = {
   success: boolean;
   error?: string;
@@ -19,12 +21,8 @@ export type ActionResult = {
 };
 
 async function getLargeStockOutThreshold() {
-  const settings = await prisma.appSetting.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  });
-  return Number(settings.largeStockOutThreshold.toString());
+  const settings = await getAppSettings();
+  return settings.largeStockOutThreshold;
 }
 
 /** Stock-out: large ones go to approval queue instead of applying immediately. */
@@ -74,11 +72,7 @@ export async function requestPriceOverrideIfNeeded(
   input: PricingInput,
   totalCost: number,
 ): Promise<ActionResult> {
-  const settings = await prisma.appSetting.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  });
+  const settings = await getAppSettings();
 
   const proposed =
     input.mode === "manual" ? (input.sellingPrice ?? 0) : 0;

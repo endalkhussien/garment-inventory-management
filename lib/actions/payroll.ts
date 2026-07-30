@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
+import { getAppSettings } from "@/lib/settings";
 import {
   payrollLineAdjustSchema,
   payrollRunSchema,
@@ -29,12 +30,18 @@ function periodBounds(start: string, end: string) {
   return { periodStart, periodEnd };
 }
 
-function prorateBaseSalary(monthlyBase: number, periodStart: Date, periodEnd: Date) {
+function prorateBaseSalary(
+  monthlyBase: number,
+  periodStart: Date,
+  periodEnd: Date,
+  daysPerMonth: number,
+) {
   const days =
     Math.floor(
       (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
     ) + 1;
-  return Math.round((monthlyBase / 30) * days * 100) / 100;
+  const basis = daysPerMonth > 0 ? daysPerMonth : 30;
+  return Math.round((monthlyBase / basis) * days * 100) / 100;
 }
 
 export async function createPayrollRun(
@@ -52,6 +59,7 @@ export async function createPayrollRun(
   );
 
   try {
+    const settings = await getAppSettings();
     const run = await prisma.$transaction(async (tx) => {
       const employees = await tx.employee.findMany({
         where: { isActive: true },
@@ -77,6 +85,7 @@ export async function createPayrollRun(
           toNumber(e.monthlyBaseSalary),
           periodStart,
           periodEnd,
+          settings.payrollDaysPerMonth,
         );
         const piecePay =
           Math.round(toNumber(e.pieceRatePerUnit) * goodUnits * 100) / 100;

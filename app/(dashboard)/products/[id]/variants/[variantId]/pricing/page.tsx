@@ -6,25 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatEtb, toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { getAppSettings } from "@/lib/settings";
 
 type PageProps = {
   params: { id: string; variantId: string };
 };
 
 export default async function VariantPricingPage({ params }: PageProps) {
-  const variant = await prisma.productVariant.findUnique({
-    where: { id: params.variantId },
-    include: {
-      product: true,
-      priceHistory: {
-        include: {
-          changedBy: { select: { name: true, email: true } },
+  const [variant, settings] = await Promise.all([
+    prisma.productVariant.findUnique({
+      where: { id: params.variantId },
+      include: {
+        product: true,
+        priceHistory: {
+          include: {
+            changedBy: { select: { name: true, email: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 20,
         },
-        orderBy: { createdAt: "desc" },
-        take: 20,
       },
-    },
-  });
+    }),
+    getAppSettings(),
+  ]);
 
   if (!variant || variant.productId !== params.id) {
     notFound();
@@ -58,6 +62,7 @@ export default async function VariantPricingPage({ params }: PageProps) {
           overheadPercent={toNumber(variant.overheadPercent)}
           sellingPrice={toNumber(variant.sellingPrice)}
           costIsStale={variant.costIsStale}
+          defaultMarginPercent={settings.defaultMarginPercent}
         />
       </Card>
 

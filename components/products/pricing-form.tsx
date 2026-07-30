@@ -32,6 +32,7 @@ type PricingFormProps = {
   overheadPercent: number;
   sellingPrice: number;
   costIsStale: boolean;
+  defaultMarginPercent?: number;
 };
 
 export function PricingForm({
@@ -41,6 +42,7 @@ export function PricingForm({
   overheadPercent,
   sellingPrice,
   costIsStale,
+  defaultMarginPercent = 30,
 }: PricingFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export function PricingForm({
     resolver: zodResolver(pricingSchema),
     defaultValues: {
       mode: "margin",
-      marginPercent: 30,
+      marginPercent: defaultMarginPercent,
       sellingPrice,
     },
   });

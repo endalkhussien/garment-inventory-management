@@ -2,14 +2,18 @@ import { ProductForm } from "@/components/products/product-form";
 import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { getAppSettings } from "@/lib/settings";
 
 export default async function NewProductPage() {
   await requireAdmin();
-  const categories = await prisma.productCategory.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+  const [categories, settings] = await Promise.all([
+    prisma.productCategory.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    getAppSettings(),
+  ]);
 
   return (
     <div className="space-y-4">
@@ -22,7 +26,11 @@ export default async function NewProductPage() {
         </p>
       </div>
       <Card>
-        <ProductForm mode="create" categories={categories} />
+        <ProductForm
+          mode="create"
+          categories={categories}
+          defaultOverheadPercent={settings.defaultOverheadPercent}
+        />
       </Card>
     </div>
   );

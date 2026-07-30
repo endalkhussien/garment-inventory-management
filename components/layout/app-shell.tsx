@@ -21,10 +21,14 @@ export function AppShell({
   children,
   userId,
   notifications,
+  companyName = "Esset Inventory",
+  companyTagline = "Ethiopia",
 }: {
   children: ReactNode;
   userId?: string;
   notifications: NotificationItem[];
+  companyName?: string;
+  companyTagline?: string;
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -63,6 +67,8 @@ export function AppShell({
         mobileOpen={mobileOpen}
         onToggle={() => setCollapsed((current) => !current)}
         onCloseMobile={() => setMobileOpen(false)}
+        companyName={companyName}
+        companyTagline={companyTagline}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

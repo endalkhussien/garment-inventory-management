@@ -51,6 +51,12 @@ export default async function SetupGuidePage() {
       detail: "Admin for factory · Shop users linked to a shop branch",
     },
     {
+      done: true,
+      title: "3b. System settings",
+      href: "/setup/settings",
+      detail: "Company name, currency, approval thresholds, payroll defaults",
+    },
+    {
       done: materials > 0,
       title: "4. Raw materials",
       href: "/inventory/raw-materials",

@@ -22,6 +22,7 @@ type VariantFormProps = {
   mode: "create" | "edit";
   variantId?: string;
   defaultValues?: Partial<VariantInput>;
+  defaultOverheadPercent?: number;
 };
 
 export function VariantForm({
@@ -29,6 +30,7 @@ export function VariantForm({
   mode,
   variantId,
   defaultValues,
+  defaultOverheadPercent = 10,
 }: VariantFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export function VariantForm({
       color: "",
       sku: "",
       laborCostPerUnit: 0,
-      overheadPercent: 10,
+      overheadPercent: defaultOverheadPercent,
       ...defaultValues,
     },
   });

@@ -27,6 +27,7 @@ type ProductFormProps =
   | {
       mode: "create";
       categories: Option[];
+      defaultOverheadPercent?: number;
     }
   | {
       mode: "edit";
@@ -68,6 +69,8 @@ export function ProductForm(props: ProductFormProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const isCreate = props.mode === "create";
   const categories = props.categories;
+  const defaultOverhead =
+    props.mode === "create" ? (props.defaultOverheadPercent ?? 10) : 10;
 
   const createForm = useForm<ProductWithVariantInput>({
     resolver: zodResolver(productWithVariantSchema),
@@ -79,7 +82,7 @@ export function ProductForm(props: ProductFormProps) {
       color: "Navy",
       sku: "",
       laborCostPerUnit: 0,
-      overheadPercent: 10,
+      overheadPercent: defaultOverhead,
     },
   });
 

@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createNotificationForAdmins } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { getAppSettings } from "@/lib/settings";
 import {
   returnSchema,
   saleSchema,
@@ -32,6 +33,7 @@ async function adjustFinishedGoods(
   variantId: string,
   branchId: string,
   delta: number,
+  defaultReorderAt = 5,
 ) {
   const existing = await tx.finishedGoodsStock.findUnique({
     where: { variantId_branchId: { variantId, branchId } },
@@ -49,7 +51,12 @@ async function adjustFinishedGoods(
     });
   } else if (delta > 0) {
     await tx.finishedGoodsStock.create({
-      data: { variantId, branchId, quantity: next },
+      data: {
+        variantId,
+        branchId,
+        quantity: next,
+        reorderAt: defaultReorderAt,
+      },
     });
   } else {
     throw new Error("No stock at this location.");
@@ -71,6 +78,7 @@ export async function transferFinishedGoods(
 
   const session = await getServerSession(authOptions);
   const data = parsed.data;
+  const settings = await getAppSettings();
 
   try {
     const transfer = await prisma.$transaction(async (tx) => {
@@ -79,12 +87,14 @@ export async function transferFinishedGoods(
         data.variantId,
         data.fromBranchId,
         -data.quantity,
+        settings.defaultFinishedGoodsReorderAt,
       );
       await adjustFinishedGoods(
         tx,
         data.variantId,
         data.toBranchId,
         data.quantity,
+        settings.defaultFinishedGoodsReorderAt,
       );
 
       return tx.stockTransfer.create({
@@ -217,6 +227,7 @@ export async function createReturn(input: ReturnInput): Promise<ActionResult> {
   }
 
   const session = await getServerSession(authOptions);
+  const settings = await getAppSettings();
 
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -234,6 +245,7 @@ export async function createReturn(input: ReturnInput): Promise<ActionResult> {
           item.variantId,
           original.branchId,
           item.quantity,
+          settings.defaultFinishedGoodsReorderAt,
         );
       }
 

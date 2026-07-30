@@ -128,9 +128,14 @@ const adminSections: NavSection[] = [
         icon: FolderTree,
       },
       {
+        label: "System settings",
+        href: "/setup/settings",
+        icon: Settings,
+      },
+      {
         label: "Users & roles",
         href: "/users",
-        icon: Settings,
+        icon: Users,
       },
     ],
   },

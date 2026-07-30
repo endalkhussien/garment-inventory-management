@@ -14,6 +14,8 @@ type SidebarProps = {
   mobileOpen: boolean;
   onToggle: () => void;
   onCloseMobile: () => void;
+  companyName?: string;
+  companyTagline?: string;
 };
 
 export function Sidebar({
@@ -21,6 +23,8 @@ export function Sidebar({
   mobileOpen,
   onToggle,
   onCloseMobile,
+  companyName = "Esset Inventory",
+  companyTagline = "Ethiopia",
 }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -46,9 +50,9 @@ export function Sidebar({
           {showLabels && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
-                TextilePro
+                {companyName}
               </p>
-              <p className="truncate text-xs text-muted">Gabicon · Ethiopia</p>
+              <p className="truncate text-xs text-muted">{companyTagline}</p>
             </div>
           )}
         </div>

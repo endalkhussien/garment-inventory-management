@@ -513,7 +513,16 @@ model Notification {
 }
 
 model AppSetting {
-  id                    String @id @default("default")
-  largeStockOutThreshold Decimal @default(50) @db.Decimal(12, 3)
+  id                           String  @id @default("default")
+  companyName                  String  @default("Esset Inventory")
+  companyTagline               String  @default("Ethiopia")
+  currencyCode                 String  @default("ETB")
+  locale                       String  @default("en-ET")
+  largeStockOutThreshold       Decimal @default(50) @db.Decimal(12, 3)
   requirePriceOverrideApproval Boolean @default(false)
+  defaultOverheadPercent       Decimal @default(10) @db.Decimal(6, 2)
+  defaultMarginPercent         Decimal @default(30) @db.Decimal(6, 2)
+  defaultFinishedGoodsReorderAt Int    @default(5)
+  payrollDaysPerMonth          Int     @default(30)
+  updatedAt                    DateTime @default(now()) @updatedAt
 }

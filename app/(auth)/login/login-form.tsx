@@ -10,7 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema } from "@/lib/validations/auth";
 
-export function LoginForm() {
+export function LoginForm({
+  companyName = "Esset Inventory",
+  companyTagline = "Ethiopia",
+}: {
+  companyName?: string;
+  companyTagline?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
@@ -74,10 +80,12 @@ export function LoginForm() {
         </div>
         <div>
           <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-            Gabicon Textile
+            {companyName}
           </h1>
           <p className="text-sm text-muted">
-            Sign in to your factory workspace
+            {companyTagline
+              ? `Sign in · ${companyTagline}`
+              : "Sign in to your factory workspace"}
           </p>
         </div>
       </div>
