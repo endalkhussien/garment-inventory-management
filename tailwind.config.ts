@@ -35,12 +35,8 @@ const config: Config = {
       borderRadius: {
         lg: "0.5rem",
       },
-      spacing: {
-        1: "0.5rem",
-        2: "1rem",
-        3: "1.5rem",
-        4: "2rem",
-      },
+      // Keep Tailwind default spacing. Overriding 1–4 previously made
+      // py-2 too large inside h-10 fields and clipped input text.
     },
   },
   plugins: [],
