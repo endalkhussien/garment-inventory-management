@@ -17,6 +17,7 @@ export function canShopAccessPath(pathname: string) {
     pathname.startsWith("/shops/orders") ||
     pathname.startsWith("/shops/finance") ||
     pathname.startsWith("/sales") ||
+    pathname.startsWith("/account") ||
     pathname.startsWith("/api/auth")
   );
 }
@@ -27,4 +28,5 @@ export const shopAllowedPrefixes = [
   "/shops/orders",
   "/shops/finance",
   "/sales",
+  "/account",
 ];

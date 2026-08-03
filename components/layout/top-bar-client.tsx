@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 import { LogOut, Menu } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -86,7 +87,9 @@ export function TopBarClient({
             <DropdownMenuLabel>
               <div className="space-y-1">
                 <p className="text-sm font-medium">{user?.name ?? "User"}</p>
-                <p className="text-xs font-normal text-muted">{user?.email}</p>
+                <p className="text-xs font-normal text-muted">
+                  {user?.username ? `@${user.username}` : user?.email}
+                </p>
                 {user?.branch && (
                   <p className="text-xs font-normal text-muted">
                     {user.branch.name}
@@ -95,6 +98,9 @@ export function TopBarClient({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/account">My account</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => signOut({ callbackUrl: "/login" })}
             >

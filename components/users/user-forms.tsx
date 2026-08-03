@@ -43,6 +43,7 @@ export function CreateUserForm({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
       name: "",
+      username: "",
       email: "",
       password: "",
       roleId: preferredRoleId,
@@ -64,22 +65,29 @@ export function CreateUserForm({
   return (
     <form onSubmit={onSubmit} className="grid gap-3 md:grid-cols-2">
       <div className="space-y-1">
-        <Label>Name</Label>
-        <Input {...register("name")} />
+        <Label>Display name</Label>
+        <Input {...register("name")} placeholder="Sara" />
         {errors.name && (
           <p className="text-xs text-danger">{errors.name.message}</p>
         )}
       </div>
       <div className="space-y-1">
-        <Label>Email</Label>
-        <Input type="email" {...register("email")} />
+        <Label>Username (for login)</Label>
+        <Input {...register("username")} placeholder="bole_shop" autoComplete="off" />
+        {errors.username && (
+          <p className="text-xs text-danger">{errors.username.message}</p>
+        )}
+      </div>
+      <div className="space-y-1">
+        <Label>Email (optional)</Label>
+        <Input type="email" {...register("email")} placeholder="Leave blank if not needed" />
         {errors.email && (
           <p className="text-xs text-danger">{errors.email.message}</p>
         )}
       </div>
       <div className="space-y-1">
         <Label>Password</Label>
-        <Input type="password" {...register("password")} />
+        <Input type="password" {...register("password")} autoComplete="new-password" />
         {errors.password && (
           <p className="text-xs text-danger">{errors.password.message}</p>
         )}
@@ -94,7 +102,7 @@ export function CreateUserForm({
           ))}
         </Select>
       </div>
-      <div className="space-y-1 md:col-span-2">
+      <div className="space-y-1">
         <Label>Branch (required for Shop)</Label>
         <Select {...register("branchId")}>
           <option value="__none__">None (Admin / HQ)</option>
@@ -123,6 +131,7 @@ export function EditUserForm({
   user: {
     id: string;
     name: string | null;
+    username: string | null;
     roleId: string;
     branchId: string | null;
     isActive: boolean;
@@ -140,6 +149,7 @@ export function EditUserForm({
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
       name: user.name ?? "",
+      username: user.username ?? "",
       roleId: user.roleId,
       branchId: user.branchId ?? "__none__",
       isActive: user.isActive ? "true" : "false",
@@ -164,10 +174,17 @@ export function EditUserForm({
   return (
     <form onSubmit={onSubmit} className="grid gap-3 md:grid-cols-2">
       <div className="space-y-1">
-        <Label>Name</Label>
+        <Label>Display name</Label>
         <Input {...register("name")} />
         {errors.name && (
           <p className="text-xs text-danger">{errors.name.message}</p>
+        )}
+      </div>
+      <div className="space-y-1">
+        <Label>Username</Label>
+        <Input {...register("username")} />
+        {errors.username && (
+          <p className="text-xs text-danger">{errors.username.message}</p>
         )}
       </div>
       <div className="space-y-1">
@@ -199,8 +216,13 @@ export function EditUserForm({
         </Select>
       </div>
       <div className="space-y-1">
-        <Label>New password (optional)</Label>
-        <Input type="password" {...register("password")} placeholder="Leave blank to keep" />
+        <Label>Reset password (optional)</Label>
+        <Input
+          type="password"
+          {...register("password")}
+          placeholder="Leave blank to keep"
+          autoComplete="new-password"
+        />
       </div>
       <div className="md:col-span-2 flex items-center gap-3">
         <Button type="submit" disabled={isSubmitting}>

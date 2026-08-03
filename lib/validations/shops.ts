@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { usernameSchema } from "@/lib/validations/auth";
+
 export const initiateShopSchema = z
   .object({
     name: z.string().trim().min(1, "Shop name is required"),
@@ -10,35 +12,33 @@ export const initiateShopSchema = z
       .max(20, "Code is too long")
       .regex(/^[A-Za-z0-9_-]+$/, "Code: letters, numbers, - or _ only"),
     address: z.string().trim().optional().nullable(),
-    createManager: z.boolean().default(false),
-    managerName: z.string().trim().optional().nullable(),
-    managerEmail: z
-      .union([z.literal(""), z.string().trim().email("Invalid email")])
-      .optional()
-      .nullable(),
-    managerPassword: z.string().optional().nullable(),
+    createLogin: z.boolean().default(false),
+    staffName: z.string().trim().optional().nullable(),
+    username: z.string().trim().optional().nullable(),
+    password: z.string().optional().nullable(),
   })
   .superRefine((data, ctx) => {
-    if (!data.createManager) return;
-    if (!data.managerName?.trim()) {
+    if (!data.createLogin) return;
+    if (!data.staffName?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Manager name is required",
-        path: ["managerName"],
+        message: "Staff name is required",
+        path: ["staffName"],
       });
     }
-    if (!data.managerEmail?.trim()) {
+    const userParsed = usernameSchema.safeParse(data.username ?? "");
+    if (!userParsed.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Manager email is required",
-        path: ["managerEmail"],
+        message: userParsed.error.issues[0]?.message ?? "Invalid username",
+        path: ["username"],
       });
     }
-    if (!data.managerPassword || data.managerPassword.length < 6) {
+    if (!data.password || data.password.length < 6) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Password must be at least 6 characters",
-        path: ["managerPassword"],
+        path: ["password"],
       });
     }
   });

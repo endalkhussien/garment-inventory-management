@@ -31,7 +31,9 @@ export default async function UserDetailPage({ params }: PageProps) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{user.name ?? user.email}</h1>
-          <p className="text-sm text-muted">{user.email}</p>
+          <p className="text-sm text-muted">
+            {user.username ? `@${user.username}` : user.email}
+          </p>
         </div>
         <Button asChild variant="secondary">
           <Link href="/users">Back</Link>
@@ -44,6 +46,7 @@ export default async function UserDetailPage({ params }: PageProps) {
           user={{
             id: user.id,
             name: user.name,
+            username: user.username,
             roleId: user.roleId,
             branchId: user.branchId,
             isActive: user.isActive,

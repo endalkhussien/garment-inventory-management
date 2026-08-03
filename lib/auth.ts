@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        login: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -26,18 +26,21 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const email = parsed.data.email.trim().toLowerCase();
+        const login = parsed.data.login;
 
         try {
-          const user = await prisma.user.findUnique({
-            where: { email },
+          const user = await prisma.user.findFirst({
+            where: {
+              isActive: true,
+              OR: [{ username: login }, { email: login }],
+            },
             include: {
               role: true,
               branch: true,
             },
           });
 
-          if (!user || !user.isActive) {
+          if (!user) {
             return null;
           }
 
@@ -54,6 +57,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
+            username: user.username,
             role: {
               id: user.role.id,
               name: user.role.name,
@@ -68,7 +72,6 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error("[auth] login failed:", error);
-          // Surface DB outage distinctly so UI can show a useful message
           throw new Error("DATABASE_UNAVAILABLE");
         }
       },
@@ -80,6 +83,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.branch = user.branch;
+        token.username = user.username ?? null;
       }
 
       return token;
@@ -89,6 +93,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.branch = token.branch;
+        session.user.username = token.username ?? null;
       }
 
       return session;

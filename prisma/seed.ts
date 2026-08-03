@@ -80,15 +80,37 @@ async function main() {
       branchId: mainBranch.id,
       isActive: true,
       name: "Admin",
+      username: "admin",
     },
     create: {
       email: "admin@example.com",
+      username: "admin",
       name: "Admin",
       passwordHash,
       roleId: adminRole.id,
       branchId: mainBranch.id,
     },
   });
+
+  // Backfill usernames for any users still missing one
+  const missing = await prisma.user.findMany({ where: { username: null } });
+  for (const u of missing) {
+    const base = u.email.split("@")[0]?.replace(/[^a-zA-Z0-9._-]/g, "") || "user";
+    let candidate = base.toLowerCase().slice(0, 28);
+    let n = 0;
+    while (
+      await prisma.user.findFirst({
+        where: { username: candidate, NOT: { id: u.id } },
+      })
+    ) {
+      n += 1;
+      candidate = `${base.slice(0, 24)}${n}`;
+    }
+    await prisma.user.update({
+      where: { id: u.id },
+      data: { username: candidate },
+    });
+  }
 
   void shopRole;
 
@@ -115,10 +137,9 @@ async function main() {
 
   console.log("Minimal seed complete.");
   console.log("");
-  console.log("Login:  admin@example.com / admin123");
-  console.log("Roles:  Admin / Manager (HQ) · Shop (assign to a shop branch)");
-  console.log("Branches: HQ warehouse + SHOP1 (empty) — edit names under Branches.");
-  console.log("Create Shop users under Users & roles and link them to SHOP1.");
+  console.log("Login:  admin / admin123  (or admin@example.com)");
+  console.log("Roles:  Admin / Manager (HQ) · Shop (unique username + password)");
+  console.log("Create shops under Shops → Initiate (with shop login).");
 }
 
 main()

@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
+import { emailFromUsername } from "@/lib/validations/users";
+import { usernameSchema } from "@/lib/validations/auth";
 import {
   initiateShopSchema,
   updateShopSchema,
@@ -62,16 +64,18 @@ export async function initiateShop(
         },
       });
 
-      if (data.createManager) {
+      if (data.createLogin) {
         const shopRole = await tx.role.findUnique({ where: { name: "Shop" } });
         if (!shopRole) {
-          throw new Error('Shop role missing. Run seed first.');
+          throw new Error("Shop role missing. Run seed first.");
         }
+        const username = usernameSchema.parse(data.username);
         await tx.user.create({
           data: {
-            name: data.managerName!.trim(),
-            email: data.managerEmail!.trim().toLowerCase(),
-            passwordHash: await hash(data.managerPassword!, 12),
+            name: data.staffName!.trim(),
+            username,
+            email: emailFromUsername(username),
+            passwordHash: await hash(data.password!, 12),
             roleId: shopRole.id,
             branchId: created.id,
             isActive: true,
@@ -90,8 +94,11 @@ export async function initiateShop(
       error.code === "P2002"
     ) {
       const target = (error.meta?.target as string[] | undefined)?.join(" ") ?? "";
+      if (target.includes("username")) {
+        return { success: false, error: "That username is already taken." };
+      }
       if (target.includes("email")) {
-        return { success: false, error: "That email is already in use." };
+        return { success: false, error: "Login already exists." };
       }
       return { success: false, error: "Shop code already exists." };
     }

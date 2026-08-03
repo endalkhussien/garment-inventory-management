@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
 import {
   createUserSchema,
+  emailFromUsername,
   updateUserSchema,
   type CreateUserInput,
   type UpdateUserPayload,
@@ -44,12 +45,19 @@ export async function createUser(input: CreateUserInput): Promise<ActionResult> 
     };
   }
 
+  const username = parsed.data.username;
+  const email =
+    parsed.data.email && parsed.data.email.trim() !== ""
+      ? parsed.data.email.trim().toLowerCase()
+      : emailFromUsername(username);
+
   try {
     const passwordHash = await hash(parsed.data.password, 12);
     const created = await prisma.user.create({
       data: {
         name: parsed.data.name,
-        email: parsed.data.email.toLowerCase(),
+        username,
+        email,
         passwordHash,
         roleId: role.id,
         branchId,
@@ -57,12 +65,17 @@ export async function createUser(input: CreateUserInput): Promise<ActionResult> 
       },
     });
     revalidatePath("/users");
+    revalidatePath("/setup/shops");
     return { success: true, id: created.id };
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
+      const target = (error.meta?.target as string[] | undefined)?.join(" ") ?? "";
+      if (target.includes("username")) {
+        return { success: false, error: "Username already taken." };
+      }
       return { success: false, error: "Email already exists." };
     }
     return { success: false, error: "Could not create user." };
@@ -100,6 +113,7 @@ export async function updateUser(
   try {
     const data: Prisma.UserUpdateInput = {
       name: parsed.data.name,
+      username: parsed.data.username,
       role: { connect: { id: role.id } },
       isActive,
       branch: branchId
@@ -115,7 +129,13 @@ export async function updateUser(
     revalidatePath("/users");
     revalidatePath(`/users/${id}`);
     return { success: true, id };
-  } catch {
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return { success: false, error: "Username already taken." };
+    }
     return { success: false, error: "User not found." };
   }
 }

@@ -12,7 +12,7 @@ export function InitiateShopForm({ suggestedCode }: { suggestedCode: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [createManager, setCreateManager] = useState(true);
+  const [createLogin, setCreateLogin] = useState(true);
 
   return (
     <form
@@ -26,10 +26,10 @@ export function InitiateShopForm({ suggestedCode }: { suggestedCode: string }) {
           name: String(fd.get("name") ?? ""),
           code: String(fd.get("code") ?? ""),
           address: String(fd.get("address") ?? ""),
-          createManager,
-          managerName: String(fd.get("managerName") ?? ""),
-          managerEmail: String(fd.get("managerEmail") ?? ""),
-          managerPassword: String(fd.get("managerPassword") ?? ""),
+          createLogin,
+          staffName: String(fd.get("staffName") ?? ""),
+          username: String(fd.get("username") ?? ""),
+          password: String(fd.get("password") ?? ""),
         });
         setPending(false);
         if (!result.success || !result.id) {
@@ -73,44 +73,53 @@ export function InitiateShopForm({ suggestedCode }: { suggestedCode: string }) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border p-4 space-y-3">
+      <div className="space-y-3 rounded-lg border border-border p-4">
         <label className="flex items-start gap-2 text-sm">
           <input
             type="checkbox"
             className="mt-1 rounded"
-            checked={createManager}
-            onChange={(e) => setCreateManager(e.target.checked)}
+            checked={createLogin}
+            onChange={(e) => setCreateLogin(e.target.checked)}
           />
           <span>
-            <span className="font-medium">Create first shop login</span>
+            <span className="font-medium">Create shop login now</span>
             <span className="block text-xs text-muted">
-              Shop role, assigned to this location — can sell and order stock.
+              Unique username + password. Staff can change the password after
+              signing in under My account.
             </span>
           </span>
         </label>
 
-        {createManager && (
+        {createLogin && (
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <Label>Staff name</Label>
-              <Input name="managerName" required={createManager} placeholder="Sara" />
-            </div>
-            <div className="space-y-1">
-              <Label>Login email</Label>
+            <div className="space-y-1 md:col-span-2">
+              <Label>Staff display name</Label>
               <Input
-                name="managerEmail"
-                type="email"
-                required={createManager}
-                placeholder="shop2@yourcompany.com"
+                name="staffName"
+                required={createLogin}
+                placeholder="Sara — Bole counter"
               />
             </div>
-            <div className="space-y-1 md:col-span-2">
+            <div className="space-y-1">
+              <Label>Username</Label>
+              <Input
+                name="username"
+                required={createLogin}
+                autoComplete="off"
+                placeholder="bole_shop"
+              />
+              <p className="text-xs text-muted">
+                Letters, numbers, . _ - · no spaces
+              </p>
+            </div>
+            <div className="space-y-1">
               <Label>Temporary password</Label>
               <Input
-                name="managerPassword"
+                name="password"
                 type="password"
-                required={createManager}
+                required={createLogin}
                 minLength={6}
+                autoComplete="new-password"
                 placeholder="At least 6 characters"
               />
             </div>

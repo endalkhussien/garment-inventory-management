@@ -61,6 +61,7 @@ export default async function UsersPage({
           <thead className="bg-page/40 text-xs uppercase text-muted">
             <tr>
               <th className="px-3 py-3">User</th>
+              <th className="px-3 py-3">Username</th>
               <th className="px-3 py-3">Role</th>
               <th className="px-3 py-3">Branch</th>
               <th className="px-3 py-3">Status</th>
@@ -77,6 +78,9 @@ export default async function UsersPage({
                     {u.name ?? u.email}
                   </Link>
                   <p className="text-xs text-muted">{u.email}</p>
+                </td>
+                <td className="px-3 py-3 font-medium">
+                  {u.username ? `@${u.username}` : "—"}
                 </td>
                 <td className="px-3 py-3">{u.role.name}</td>
                 <td className="px-3 py-3 text-muted">

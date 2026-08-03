@@ -21,7 +21,7 @@ export function LoginForm({
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +30,7 @@ export function LoginForm({
     event.preventDefault();
     setError(null);
 
-    const parsed = loginSchema.safeParse({ email, password });
+    const parsed = loginSchema.safeParse({ login, password });
 
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid credentials");
@@ -55,7 +55,7 @@ export function LoginForm({
     }
 
     const result = await signIn("credentials", {
-      email: parsed.data.email,
+      login: parsed.data.login,
       password: parsed.data.password,
       redirect: false,
       callbackUrl,
@@ -64,7 +64,7 @@ export function LoginForm({
     setIsSubmitting(false);
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError("Invalid username or password");
       return;
     }
 
@@ -92,16 +92,19 @@ export function LoginForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="login">Username</Label>
           <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="admin@example.com"
+            id="login"
+            type="text"
+            autoComplete="username"
+            value={login}
+            onChange={(event) => setLogin(event.target.value)}
+            placeholder="admin or bole_shop"
             required
           />
+          <p className="text-xs text-muted">
+            Shop staff use the username you created. Email still works too.
+          </p>
         </div>
 
         <div className="space-y-2">
