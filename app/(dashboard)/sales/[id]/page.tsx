@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { ReturnButton } from "@/components/sales/return-button";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,16 @@ import { Card } from "@/components/ui/card";
 import { formatEtb, toNumber } from "@/lib/format";
 import { paymentMethodLabels } from "@/lib/validations/sales";
 import { prisma } from "@/lib/prisma";
+import {
+  getShopBranchId,
+  isShopRole,
+  requireSession,
+} from "@/lib/rbac";
 
 type PageProps = { params: { id: string } };
 
 export default async function SaleDetailPage({ params }: PageProps) {
+  const session = await requireSession();
   const sale = await prisma.sale.findUnique({
     where: { id: params.id },
     include: {
@@ -23,6 +29,13 @@ export default async function SaleDetailPage({ params }: PageProps) {
   });
 
   if (!sale) notFound();
+
+  if (isShopRole(session.user.role.name)) {
+    const shopBranchId = getShopBranchId(session);
+    if (shopBranchId !== sale.branchId) {
+      redirect("/sales");
+    }
+  }
 
   return (
     <div className="space-y-4">

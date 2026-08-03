@@ -16,6 +16,7 @@ export default async function SetupGuidePage() {
     withBom,
     openOrders,
     users,
+    shopCount,
   ] = await Promise.all([
     prisma.branch.count(),
     prisma.materialCategory.count(),
@@ -29,6 +30,7 @@ export default async function SetupGuidePage() {
       where: { status: { in: ["DRAFT", "IN_PROGRESS"] } },
     }),
     prisma.user.count({ where: { isActive: true } }),
+    prisma.branch.count({ where: { isShop: true, isActive: true } }),
   ]);
 
   const steps = [
@@ -36,7 +38,13 @@ export default async function SetupGuidePage() {
       done: branches > 0,
       title: "1. Branches",
       href: "/setup/branches",
-      detail: "Warehouse (factory) + shop locations",
+      detail: "Warehouse / factory stock location",
+    },
+    {
+      done: shopCount > 0,
+      title: "1b. Shops",
+      href: "/setup/shops",
+      detail: "Initiate retail shops + optional first Shop login",
     },
     {
       done: materialCategories > 0 && productCategories > 0,
@@ -48,7 +56,7 @@ export default async function SetupGuidePage() {
       done: users >= 2,
       title: "3. Users & roles",
       href: "/users",
-      detail: "Admin for factory · Shop users linked to a shop branch",
+      detail: "Admin for factory · Shop users linked to a shop",
     },
     {
       done: true,

@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createNotificationForAdmins } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/rbac";
 import { getAppSettings } from "@/lib/settings";
 import {
   returnSchema,
@@ -71,6 +72,7 @@ async function nextReceiptNumber(tx: Prisma.TransactionClient) {
 export async function transferFinishedGoods(
   input: TransferInput,
 ): Promise<ActionResult> {
+  await requireAdmin();
   const parsed = transferSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };

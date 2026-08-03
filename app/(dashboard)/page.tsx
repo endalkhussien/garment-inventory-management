@@ -13,6 +13,7 @@ import {
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Card } from "@/components/ui/card";
 import { getFactoryDashboardMetrics } from "@/lib/dashboard-metrics";
+import { formatEtb, toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import {
   getShopBranchId,
@@ -62,6 +63,21 @@ async function ShopDashboard({
   const low = stocks.filter((s) => s.quantity <= s.reorderAt);
   const units = stocks.reduce((sum, s) => sum + s.quantity, 0);
 
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const todaySales = await prisma.sale.aggregate({
+    where: {
+      branchId,
+      isReturn: false,
+      createdAt: { gte: start },
+    },
+    _sum: { total: true },
+    _count: true,
+  });
+  const pendingOrders = await prisma.shopStockOrder.count({
+    where: { shopBranchId: branchId, status: "PENDING" },
+  });
+
   return (
     <div className="space-y-4">
       <div>
@@ -69,16 +85,28 @@ async function ShopDashboard({
           {branchName ?? "Shop"}
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Check stock, then sell at the counter.
+          Sell, manage stock, and order from warehouse — connected to HQ.
         </p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Units on hand" value={String(units)} icon={Package} />
         <KpiCard
           label="Low stock"
           value={String(low.length)}
           variant={low.length > 0 ? "warning" : "success"}
           icon={AlertTriangle}
+        />
+        <KpiCard
+          label="Today's sales"
+          value={formatEtb(toNumber(todaySales._sum.total ?? 0))}
+          hint={`${todaySales._count} receipts`}
+          icon={Factory}
+        />
+        <KpiCard
+          label="Pending orders"
+          value={String(pendingOrders)}
+          variant={pendingOrders > 0 ? "warning" : "default"}
+          icon={Package}
         />
       </div>
       <div className="flex flex-wrap gap-2">
@@ -89,12 +117,37 @@ async function ShopDashboard({
           Open POS
         </Link>
         <Link
+          href={low.length > 0 ? "/shops/orders/new" : "/shops/orders"}
+          className="inline-flex rounded-lg border border-border px-4 py-2 text-sm text-secondary"
+        >
+          {low.length > 0 ? "Reorder low stock" : "Order stock"}
+        </Link>
+        <Link
+          href="/shops/finance"
+          className="inline-flex rounded-lg border border-border px-4 py-2 text-sm text-secondary"
+        >
+          Finance
+        </Link>
+        <Link
           href="/shops/stock"
           className="inline-flex rounded-lg border border-border px-4 py-2 text-sm text-secondary"
         >
-          View stock
+          My stock
         </Link>
       </div>
+      {low.length > 0 && (
+        <Card className="text-sm">
+          <p className="font-medium text-warning">Low stock — reorder soon</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+            {low.slice(0, 5).map((s) => (
+              <li key={s.id}>
+                {s.variant.product.name} ({s.variant.size}/{s.variant.color}):{" "}
+                {s.quantity} left
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
     </div>
   );
 }
@@ -102,6 +155,9 @@ async function ShopDashboard({
 async function FactoryDashboard() {
   const metrics = await getFactoryDashboardMetrics();
   const { kpis } = metrics;
+  const pendingShopOrders = await prisma.shopStockOrder.count({
+    where: { status: { in: ["PENDING", "APPROVED"] } },
+  });
 
   return (
     <div className="space-y-5">
@@ -109,7 +165,7 @@ async function FactoryDashboard() {
         <div>
           <h1 className="page-title">Home</h1>
           <p className="mt-1 text-sm text-muted">
-            Stock, production, and team — at a glance.
+            Stock, production, shops, and team — at a glance.
           </p>
         </div>
         <Link
@@ -119,6 +175,26 @@ async function FactoryDashboard() {
           Log today’s output
         </Link>
       </div>
+
+      {pendingShopOrders > 0 && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-warning/40">
+          <div>
+            <p className="text-sm font-medium text-warning">
+              {pendingShopOrders} shop stock order
+              {pendingShopOrders === 1 ? "" : "s"} awaiting action
+            </p>
+            <p className="text-xs text-muted">
+              Approve or fulfill so shops can keep selling.
+            </p>
+          </div>
+          <Link
+            href="/shops/orders"
+            className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
+          >
+            Review shop orders
+          </Link>
+        </Card>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
@@ -168,10 +244,17 @@ async function FactoryDashboard() {
             New production order
           </Link>
           <Link
-            href="/production/employees"
+            href="/setup/shops"
             className="rounded-lg border border-border/60 px-3 py-2 text-sm text-secondary hover:border-primary/40"
           >
-            Employees
+            Manage shops
+          </Link>
+          <Link
+            href="/shops/orders"
+            className="rounded-lg border border-border/60 px-3 py-2 text-sm text-secondary hover:border-primary/40"
+          >
+            Shop orders
+            {pendingShopOrders > 0 ? ` (${pendingShopOrders})` : ""}
           </Link>
           <Link
             href="/shops/transfers"

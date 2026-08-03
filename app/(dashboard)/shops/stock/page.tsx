@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ShopReorderEditor } from "@/components/shops/shop-reorder-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -55,8 +56,18 @@ export default async function ShopStockPage({
           </p>
         </div>
         {isAdminRole(session.user.role.name) && (
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="secondary">
+              <Link href="/shops/orders">Shop orders</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/shops/transfers">Transfer stock</Link>
+            </Button>
+          </div>
+        )}
+        {shopOnly && (
           <Button asChild>
-            <Link href="/shops/transfers">Transfer stock</Link>
+            <Link href="/shops/orders/new">Order from warehouse</Link>
           </Button>
         )}
       </div>
@@ -93,6 +104,7 @@ export default async function ShopStockPage({
               <th className="px-3 py-3">Product</th>
               <th className="px-3 py-3">Location</th>
               <th className="px-3 py-3">Qty</th>
+              <th className="px-3 py-3">Reorder at</th>
               <th className="px-3 py-3">Status</th>
             </tr>
           </thead>
@@ -105,6 +117,13 @@ export default async function ShopStockPage({
                 <td className="px-3 py-3 text-muted">{s.branch.name}</td>
                 <td className="px-3 py-3">{s.quantity}</td>
                 <td className="px-3 py-3">
+                  {shopOnly || isAdminRole(session.user.role.name) ? (
+                    <ShopReorderEditor stockId={s.id} reorderAt={s.reorderAt} />
+                  ) : (
+                    s.reorderAt
+                  )}
+                </td>
+                <td className="px-3 py-3">
                   {s.quantity <= s.reorderAt ? (
                     <Badge variant="warning">Low</Badge>
                   ) : (
@@ -115,9 +134,10 @@ export default async function ShopStockPage({
             ))}
             {stocks.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-3 py-6 text-muted">
-                  No finished goods here yet. Complete a production order or
-                  transfer stock in.
+                <td colSpan={5} className="px-3 py-6 text-muted">
+                  {shopOnly
+                    ? "No stock here yet. Order from the warehouse."
+                    : "No finished goods here yet. Complete a production order or transfer stock in."}
                 </td>
               </tr>
             )}

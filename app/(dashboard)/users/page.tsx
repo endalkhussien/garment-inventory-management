@@ -6,7 +6,11 @@ import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams?: { branchId?: string };
+}) {
   await requireAdmin();
 
   const [users, roles, branches] = await Promise.all([
@@ -21,6 +25,12 @@ export default async function UsersPage() {
     }),
   ]);
 
+  const defaultBranchId = searchParams?.branchId;
+  const preselectShop = Boolean(
+    defaultBranchId &&
+      branches.some((b) => b.id === defaultBranchId && b.isShop),
+  );
+
   return (
     <div className="space-y-4">
       <div>
@@ -28,7 +38,11 @@ export default async function UsersPage() {
         <p className="mt-1 text-sm text-muted">
           <strong>Admin</strong> — factory, stock, payroll, all shops.{" "}
           <strong>Shop</strong> — POS and their shop stock only (must assign a
-          branch).
+          branch). Prefer{" "}
+          <Link href="/setup/shops" className="text-secondary hover:underline">
+            Initiate shop
+          </Link>{" "}
+          to create shop + first login together.
         </p>
       </div>
 
@@ -37,6 +51,8 @@ export default async function UsersPage() {
         <CreateUserForm
           roles={roles.map((r) => ({ id: r.id, name: r.name }))}
           branches={branches.map((b) => ({ id: b.id, name: b.name }))}
+          defaultBranchId={defaultBranchId}
+          defaultRoleName={preselectShop ? "Shop" : undefined}
         />
       </Card>
 

@@ -17,21 +17,21 @@ async function main() {
     },
   });
 
-  await prisma.role.upsert({
+  const shopRole = await prisma.role.upsert({
     where: { name: "Shop" },
-    update: { description: "Retail shop — POS and own shop stock only" },
+    update: { description: "Retail shop — POS, own stock, order from warehouse, finance" },
     create: {
       name: "Shop",
-      description: "Retail shop — POS and own shop stock only",
+      description: "Retail shop — POS, own stock, order from warehouse, finance",
     },
   });
 
   await prisma.role.upsert({
     where: { name: "Manager" },
-    update: { description: "Treated like Admin for access" },
+    update: { description: "Like Admin — can fulfill shop stock orders" },
     create: {
       name: "Manager",
-      description: "Treated like Admin for access",
+      description: "Like Admin — can fulfill shop stock orders",
     },
   });
 
@@ -49,6 +49,24 @@ async function main() {
       address: "",
       isWarehouse: true,
       isShop: false,
+    },
+  });
+
+  // Starter shop branch (empty stock) so you can attach a Shop user
+  await prisma.branch.upsert({
+    where: { code: "SHOP1" },
+    update: {
+      name: "Retail Shop 1",
+      isWarehouse: false,
+      isShop: true,
+      isActive: true,
+    },
+    create: {
+      name: "Retail Shop 1",
+      code: "SHOP1",
+      address: "",
+      isWarehouse: false,
+      isShop: true,
     },
   });
 
@@ -72,10 +90,7 @@ async function main() {
     },
   });
 
-  // Remove demo shop user if it still exists
-  await prisma.user.deleteMany({
-    where: { email: "shop@example.com" },
-  });
+  void shopRole;
 
   await prisma.appSetting.upsert({
     where: { id: "default" },
@@ -101,8 +116,9 @@ async function main() {
   console.log("Minimal seed complete.");
   console.log("");
   console.log("Login:  admin@example.com / admin123");
-  console.log("Then create: branches, categories, materials, products, users.");
-  console.log("Change the admin password after first login (Users).");
+  console.log("Roles:  Admin / Manager (HQ) · Shop (assign to a shop branch)");
+  console.log("Branches: HQ warehouse + SHOP1 (empty) — edit names under Branches.");
+  console.log("Create Shop users under Users & roles and link them to SHOP1.");
 }
 
 main()

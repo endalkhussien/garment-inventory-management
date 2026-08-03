@@ -16,6 +16,7 @@ import {
   Store,
   Users,
   Wallet,
+  WalletCards,
 } from "lucide-react";
 
 import { isAdminRole, isShopRole } from "@/lib/rbac-shared";
@@ -79,6 +80,11 @@ const adminSections: NavSection[] = [
         label: "Transfer to shop",
         href: "/shops/transfers",
         icon: ArrowLeftRight,
+      },
+      {
+        label: "Shop orders",
+        href: "/shops/orders",
+        icon: ClipboardList,
       },
       {
         label: "RM transfers",
@@ -146,6 +152,12 @@ const adminSections: NavSection[] = [
     title: "ACCESS",
     items: [
       {
+        label: "Shops",
+        href: "/setup/shops",
+        icon: Store,
+        description: "Open, edit, close retail shops",
+      },
+      {
         label: "Branches",
         href: "/setup/branches",
         icon: MapPin,
@@ -184,9 +196,21 @@ const shopSections: NavSection[] = [
         icon: ShoppingCart,
       },
       {
-        label: "Shop stock",
+        label: "My stock",
         href: "/shops/stock",
         icon: Store,
+      },
+      {
+        label: "Order stock",
+        href: "/shops/orders",
+        icon: ClipboardList,
+        description: "Request from warehouse",
+      },
+      {
+        label: "Finance",
+        href: "/shops/finance",
+        icon: WalletCards,
+        description: "Sales & cash summary",
       },
     ],
   },

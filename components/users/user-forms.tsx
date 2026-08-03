@@ -22,12 +22,18 @@ type Option = { id: string; name: string };
 export function CreateUserForm({
   roles,
   branches,
+  defaultBranchId,
+  defaultRoleName,
 }: {
   roles: Option[];
   branches: Option[];
+  defaultBranchId?: string;
+  defaultRoleName?: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const preferredRoleId =
+    roles.find((r) => r.name === defaultRoleName)?.id ?? roles[0]?.id ?? "";
   const {
     register,
     handleSubmit,
@@ -39,8 +45,8 @@ export function CreateUserForm({
       name: "",
       email: "",
       password: "",
-      roleId: roles[0]?.id ?? "",
-      branchId: "__none__",
+      roleId: preferredRoleId,
+      branchId: defaultBranchId ?? "__none__",
     },
   });
 

@@ -17,12 +17,21 @@ export default async function BranchesSetupPage() {
         <div>
           <h1 className="text-2xl font-semibold">Branches</h1>
           <p className="mt-1 text-sm text-muted">
-            Add, edit, or deactivate warehouse and shop locations anytime.
+            Warehouse and general locations. For retail shops, use{" "}
+            <Link href="/setup/shops" className="text-secondary hover:underline">
+              Shops
+            </Link>{" "}
+            to initiate properly.
           </p>
         </div>
-        <Button asChild variant="secondary">
-          <Link href="/setup">Setup guide</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/setup/shops">Manage shops</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/setup">Setup guide</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
