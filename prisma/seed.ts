@@ -165,6 +165,7 @@ async function main() {
     where: { id: "seed-rm-cotton-yarn" },
     update: {
       name: "Cotton yarn 30/1",
+      code: "YRN-COT-301",
       categoryId: catYarn.id,
       unitOfMeasure: "kg",
       supplierId: yarnSupplier.id,
@@ -178,12 +179,51 @@ async function main() {
     create: {
       id: "seed-rm-cotton-yarn",
       name: "Cotton yarn 30/1",
+      code: "YRN-COT-301",
       categoryId: catYarn.id,
       unitOfMeasure: "kg",
       supplierId: yarnSupplier.id,
       costPerUnit: new Prisma.Decimal("420.00"),
       reorderThreshold: new Prisma.Decimal("50"),
       quantity: new Prisma.Decimal("120"),
+      location: "Warehouse A / Bin 12",
+      branchId: mainBranch.id,
+    },
+  });
+
+  await prisma.materialLot.upsert({
+    where: { id: "seed-lot-cotton-a" },
+    update: {
+      usableQty: new Prisma.Decimal("60"),
+      status: "AVAILABLE",
+    },
+    create: {
+      id: "seed-lot-cotton-a",
+      rawMaterialId: "seed-rm-cotton-yarn",
+      lotCode: "DYE-2026-01",
+      rollNumber: "R-01",
+      shade: "Natural",
+      originalQty: new Prisma.Decimal("60"),
+      usableQty: new Prisma.Decimal("60"),
+      status: "AVAILABLE",
+      location: "Warehouse A / Bin 12",
+      branchId: mainBranch.id,
+      notes: "Seed fabric/yarn lot for FIFO issue demo",
+    },
+  });
+
+  await prisma.materialLot.upsert({
+    where: { id: "seed-lot-cotton-b" },
+    update: {},
+    create: {
+      id: "seed-lot-cotton-b",
+      rawMaterialId: "seed-rm-cotton-yarn",
+      lotCode: "DYE-2026-02",
+      rollNumber: "R-02",
+      shade: "Natural",
+      originalQty: new Prisma.Decimal("60"),
+      usableQty: new Prisma.Decimal("60"),
+      status: "AVAILABLE",
       location: "Warehouse A / Bin 12",
       branchId: mainBranch.id,
     },
@@ -463,6 +503,27 @@ async function main() {
       isWalkIn: true,
     },
   });
+
+  // Backfill per-branch raw stock from book qty (idempotent)
+  const materialsForStock = await prisma.rawMaterial.findMany({
+    where: { isActive: true },
+  });
+  for (const m of materialsForStock) {
+    const existing = await prisma.rawMaterialStock.count({
+      where: { rawMaterialId: m.id },
+    });
+    if (existing > 0) continue;
+    const qty = new Prisma.Decimal(m.quantity);
+    if (qty.lessThanOrEqualTo(0)) continue;
+    const branchId = m.branchId ?? mainBranch.id;
+    await prisma.rawMaterialStock.create({
+      data: {
+        rawMaterialId: m.id,
+        branchId,
+        quantity: qty,
+      },
+    });
+  }
 
   await prisma.appSetting.upsert({
     where: { id: "default" },

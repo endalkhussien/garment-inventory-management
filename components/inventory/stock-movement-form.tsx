@@ -23,12 +23,16 @@ type StockMovementFormProps = {
   rawMaterialId: string;
   unitOfMeasure: string;
   currentQuantity: number;
+  branches?: { id: string; name: string }[];
+  defaultBranchId?: string | null;
 };
 
 export function StockMovementForm({
   rawMaterialId,
   unitOfMeasure,
   currentQuantity,
+  branches = [],
+  defaultBranchId,
 }: StockMovementFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -47,6 +51,7 @@ export function StockMovementForm({
       quantity: 1,
       reasonCode: "PURCHASE",
       note: "",
+      branchId: defaultBranchId ?? "__none__",
     },
   });
 
@@ -76,6 +81,7 @@ export function StockMovementForm({
       quantity: 1,
       reasonCode: "PURCHASE",
       note: "",
+      branchId: defaultBranchId ?? "__none__",
     });
     router.refresh();
   });
@@ -83,7 +89,7 @@ export function StockMovementForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <p className="text-sm text-muted">
-        Current stock:{" "}
+        Current stock (all locations):{" "}
         <span className="font-medium text-[var(--text-primary)]">
           {currentQuantity.toLocaleString("en-ET", { maximumFractionDigits: 3 })}{" "}
           {unitOfMeasure}
@@ -111,6 +117,19 @@ export function StockMovementForm({
             <p className="text-xs text-danger">{errors.quantity.message}</p>
           )}
         </div>
+        {branches.length > 0 && (
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="branchId">Branch / location</Label>
+            <Select id="branchId" {...register("branchId")}>
+              <option value="__none__">Default (material branch / warehouse)</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="reasonCode">Reason code</Label>
           <Select id="reasonCode" {...register("reasonCode")}>

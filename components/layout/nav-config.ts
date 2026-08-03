@@ -1,12 +1,15 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeftRight,
+  BarChart3,
   ClipboardList,
   Factory,
   FolderTree,
   LayoutDashboard,
+  Layers,
   MapPin,
   Package,
+  ScanLine,
   Settings,
   Shirt,
   ShoppingCart,
@@ -58,6 +61,16 @@ const adminSections: NavSection[] = [
         icon: Package,
       },
       {
+        label: "Lots & rolls",
+        href: "/inventory/lots",
+        icon: Layers,
+      },
+      {
+        label: "Stocktake",
+        href: "/inventory/stocktake",
+        icon: ScanLine,
+      },
+      {
         label: "Finished goods",
         href: "/shops/stock",
         icon: Store,
@@ -65,6 +78,11 @@ const adminSections: NavSection[] = [
       {
         label: "Transfer to shop",
         href: "/shops/transfers",
+        icon: ArrowLeftRight,
+      },
+      {
+        label: "RM transfers",
+        href: "/inventory/raw-transfers",
         icon: ArrowLeftRight,
       },
     ],
@@ -111,6 +129,16 @@ const adminSections: NavSection[] = [
         label: "POS / Sales",
         href: "/sales",
         icon: ShoppingCart,
+      },
+    ],
+  },
+  {
+    title: "INSIGHTS",
+    items: [
+      {
+        label: "Reports",
+        href: "/reports",
+        icon: BarChart3,
       },
     ],
   },

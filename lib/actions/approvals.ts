@@ -8,6 +8,7 @@ import { createNotificationForAdmins, createNotificationForUser } from "@/lib/no
 import { prisma } from "@/lib/prisma";
 import { recordStockMovement } from "@/lib/actions/inventory";
 import { updateVariantPricing } from "@/lib/actions/products";
+import { applyStocktakeAdjustments } from "@/lib/actions/stocktake";
 import type { PricingInput } from "@/lib/validations/products";
 import type { StockMovementInput } from "@/lib/validations/inventory";
 
@@ -142,6 +143,27 @@ export async function reviewApproval(
         payload.pricing,
       );
       if (!result.success) return result;
+    }
+    if (approval.type === "STOCK_ADJUSTMENT") {
+      const payload = approval.payload as { sessionId?: string };
+      if (!payload.sessionId) {
+        return { success: false, error: "Invalid stocktake payload." };
+      }
+      const result = await applyStocktakeAdjustments(payload.sessionId);
+      if (!result.success) return result;
+    }
+  }
+
+  if (decision === "REJECTED" && approval.type === "STOCK_ADJUSTMENT") {
+    const payload = approval.payload as { sessionId?: string };
+    if (payload.sessionId) {
+      await prisma.stocktakeSession.updateMany({
+        where: {
+          id: payload.sessionId,
+          status: "PENDING_APPROVAL",
+        },
+        data: { status: "CANCELLED" },
+      });
     }
   }
 

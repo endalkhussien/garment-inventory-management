@@ -8,11 +8,18 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
 import {
+  adjustRawMaterialBranchStock,
+  ensureMaterialBookOnBranch,
+  resolveMaterialBranchId,
+} from "@/lib/raw-material-stock";
+import {
   capitalAssetSchema,
   rawMaterialSchema,
+  rawMaterialTransferSchema,
   stockMovementSchema,
   type CapitalAssetInput,
   type RawMaterialInput,
+  type RawMaterialTransferInput,
   type StockMovementInput,
 } from "@/lib/validations/inventory";
 
@@ -37,18 +44,33 @@ export async function createRawMaterial(
   }
 
   const data = parsed.data;
-  const created = await prisma.rawMaterial.create({
-    data: {
-      name: data.name,
-      categoryId: data.categoryId,
-      unitOfMeasure: data.unitOfMeasure,
-      supplierId: emptyToNull(data.supplierId),
-      costPerUnit: new Prisma.Decimal(data.costPerUnit),
-      reorderThreshold: new Prisma.Decimal(data.reorderThreshold),
-      quantity: new Prisma.Decimal(data.quantity ?? 0),
-      location: emptyToNull(data.location),
-      branchId: emptyToNull(data.branchId),
-    },
+  const opening = new Prisma.Decimal(data.quantity ?? 0);
+  const created = await prisma.$transaction(async (tx) => {
+    const material = await tx.rawMaterial.create({
+      data: {
+        name: data.name,
+        code: emptyToNull(data.code),
+        categoryId: data.categoryId,
+        unitOfMeasure: data.unitOfMeasure,
+        supplierId: emptyToNull(data.supplierId),
+        costPerUnit: new Prisma.Decimal(data.costPerUnit),
+        reorderThreshold: new Prisma.Decimal(data.reorderThreshold),
+        quantity: 0,
+        location: emptyToNull(data.location),
+        branchId: emptyToNull(data.branchId),
+      },
+    });
+
+    if (opening.greaterThan(0)) {
+      const branchId = await resolveMaterialBranchId(
+        tx,
+        material.id,
+        emptyToNull(data.branchId),
+      );
+      await adjustRawMaterialBranchStock(tx, material.id, branchId, opening);
+    }
+
+    return material;
   });
 
   revalidatePath("/inventory/raw-materials");
@@ -80,6 +102,7 @@ export async function updateRawMaterial(
       where: { id },
       data: {
         name: data.name,
+        code: emptyToNull(data.code),
         categoryId: data.categoryId,
         unitOfMeasure: data.unitOfMeasure,
         supplierId: emptyToNull(data.supplierId),
@@ -249,20 +272,21 @@ export async function recordStockMovement(
         throw new Error("Raw material not found.");
       }
 
-      const current = new Prisma.Decimal(material.quantity);
-      const next =
-        data.type === "IN" ? current.add(qty) : current.sub(qty);
+      const branchId = await resolveMaterialBranchId(
+        tx,
+        material.id,
+        emptyToNull(data.branchId),
+      );
 
-      if (next.lessThan(0)) {
-        throw new Error(
-          `Insufficient stock. Available: ${current.toString()} ${material.unitOfMeasure}.`,
-        );
-      }
+      await ensureMaterialBookOnBranch(tx, material.id, branchId);
 
-      await tx.rawMaterial.update({
-        where: { id: material.id },
-        data: { quantity: next },
-      });
+      const delta = data.type === "IN" ? qty : qty.neg();
+      const { totalQty } = await adjustRawMaterialBranchStock(
+        tx,
+        material.id,
+        branchId,
+        delta,
+      );
 
       await tx.stockMovement.create({
         data: {
@@ -271,7 +295,8 @@ export async function recordStockMovement(
           quantity: qty,
           reasonCode: data.reasonCode,
           note: emptyToNull(data.note),
-          balanceAfter: next,
+          balanceAfter: totalQty,
+          branchId,
           createdById: session?.user?.id ?? null,
         },
       });
@@ -289,5 +314,103 @@ export async function recordStockMovement(
   revalidatePath("/inventory/raw-materials");
   revalidatePath(`/inventory/raw-materials/${data.rawMaterialId}`);
   revalidatePath("/inventory/stock-movements");
+  revalidatePath("/inventory/raw-transfers");
   return { success: true };
+}
+
+export async function transferRawMaterial(
+  input: RawMaterialTransferInput,
+): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = rawMaterialTransferSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message };
+  }
+
+  const data = parsed.data;
+  const session = await getServerSession(authOptions);
+  const qty = new Prisma.Decimal(data.quantity);
+
+  try {
+    const transfer = await prisma.$transaction(async (tx) => {
+      const material = await tx.rawMaterial.findUnique({
+        where: { id: data.rawMaterialId },
+      });
+      if (!material || !material.isActive) {
+        throw new Error("Raw material not found.");
+      }
+
+      await ensureMaterialBookOnBranch(
+        tx,
+        data.rawMaterialId,
+        data.fromBranchId,
+      );
+
+      await adjustRawMaterialBranchStock(
+        tx,
+        data.rawMaterialId,
+        data.fromBranchId,
+        qty.neg(),
+      );
+      const { totalQty } = await adjustRawMaterialBranchStock(
+        tx,
+        data.rawMaterialId,
+        data.toBranchId,
+        qty,
+      );
+
+      await tx.stockMovement.create({
+        data: {
+          rawMaterialId: data.rawMaterialId,
+          type: "OUT",
+          quantity: qty,
+          reasonCode: "TRANSFER",
+          note:
+            emptyToNull(data.note) ??
+            `Transfer to branch ${data.toBranchId}`,
+          balanceAfter: totalQty,
+          branchId: data.fromBranchId,
+          createdById: session?.user?.id ?? null,
+        },
+      });
+      await tx.stockMovement.create({
+        data: {
+          rawMaterialId: data.rawMaterialId,
+          type: "IN",
+          quantity: qty,
+          reasonCode: "TRANSFER",
+          note:
+            emptyToNull(data.note) ??
+            `Transfer from branch ${data.fromBranchId}`,
+          balanceAfter: totalQty,
+          branchId: data.toBranchId,
+          createdById: session?.user?.id ?? null,
+        },
+      });
+
+      return tx.rawMaterialTransfer.create({
+        data: {
+          rawMaterialId: data.rawMaterialId,
+          fromBranchId: data.fromBranchId,
+          toBranchId: data.toBranchId,
+          quantity: qty,
+          note: emptyToNull(data.note),
+          transferredById: session?.user?.id ?? null,
+        },
+      });
+    });
+
+    revalidatePath("/inventory/raw-transfers");
+    revalidatePath("/inventory/raw-materials");
+    revalidatePath(`/inventory/raw-materials/${data.rawMaterialId}`);
+    return { success: true, id: transfer.id };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Transfer failed. No stock was moved.",
+    };
+  }
 }

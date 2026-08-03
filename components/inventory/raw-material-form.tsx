@@ -48,6 +48,7 @@ export function RawMaterialForm({
     resolver: zodResolver(rawMaterialSchema),
     defaultValues: {
       name: "",
+      code: "",
       categoryId: categories[0]?.id ?? "",
       unitOfMeasure: "kg",
       supplierId: "__none__",
@@ -89,6 +90,10 @@ export function RawMaterialForm({
           {errors.name && (
             <p className="text-xs text-danger">{errors.name.message}</p>
           )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="code">Material code (optional)</Label>
+          <Input id="code" {...register("code")} placeholder="FAB-COT-001" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="categoryId">Category</Label>

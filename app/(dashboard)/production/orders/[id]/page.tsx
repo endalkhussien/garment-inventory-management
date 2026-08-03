@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
+import { LeftoverReturnForm } from "@/components/inventory/leftover-return-form";
 import { OrderActions } from "@/components/production/order-actions";
 import { OutputEntryForm } from "@/components/production/output-entry-form";
 import { ProductionOrderForm } from "@/components/production/production-order-form";
@@ -153,6 +154,26 @@ export default async function ProductionOrderDetailPage({ params }: PageProps) {
               ))}
             </ul>
           )}
+        </Card>
+      )}
+
+      {order.status !== "DRAFT" && order.status !== "CANCELLED" && (
+        <Card>
+          <h2 className="mb-3 text-sm font-semibold">
+            Return leftover fabric / trims
+          </h2>
+          <p className="mb-3 text-xs text-muted">
+            After cutting, measure and return unused material with batch/roll so
+            it stays usable inventory — not invisible leftovers.
+          </p>
+          <LeftoverReturnForm
+            productionOrderId={order.id}
+            materials={order.variant.bomLines.map((line) => ({
+              id: line.rawMaterialId,
+              name: line.rawMaterial.name,
+              unitOfMeasure: line.rawMaterial.unitOfMeasure,
+            }))}
+          />
         </Card>
       )}
 

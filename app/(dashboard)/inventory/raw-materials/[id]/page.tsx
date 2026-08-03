@@ -19,7 +19,8 @@ type PageProps = {
 export default async function RawMaterialDetailPage({ params }: PageProps) {
   const { id } = params;
 
-  const [material, categories, suppliers, branches, movements] = await Promise.all([
+  const [material, categories, suppliers, branches, movements, branchStocks] =
+    await Promise.all([
     prisma.rawMaterial.findUnique({
       where: { id },
       include: { supplier: true, branch: true, category: true },
@@ -49,6 +50,11 @@ export default async function RawMaterialDetailPage({ params }: PageProps) {
       },
       orderBy: { createdAt: "desc" },
       take: 50,
+    }),
+    prisma.rawMaterialStock.findMany({
+      where: { rawMaterialId: id },
+      include: { branch: { select: { name: true, code: true } } },
+      orderBy: { branch: { name: "asc" } },
     }),
   ]);
 
@@ -89,6 +95,11 @@ export default async function RawMaterialDetailPage({ params }: PageProps) {
             size="default"
           />
           <Button asChild variant="secondary">
+            <Link href={`/inventory/lots?material=${material.id}`}>
+              Lots / rolls
+            </Link>
+          </Button>
+          <Button asChild variant="secondary">
             <Link href="/inventory/raw-materials">Back to list</Link>
           </Button>
         </div>
@@ -103,7 +114,37 @@ export default async function RawMaterialDetailPage({ params }: PageProps) {
             rawMaterialId={material.id}
             unitOfMeasure={material.unitOfMeasure}
             currentQuantity={qty}
+            branches={branches}
+            defaultBranchId={material.branchId}
           />
+        </Card>
+        <Card>
+          <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
+            By location
+          </h2>
+          {branchStocks.length === 0 ? (
+            <p className="text-sm text-muted">
+              No branch balances yet — first movement or transfer will create
+              them.
+            </p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {branchStocks.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex justify-between gap-2 border-b border-border/40 pb-2"
+                >
+                  <span>
+                    {s.branch.name}
+                    <span className="text-muted"> ({s.branch.code})</span>
+                  </span>
+                  <span className="font-medium">
+                    {formatQuantity(toNumber(s.quantity), material.unitOfMeasure)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
         <Card>
           <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">
@@ -117,6 +158,7 @@ export default async function RawMaterialDetailPage({ params }: PageProps) {
             branches={branches}
             defaultValues={{
               name: material.name,
+              code: material.code ?? "",
               categoryId: material.categoryId ?? undefined,
               unitOfMeasure: material.unitOfMeasure,
               supplierId: material.supplierId ?? "__none__",

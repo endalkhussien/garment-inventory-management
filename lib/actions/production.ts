@@ -5,9 +5,14 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { consumeLotsFifo } from "@/lib/actions/lots";
 import { createNotificationForAdmins } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
+import {
+  adjustRawMaterialBranchStock,
+  ensureMaterialBookOnBranch,
+} from "@/lib/raw-material-stock";
 import { getAppSettings } from "@/lib/settings";
 import {
   employeeSchema,
@@ -212,10 +217,25 @@ export async function startProductionOrder(
         const needed = new Prisma.Decimal(line.quantityPerUnit).mul(
           order.quantityTarget,
         );
-        const available = new Prisma.Decimal(line.rawMaterial.quantity);
+        await ensureMaterialBookOnBranch(
+          tx,
+          line.rawMaterialId,
+          order.warehouseBranchId,
+        );
+        const branchStock = await tx.rawMaterialStock.findUnique({
+          where: {
+            rawMaterialId_branchId: {
+              rawMaterialId: line.rawMaterialId,
+              branchId: order.warehouseBranchId,
+            },
+          },
+        });
+        const available = branchStock
+          ? new Prisma.Decimal(branchStock.quantity)
+          : new Prisma.Decimal(0);
         if (available.lessThan(needed)) {
           shortages.push(
-            `${line.rawMaterial.name}: need ${needed.toString()} ${line.rawMaterial.unitOfMeasure}, have ${available.toString()}`,
+            `${line.rawMaterial.name}: need ${needed.toString()} ${line.rawMaterial.unitOfMeasure}, have ${available.toString()} at warehouse`,
           );
         }
       }
@@ -235,11 +255,15 @@ export async function startProductionOrder(
         });
         if (!material) throw new Error("Material missing.");
 
-        const next = new Prisma.Decimal(material.quantity).sub(needed);
-        await tx.rawMaterial.update({
-          where: { id: material.id },
-          data: { quantity: next },
-        });
+        await consumeLotsFifo(tx, material.id, needed, order.id);
+
+        const { totalQty } = await adjustRawMaterialBranchStock(
+          tx,
+          material.id,
+          order.warehouseBranchId,
+          needed.neg(),
+        );
+
         await tx.stockMovement.create({
           data: {
             rawMaterialId: material.id,
@@ -247,7 +271,8 @@ export async function startProductionOrder(
             quantity: needed,
             reasonCode: "PRODUCTION_USE",
             note: `Issued for ${order.orderNumber}`,
-            balanceAfter: next,
+            balanceAfter: totalQty,
+            branchId: order.warehouseBranchId,
             createdById: session?.user?.id ?? null,
           },
         });
@@ -356,17 +381,17 @@ export async function recordWastage(input: WastageInput): Promise<ActionResult> 
       });
       if (!material) throw new Error("Material not found.");
 
-      const next = new Prisma.Decimal(material.quantity).sub(qty);
-      if (next.lessThan(0)) {
-        throw new Error(
-          `Insufficient stock for wastage. Available: ${material.quantity.toString()}`,
-        );
-      }
-
-      await tx.rawMaterial.update({
-        where: { id: material.id },
-        data: { quantity: next },
-      });
+      await ensureMaterialBookOnBranch(
+        tx,
+        material.id,
+        order.warehouseBranchId,
+      );
+      const { totalQty } = await adjustRawMaterialBranchStock(
+        tx,
+        material.id,
+        order.warehouseBranchId,
+        qty.neg(),
+      );
       await tx.stockMovement.create({
         data: {
           rawMaterialId: material.id,
@@ -374,7 +399,8 @@ export async function recordWastage(input: WastageInput): Promise<ActionResult> 
           quantity: qty,
           reasonCode: "DAMAGE",
           note: emptyToNull(data.note) ?? `Wastage on ${order.orderNumber}`,
-          balanceAfter: next,
+          balanceAfter: totalQty,
+          branchId: order.warehouseBranchId,
           createdById: session?.user?.id ?? null,
         },
       });

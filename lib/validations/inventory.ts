@@ -28,6 +28,7 @@ const positiveNumber = z
 
 export const rawMaterialSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  code: z.string().trim().optional().nullable(),
   categoryId: z.string().min(1, "Category is required"),
   unitOfMeasure: z.string().trim().min(1, "Unit of measure is required"),
   supplierId: z.string().optional().nullable(),
@@ -58,6 +59,7 @@ export const stockMovementSchema = z.object({
     message: "Reason code is required",
   }),
   note: z.string().trim().optional().nullable(),
+  branchId: z.string().optional().nullable(),
 });
 
 export type RawMaterialInput = z.infer<typeof rawMaterialSchema>;
@@ -83,3 +85,18 @@ export const conditionLabels: Record<(typeof ASSET_CONDITIONS)[number], string> 
     POOR: "Poor",
     RETIRED: "Retired",
   };
+
+export const rawMaterialTransferSchema = z
+  .object({
+    rawMaterialId: z.string().min(1, "Material is required"),
+    fromBranchId: z.string().min(1, "From branch is required"),
+    toBranchId: z.string().min(1, "To branch is required"),
+    quantity: positiveNumber,
+    note: z.string().trim().optional().nullable(),
+  })
+  .refine((d) => d.fromBranchId !== d.toBranchId, {
+    message: "From and to branches must differ",
+    path: ["toBranchId"],
+  });
+
+export type RawMaterialTransferInput = z.infer<typeof rawMaterialTransferSchema>;

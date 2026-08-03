@@ -46,6 +46,10 @@ model Branch {
   transfersFrom  StockTransfer[] @relation("TransferFrom")
   transfersTo    StockTransfer[] @relation("TransferTo")
   sales          Sale[]
+  materialLots   MaterialLot[]
+  rawMaterialStocks RawMaterialStock[]
+  rawTransfersFrom  RawMaterialTransfer[] @relation("RawTransferFrom")
+  rawTransfersTo    RawMaterialTransfer[] @relation("RawTransferTo")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -69,6 +73,8 @@ model User {
   approvalsReviewed  Approval[]   @relation("ApprovalReviewer")
   notifications   Notification[]
   payrollRuns     PayrollRun[]
+  stocktakeSessions StocktakeSession[]
+  rawMaterialTransfers RawMaterialTransfer[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -119,6 +125,7 @@ model AssetType {
 model RawMaterial {
   id               String           @id @default(cuid())
   name             String
+  code             String?
   categoryId       String?
   category         MaterialCategory? @relation(fields: [categoryId], references: [id])
   unitOfMeasure    String
@@ -134,11 +141,16 @@ model RawMaterial {
   movements        StockMovement[]
   bomLines         BillOfMaterial[]
   wastage          ProductionWastage[]
+  lots             MaterialLot[]
+  stocktakeLines   StocktakeLine[]
+  branchStocks     RawMaterialStock[]
+  rawTransfers     RawMaterialTransfer[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@index([categoryId])
   @@index([name])
+  @@index([code])
 }
 
 model CapitalAsset {
@@ -171,9 +183,43 @@ model StockMovement {
   reasonCode    String
   note          String?
   balanceAfter  Decimal           @db.Decimal(12, 3)
+  branchId      String?
   createdById   String?
   createdBy     User?             @relation(fields: [createdById], references: [id])
   createdAt     DateTime          @default(now())
+
+  @@index([rawMaterialId, createdAt])
+  @@index([createdAt])
+}
+
+/// Per-branch raw material balance (warehouse, cutting, shop).
+model RawMaterialStock {
+  id            String      @id @default(cuid())
+  rawMaterialId String
+  rawMaterial   RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
+  branchId      String
+  branch        Branch      @relation(fields: [branchId], references: [id])
+  quantity      Decimal     @default(0) @db.Decimal(12, 3)
+  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime    @default(now())
+
+  @@unique([rawMaterialId, branchId])
+  @@index([branchId])
+}
+
+model RawMaterialTransfer {
+  id              String      @id @default(cuid())
+  rawMaterialId   String
+  rawMaterial     RawMaterial @relation(fields: [rawMaterialId], references: [id])
+  fromBranchId    String
+  fromBranch      Branch      @relation("RawTransferFrom", fields: [fromBranchId], references: [id])
+  toBranchId      String
+  toBranch        Branch      @relation("RawTransferTo", fields: [toBranchId], references: [id])
+  quantity        Decimal     @db.Decimal(12, 3)
+  note            String?
+  transferredById String?
+  transferredBy   User?       @relation(fields: [transferredById], references: [id])
+  createdAt       DateTime    @default(now())
 
   @@index([rawMaterialId, createdAt])
   @@index([createdAt])
@@ -358,6 +404,7 @@ model ProductionOrder {
   completedAt        DateTime?
   outputs            ProductionOutput[]
   wastage            ProductionWastage[]
+  materialLots       MaterialLot[]
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
@@ -525,4 +572,75 @@ model AppSetting {
   defaultFinishedGoodsReorderAt Int    @default(5)
   payrollDaysPerMonth          Int     @default(30)
   updatedAt                    DateTime @default(now()) @updatedAt
+}
+
+enum MaterialLotStatus {
+  AVAILABLE
+  ISSUED
+  LEFTOVER
+  DEPLETED
+}
+
+enum StocktakeStatus {
+  DRAFT
+  COUNTED
+  PENDING_APPROVAL
+  COMPLETED
+  CANCELLED
+}
+
+/// Fabric / trim lot or roll — batch, usable length, order link (Oshima best practice).
+model MaterialLot {
+  id                String           @id @default(cuid())
+  rawMaterialId     String
+  rawMaterial       RawMaterial      @relation(fields: [rawMaterialId], references: [id])
+  lotCode           String
+  rollNumber        String?
+  shade             String?
+  originalQty       Decimal          @db.Decimal(12, 3)
+  usableQty         Decimal          @db.Decimal(12, 3)
+  status            MaterialLotStatus @default(AVAILABLE)
+  location          String?
+  branchId          String?
+  branch            Branch?          @relation(fields: [branchId], references: [id])
+  productionOrderId String?
+  productionOrder   ProductionOrder? @relation(fields: [productionOrderId], references: [id])
+  defects           String?
+  notes             String?
+  receivedAt        DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([rawMaterialId, status])
+  @@index([lotCode])
+  @@index([productionOrderId])
+}
+
+model StocktakeSession {
+  id          String         @id @default(cuid())
+  title       String
+  status      StocktakeStatus @default(DRAFT)
+  note        String?
+  createdById String?
+  createdBy   User?          @relation(fields: [createdById], references: [id])
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  lines       StocktakeLine[]
+
+  @@index([status, createdAt])
+}
+
+model StocktakeLine {
+  id            String          @id @default(cuid())
+  sessionId     String
+  session       StocktakeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  rawMaterialId String
+  rawMaterial   RawMaterial     @relation(fields: [rawMaterialId], references: [id])
+  systemQty     Decimal         @db.Decimal(12, 3)
+  countedQty    Decimal?        @db.Decimal(12, 3)
+  note          String?
+
+  @@unique([sessionId, rawMaterialId])
+  @@index([rawMaterialId])
 }

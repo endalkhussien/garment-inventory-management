@@ -10,8 +10,18 @@ const reports = [
   },
   {
     href: "/reports/inventory",
-    title: "Inventory",
-    description: "Raw materials, values, and low stock",
+    title: "Raw materials",
+    description: "Book qty, values, and low stock",
+  },
+  {
+    href: "/reports/finished-goods",
+    title: "Finished goods valuation",
+    description: "Cost and retail value by branch",
+  },
+  {
+    href: "/reports/leftovers",
+    title: "Leftover & usable fabric",
+    description: "Lots that can still be used — avoid rebuying",
   },
   {
     href: "/reports/sales",
