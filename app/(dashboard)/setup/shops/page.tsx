@@ -15,12 +15,25 @@ export default async function ShopsSetupPage() {
     include: {
       _count: { select: { users: true } },
       finishedGoods: { select: { quantity: true } },
-      shopOrdersAsShop: {
-        where: { status: { in: ["PENDING", "APPROVED"] } },
-        select: { id: true },
-      },
     },
   });
+
+  let pendingByShop = new Map<string, number>();
+  try {
+    const pending = await prisma.shopStockOrder.groupBy({
+      by: ["shopBranchId"],
+      where: {
+        shopBranchId: { in: shops.map((s) => s.id) },
+        status: { in: ["PENDING", "APPROVED"] },
+      },
+      _count: { _all: true },
+    });
+    pendingByShop = new Map(
+      pending.map((p) => [p.shopBranchId, p._count._all]),
+    );
+  } catch {
+    pendingByShop = new Map();
+  }
 
   const rows = shops.map((s) => ({
     id: s.id,
@@ -30,7 +43,7 @@ export default async function ShopsSetupPage() {
     isActive: s.isActive,
     userCount: s._count.users,
     stockUnits: s.finishedGoods.reduce((sum, g) => sum + g.quantity, 0),
-    pendingOrders: s.shopOrdersAsShop.length,
+    pendingOrders: pendingByShop.get(s.id) ?? 0,
   }));
 
   const openCount = rows.filter((r) => r.isActive).length;

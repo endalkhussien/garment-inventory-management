@@ -3,8 +3,8 @@ import Link from "next/link";
 import { InitiateShopForm } from "@/components/shops/initiate-shop-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { suggestNextShopCode } from "@/lib/actions/shops";
 import { requireAdmin } from "@/lib/rbac";
+import { suggestNextShopCode } from "@/lib/shops";
 
 export default async function NewShopPage() {
   await requireAdmin();

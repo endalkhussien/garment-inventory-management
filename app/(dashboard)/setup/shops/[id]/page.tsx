@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { ShopEditForm } from "@/components/shops/shop-edit-form";
+import { ShopLifecycleActions } from "@/components/shops/shop-lifecycle-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { deleteShop, setShopActive } from "@/lib/actions/shops";
 import { formatEtb, toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
@@ -24,12 +23,6 @@ export default async function ShopDetailPage({ params }: PageProps) {
         orderBy: { name: "asc" },
       },
       finishedGoods: { select: { quantity: true } },
-      shopOrdersAsShop: {
-        where: { status: { in: ["PENDING", "APPROVED"] } },
-        select: { id: true, orderNumber: true, status: true },
-        take: 5,
-        orderBy: { createdAt: "desc" },
-      },
     },
   });
   if (!shop) notFound();
@@ -47,6 +40,28 @@ export default async function ShopDetailPage({ params }: PageProps) {
     _sum: { total: true },
     _count: true,
   });
+
+  const hasData =
+    stockUnits > 0 || shop.users.length > 0 || todaySales._count > 0;
+
+  let pendingOrdersList: {
+    id: string;
+    orderNumber: string;
+    status: string;
+  }[] = [];
+  try {
+    pendingOrdersList = await prisma.shopStockOrder.findMany({
+      where: {
+        shopBranchId: shop.id,
+        status: { in: ["PENDING", "APPROVED"] },
+      },
+      select: { id: true, orderNumber: true, status: true },
+      take: 5,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    pendingOrdersList = [];
+  }
 
   return (
     <div className="space-y-4">
@@ -67,26 +82,11 @@ export default async function ShopDetailPage({ params }: PageProps) {
           <Button asChild variant="secondary">
             <Link href="/setup/shops">All shops</Link>
           </Button>
-          <ConfirmActionButton
-            label={shop.isActive ? "Close shop" : "Reopen shop"}
-            confirmMessage={
-              shop.isActive
-                ? `Close ${shop.name}? Staff logins stay, but the shop is marked closed.`
-                : `Reopen ${shop.name}?`
-            }
-            action={() => setShopActive(shop.id, !shop.isActive)}
-            variant={shop.isActive ? "danger" : "default"}
-          />
-          <ConfirmActionButton
-            label="Delete shop"
-            confirmMessage={
-              stockUnits > 0 || shop.users.length > 0 || todaySales._count > 0
-                ? "This shop has data — it will be closed (history kept), not wiped. Continue?"
-                : `Permanently delete ${shop.name}?`
-            }
-            action={() => deleteShop(shop.id)}
-            variant="danger"
-            redirectTo="/setup/shops"
+          <ShopLifecycleActions
+            shopId={shop.id}
+            shopName={shop.name}
+            isActive={shop.isActive}
+            hasData={hasData}
           />
         </div>
       </div>
@@ -102,9 +102,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
         </Card>
         <Card>
           <p className="text-xs text-muted">Pending stock orders</p>
-          <p className="text-xl font-semibold">
-            {shop.shopOrdersAsShop.length}
-          </p>
+          <p className="text-xl font-semibold">{pendingOrdersList.length}</p>
         </Card>
         <Card>
           <p className="text-xs text-muted">Today&apos;s sales</p>
@@ -158,11 +156,11 @@ export default async function ShopDetailPage({ params }: PageProps) {
         )}
       </Card>
 
-      {shop.shopOrdersAsShop.length > 0 && (
+      {pendingOrdersList.length > 0 && (
         <Card>
           <h2 className="mb-3 text-sm font-semibold">Open stock orders</h2>
           <ul className="space-y-2 text-sm">
-            {shop.shopOrdersAsShop.map((o) => (
+            {pendingOrdersList.map((o) => (
               <li key={o.id}>
                 <Link
                   href={`/shops/orders/${o.id}`}

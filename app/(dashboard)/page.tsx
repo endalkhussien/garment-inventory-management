@@ -74,9 +74,11 @@ async function ShopDashboard({
     _sum: { total: true },
     _count: true,
   });
-  const pendingOrders = await prisma.shopStockOrder.count({
-    where: { shopBranchId: branchId, status: "PENDING" },
-  });
+  const pendingOrders = await prisma.shopStockOrder
+    .count({
+      where: { shopBranchId: branchId, status: "PENDING" },
+    })
+    .catch(() => 0);
 
   return (
     <div className="space-y-4">
@@ -155,9 +157,11 @@ async function ShopDashboard({
 async function FactoryDashboard() {
   const metrics = await getFactoryDashboardMetrics();
   const { kpis } = metrics;
-  const pendingShopOrders = await prisma.shopStockOrder.count({
-    where: { status: { in: ["PENDING", "APPROVED"] } },
-  });
+  const pendingShopOrders = await prisma.shopStockOrder
+    .count({
+      where: { status: { in: ["PENDING", "APPROVED"] } },
+    })
+    .catch(() => 0);
 
   return (
     <div className="space-y-5">

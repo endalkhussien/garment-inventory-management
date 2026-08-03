@@ -34,21 +34,6 @@ function revalidateShopPaths(shopId?: string) {
   if (shopId) revalidatePath(`/setup/shops/${shopId}`);
 }
 
-/** Suggest next SHOP2, SHOP3… from existing shop codes. */
-export async function suggestNextShopCode(): Promise<string> {
-  await requireAdmin();
-  const shops = await prisma.branch.findMany({
-    where: { isShop: true },
-    select: { code: true },
-  });
-  let max = 0;
-  for (const s of shops) {
-    const m = /^SHOP(\d+)$/i.exec(s.code);
-    if (m) max = Math.max(max, Number(m[1]));
-  }
-  return `SHOP${max + 1}`;
-}
-
 /**
  * Formally open a new retail shop: branch + optional first Shop login.
  */
