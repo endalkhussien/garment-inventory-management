@@ -360,6 +360,8 @@ model Employee {
   name               String
   code               String?            @unique
   phone              String?
+  /// Optional title (e.g. shop role); mainly used for shop staff.
+  jobTitle           String?
   hireDate           DateTime?
   monthlyBaseSalary  Decimal            @default(0) @db.Decimal(12, 2)
   /// For factory: piece rate. For shop staff: commission % of sales.

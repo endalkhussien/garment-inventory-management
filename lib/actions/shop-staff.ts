@@ -62,14 +62,11 @@ export async function createShopStaff(
   const resolved = await resolveShopBranch(input.branchId);
   if (resolved.error) return { success: false, error: resolved.error };
 
-  const displayName = parsed.data.jobTitle?.trim()
-    ? `${parsed.data.name.trim()} · ${parsed.data.jobTitle.trim()}`
-    : parsed.data.name.trim();
-
   try {
     const staff = await prisma.employee.create({
       data: {
-        name: displayName,
+        name: parsed.data.name.trim(),
+        jobTitle: emptyToNull(parsed.data.jobTitle),
         phone: emptyToNull(parsed.data.phone),
         code: emptyToNull(parsed.data.code),
         monthlyBaseSalary: new Prisma.Decimal(parsed.data.monthlyBaseSalary),
@@ -115,15 +112,12 @@ export async function updateShopStaff(
     return { success: false, error: "Not allowed for this shop." };
   }
 
-  const displayName = parsed.data.jobTitle?.trim()
-    ? `${parsed.data.name.trim()} · ${parsed.data.jobTitle.trim()}`
-    : parsed.data.name.trim();
-
   try {
     await prisma.employee.update({
       where: { id },
       data: {
-        name: displayName,
+        name: parsed.data.name.trim(),
+        jobTitle: emptyToNull(parsed.data.jobTitle),
         phone: emptyToNull(parsed.data.phone),
         code: emptyToNull(parsed.data.code),
         monthlyBaseSalary: new Prisma.Decimal(parsed.data.monthlyBaseSalary),
