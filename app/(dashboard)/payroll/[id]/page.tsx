@@ -58,7 +58,7 @@ export default async function PayrollDetailPage({ params }: PageProps) {
               <ConfirmActionButton
                 label="Delete draft"
                 confirmMessage="Delete this draft payroll run? You can generate a new one."
-                action={() => deleteDraftPayroll(run.id)}
+                action={deleteDraftPayroll.bind(null, run.id)}
                 variant="danger"
                 size="default"
                 redirectTo="/payroll"

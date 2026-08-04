@@ -22,7 +22,6 @@ type VariantFormProps = {
   mode: "create" | "edit";
   variantId?: string;
   defaultValues?: Partial<VariantInput>;
-  defaultOverheadPercent?: number;
 };
 
 export function VariantForm({
@@ -30,7 +29,6 @@ export function VariantForm({
   mode,
   variantId,
   defaultValues,
-  defaultOverheadPercent = 10,
 }: VariantFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -46,8 +44,8 @@ export function VariantForm({
       size: "",
       color: "",
       sku: "",
-      laborCostPerUnit: 0,
-      overheadPercent: defaultOverheadPercent,
+      buyingPrice: 0,
+      sellingPrice: 0,
       ...defaultValues,
     },
   });
@@ -89,31 +87,39 @@ export function VariantForm({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="sku">SKU</Label>
+          <Label htmlFor="sku">SKU / Code</Label>
           <Input id="sku" {...register("sku")} />
           {errors.sku && (
             <p className="text-xs text-danger">{errors.sku.message}</p>
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="laborCostPerUnit">Labor cost / unit (ETB)</Label>
+          <Label htmlFor="buyingPrice">Buying price (ETB)</Label>
           <Input
-            id="laborCostPerUnit"
+            id="buyingPrice"
             type="number"
             step="0.01"
             min="0"
-            {...register("laborCostPerUnit", { valueAsNumber: true })}
+            {...register("buyingPrice", { valueAsNumber: true })}
           />
+          {errors.buyingPrice && (
+            <p className="text-xs text-danger">{errors.buyingPrice.message}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="overheadPercent">Overhead %</Label>
+          <Label htmlFor="sellingPrice">Selling price (ETB)</Label>
           <Input
-            id="overheadPercent"
+            id="sellingPrice"
             type="number"
             step="0.01"
             min="0"
-            {...register("overheadPercent", { valueAsNumber: true })}
+            {...register("sellingPrice", { valueAsNumber: true })}
           />
+          {errors.sellingPrice && (
+            <p className="text-xs text-danger">
+              {errors.sellingPrice.message}
+            </p>
+          )}
         </div>
       </div>
       {serverError && <p className="text-sm text-danger">{serverError}</p>}

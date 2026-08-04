@@ -11,32 +11,31 @@ import { setProductActive, setVariantActive } from "@/lib/actions/products";
 import { formatEtb, toNumber } from "@/lib/format";
 import { marginFromPrice } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
-import { getAppSettings } from "@/lib/settings";
 
 type PageProps = {
   params: { id: string };
 };
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const [product, settings] = await Promise.all([
-    prisma.product.findUnique({
-      where: { id: params.id },
-      include: {
-        category: true,
-        variants: {
-          orderBy: [{ size: "asc" }, { color: "asc" }],
-        },
+  const product = await prisma.product.findUnique({
+    where: { id: params.id },
+    include: {
+      category: true,
+      variants: {
+        orderBy: [{ size: "asc" }, { color: "asc" }],
       },
-    }),
-    getAppSettings(),
-  ]);
+    },
+  });
 
   if (!product) {
     notFound();
   }
 
   const categories = await prisma.productCategory.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      name: { in: ["Male", "Ladies", "Kids"] },
+    },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });
@@ -49,7 +48,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {product.name}
           </h1>
           <p className="mt-1 text-sm text-muted">
+            {product.productNo != null ? `No. ${product.productNo} · ` : ""}
+            {product.code ? `Code ${product.code} · ` : ""}
             {product.category?.name ?? "Uncategorized"}
+            {product.garmentInfo ? ` · ${product.garmentInfo}` : ""}
             {product.description ? ` · ${product.description}` : ""}
           </p>
         </div>
@@ -61,7 +63,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 ? `Deactivate ${product.name} and its variants?`
                 : `Reactivate ${product.name}?`
             }
-            action={() => setProductActive(product.id, !product.isActive)}
+            action={setProductActive.bind(
+              null,
+              product.id,
+              !product.isActive,
+            )}
             variant={product.isActive ? "danger" : "default"}
             size="default"
           />
@@ -79,8 +85,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
           categories={categories}
           defaultValues={{
             name: product.name,
+            code: product.code ?? "",
             categoryId: product.categoryId ?? "",
             description: product.description ?? "",
+            garmentInfo: product.garmentInfo ?? "",
           }}
         />
       </Card>
@@ -96,8 +104,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <tr>
                   <th className="px-3 py-3 font-medium">Variant</th>
                   <th className="px-3 py-3 font-medium">SKU</th>
-                  <th className="px-3 py-3 font-medium">Cost</th>
-                  <th className="px-3 py-3 font-medium">Price</th>
+                  <th className="px-3 py-3 font-medium">Buying</th>
+                  <th className="px-3 py-3 font-medium">Selling</th>
                   <th className="px-3 py-3 font-medium">Margin</th>
                   <th className="px-3 py-3 font-medium">Status</th>
                   <th className="px-3 py-3 font-medium">Actions</th>
@@ -105,7 +113,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </thead>
               <tbody>
                 {product.variants.map((variant) => {
-                  const cost = toNumber(variant.totalCostCached);
+                  const cost = toNumber(variant.buyingPrice) || toNumber(variant.totalCostCached);
                   const price = toNumber(variant.sellingPrice);
                   const margin = marginFromPrice(cost, price);
                   return (
@@ -152,9 +160,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
                               ? `Hide variant ${variant.sku}?`
                               : `Show variant ${variant.sku} again?`
                           }
-                          action={() =>
-                            setVariantActive(variant.id, !variant.isActive)
-                          }
+                          action={setVariantActive.bind(
+                            null,
+                            variant.id,
+                            !variant.isActive,
+                          )}
                         />
                       </td>
                     </tr>
@@ -165,12 +175,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
         )}
 
-        <h3 className="mb-3 text-sm font-semibold">Add variant</h3>
-        <VariantForm
-          productId={product.id}
-          mode="create"
-          defaultOverheadPercent={settings.defaultOverheadPercent}
-        />
+        <h3 className="mb-3 text-sm font-semibold">Add size / color variant</h3>
+        <VariantForm productId={product.id} mode="create" />
       </Card>
     </div>
   );

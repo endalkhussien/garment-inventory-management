@@ -18,23 +18,6 @@ export default async function ShopsSetupPage() {
     },
   });
 
-  let pendingByShop = new Map<string, number>();
-  try {
-    const pending = await prisma.shopStockOrder.groupBy({
-      by: ["shopBranchId"],
-      where: {
-        shopBranchId: { in: shops.map((s) => s.id) },
-        status: { in: ["PENDING", "APPROVED"] },
-      },
-      _count: { _all: true },
-    });
-    pendingByShop = new Map(
-      pending.map((p) => [p.shopBranchId, p._count._all]),
-    );
-  } catch {
-    pendingByShop = new Map();
-  }
-
   const rows = shops.map((s) => ({
     id: s.id,
     name: s.name,
@@ -43,7 +26,6 @@ export default async function ShopsSetupPage() {
     isActive: s.isActive,
     userCount: s._count.users,
     stockUnits: s.finishedGoods.reduce((sum, g) => sum + g.quantity, 0),
-    pendingOrders: pendingByShop.get(s.id) ?? 0,
   }));
 
   const openCount = rows.filter((r) => r.isActive).length;
@@ -54,13 +36,13 @@ export default async function ShopsSetupPage() {
         <div>
           <h1 className="text-2xl font-semibold">Shops</h1>
           <p className="mt-1 text-sm text-muted">
-            Formally open, edit, close, or delete retail locations.{" "}
-            {openCount} open · {rows.length} total.
+            Open, edit, or close retail locations controlled by central
+            inventory. {openCount} open · {rows.length} total.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
-            <Link href="/setup/branches">All branches</Link>
+            <Link href="/central">Central inventory</Link>
           </Button>
           <Button asChild>
             <Link href="/setup/shops/new">Initiate new shop</Link>
@@ -69,10 +51,10 @@ export default async function ShopsSetupPage() {
       </div>
 
       <Card className="text-sm text-muted">
-        New shops start empty. Staff order finished goods from the warehouse;
-        Admin/Manager fulfills under{" "}
-        <Link href="/shops/orders" className="text-secondary hover:underline">
-          Shop orders
+        New shops start empty. Restock products into each shop, then import
+        sales from their external POS. Oversee everything from{" "}
+        <Link href="/central" className="text-secondary hover:underline">
+          Central inventory
         </Link>
         .
       </Card>

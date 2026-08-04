@@ -27,7 +27,6 @@ type ProductFormProps =
   | {
       mode: "create";
       categories: Option[];
-      defaultOverheadPercent?: number;
     }
   | {
       mode: "edit";
@@ -69,20 +68,20 @@ export function ProductForm(props: ProductFormProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const isCreate = props.mode === "create";
   const categories = props.categories;
-  const defaultOverhead =
-    props.mode === "create" ? (props.defaultOverheadPercent ?? 10) : 10;
 
   const createForm = useForm<ProductWithVariantInput>({
     resolver: zodResolver(productWithVariantSchema),
     defaultValues: {
       name: "",
+      code: "",
       categoryId: categories[0]?.id ?? "",
       description: "",
+      garmentInfo: "",
       size: "M",
       color: "Navy",
       sku: "",
-      laborCostPerUnit: 0,
-      overheadPercent: defaultOverhead,
+      buyingPrice: 0,
+      sellingPrice: 0,
     },
   });
 
@@ -91,7 +90,13 @@ export function ProductForm(props: ProductFormProps) {
     defaultValues:
       props.mode === "edit"
         ? props.defaultValues
-        : { name: "", categoryId: categories[0]?.id ?? "", description: "" },
+        : {
+            name: "",
+            code: "",
+            categoryId: categories[0]?.id ?? "",
+            description: "",
+            garmentInfo: "",
+          },
   });
 
   const onCreate = createForm.handleSubmit(async (values) => {
@@ -125,8 +130,8 @@ export function ProductForm(props: ProductFormProps) {
     return (
       <form onSubmit={onCreate} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="name">Product name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="name">Name of product</Label>
             <Input
               id="name"
               {...register("name")}
@@ -136,52 +141,91 @@ export function ProductForm(props: ProductFormProps) {
               <p className="text-xs text-danger">{errors.name.message}</p>
             )}
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="code">Code</Label>
+            <Input
+              id="code"
+              {...register("code")}
+              placeholder="MCS-001"
+              className="uppercase"
+            />
+            {errors.code && (
+              <p className="text-xs text-danger">{errors.code.message}</p>
+            )}
+          </div>
           <CategorySelect
             categories={categories}
             selectProps={register("categoryId")}
             error={errors.categoryId?.message}
           />
+          <div className="space-y-2">
+            <Label htmlFor="buyingPrice">Buying price (ETB)</Label>
+            <Input
+              id="buyingPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              {...register("buyingPrice", { valueAsNumber: true })}
+            />
+            {errors.buyingPrice && (
+              <p className="text-xs text-danger">
+                {errors.buyingPrice.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sellingPrice">Selling price (ETB)</Label>
+            <Input
+              id="sellingPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              {...register("sellingPrice", { valueAsNumber: true })}
+            />
+            {errors.sellingPrice && (
+              <p className="text-xs text-danger">
+                {errors.sellingPrice.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="size">Size</Label>
+            <Input id="size" {...register("size")} placeholder="S / M / L / XL" />
+            {errors.size && (
+              <p className="text-xs text-danger">{errors.size.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="color">Color</Label>
+            <Input id="color" {...register("color")} />
+            {errors.color && (
+              <p className="text-xs text-danger">{errors.color.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sku">SKU (optional — auto from code)</Label>
+            <Input id="sku" {...register("sku")} placeholder="Auto if empty" />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="garmentInfo">Garment info</Label>
+            <Input
+              id="garmentInfo"
+              {...register("garmentInfo")}
+              placeholder="Fabric, season, gender, collection…"
+            />
+          </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="description">Description</Label>
             <Textarea id="description" rows={2} {...register("description")} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="size">First variant size</Label>
-            <Input id="size" {...register("size")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="color">First variant color</Label>
-            <Input id="color" {...register("color")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sku">SKU</Label>
-            <Input id="sku" {...register("sku")} placeholder="MCS-M-NAVY" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="laborCostPerUnit">Labor cost / unit (ETB)</Label>
-            <Input
-              id="laborCostPerUnit"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("laborCostPerUnit", { valueAsNumber: true })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="overheadPercent">Overhead %</Label>
-            <Input
-              id="overheadPercent"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("overheadPercent", { valueAsNumber: true })}
-            />
-          </div>
         </div>
         {serverError && <p className="text-sm text-danger">{serverError}</p>}
         <div className="flex gap-2">
-          <Button type="submit" disabled={isSubmitting || categories.length === 0}>
-            {isSubmitting ? "Creating..." : "Create product"}
+          <Button
+            type="submit"
+            disabled={isSubmitting || categories.length === 0}
+          >
+            {isSubmitting ? "Creating..." : "Register product"}
           </Button>
           <Button
             type="button"
@@ -204,10 +248,17 @@ export function ProductForm(props: ProductFormProps) {
     <form onSubmit={onEdit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">Product name</Label>
+          <Label htmlFor="name">Name of product</Label>
           <Input id="name" {...register("name")} />
           {errors.name && (
             <p className="text-xs text-danger">{errors.name.message}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="code">Code</Label>
+          <Input id="code" {...register("code")} className="uppercase" />
+          {errors.code && (
+            <p className="text-xs text-danger">{errors.code.message}</p>
           )}
         </div>
         <CategorySelect
@@ -215,6 +266,10 @@ export function ProductForm(props: ProductFormProps) {
           selectProps={register("categoryId")}
           error={errors.categoryId?.message}
         />
+        <div className="space-y-2">
+          <Label htmlFor="garmentInfo">Garment info</Label>
+          <Input id="garmentInfo" {...register("garmentInfo")} />
+        </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="description">Description</Label>
           <Textarea id="description" rows={2} {...register("description")} />

@@ -22,7 +22,9 @@ export default async function ShopStockPage({
   const lockedBranchId = getShopBranchId(session);
 
   const branches = await prisma.branch.findMany({
-    where: { isActive: true },
+    where: shopOnly
+      ? { id: lockedBranchId ?? "__none__" }
+      : { isActive: true, isShop: true },
     orderBy: { name: "asc" },
   });
 
@@ -31,7 +33,7 @@ export default async function ShopStockPage({
     : searchParams?.branchId || branches[0]?.id;
 
   const stocks = await prisma.finishedGoodsStock.findMany({
-    where: branchId ? { branchId } : undefined,
+    where: branchId ? { branchId } : { branch: { isShop: true } },
     include: {
       variant: { include: { product: true } },
       branch: true,
@@ -40,41 +42,40 @@ export default async function ShopStockPage({
   });
 
   const low = stocks.filter((s) => s.quantity <= s.reorderAt);
-  const visibleBranches = shopOnly
-    ? branches.filter((b) => b.id === lockedBranchId)
-    : branches;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Shop / finished stock</h1>
+          <h1 className="text-2xl font-semibold">
+            {shopOnly ? "My stock" : "Shop stock"}
+          </h1>
           <p className="mt-1 text-sm text-muted">
             {shopOnly
-              ? "Your shop stock only."
-              : "Live stock by location. Low-stock rows are highlighted."}
+              ? "Your shop only. Low stock is highlighted — restock when needed."
+              : "Part of central control — every shop’s levels and stock alerts."}
           </p>
         </div>
-        {isAdminRole(session.user.role.name) && (
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="secondary">
-              <Link href="/shops/orders">Shop orders</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/shops/transfers">Transfer stock</Link>
-            </Button>
-          </div>
-        )}
-        {shopOnly && (
+        <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/shops/orders/new">Order from warehouse</Link>
+            <Link href="/shops/restock">
+              {shopOnly ? "Add stock" : "Restock"}
+            </Link>
           </Button>
-        )}
+          {!shopOnly && (
+            <Button asChild variant="secondary">
+              <Link href="/central">Central inventory</Link>
+            </Button>
+          )}
+          <Button asChild variant="secondary">
+            <Link href="/shops/sales">Import sales</Link>
+          </Button>
+        </div>
       </div>
 
       {!shopOnly && (
         <div className="flex flex-wrap gap-2">
-          {visibleBranches.map((b) => (
+          {branches.map((b) => (
             <Link
               key={b.id}
               href={`/shops/stock?branchId=${b.id}`}
@@ -92,7 +93,7 @@ export default async function ShopStockPage({
 
       <Card>
         <p className="text-sm text-muted">
-          Low stock alerts here:{" "}
+          Stock alerts:{" "}
           <span className="font-semibold text-warning">{low.length}</span>
         </p>
       </Card>
@@ -102,9 +103,10 @@ export default async function ShopStockPage({
           <thead className="bg-page/40 text-xs uppercase text-muted">
             <tr>
               <th className="px-3 py-3">Product</th>
-              <th className="px-3 py-3">Location</th>
+              <th className="px-3 py-3">Code</th>
+              <th className="px-3 py-3">Shop</th>
               <th className="px-3 py-3">Qty</th>
-              <th className="px-3 py-3">Reorder at</th>
+              <th className="px-3 py-3">Alert at</th>
               <th className="px-3 py-3">Status</th>
             </tr>
           </thead>
@@ -113,6 +115,9 @@ export default async function ShopStockPage({
               <tr key={s.id} className="border-t border-border/60">
                 <td className="px-3 py-3">
                   {s.variant.product.name} ({s.variant.size}/{s.variant.color})
+                </td>
+                <td className="px-3 py-3 font-mono text-xs text-muted">
+                  {s.variant.product.code ?? s.variant.sku}
                 </td>
                 <td className="px-3 py-3 text-muted">{s.branch.name}</td>
                 <td className="px-3 py-3">{s.quantity}</td>
@@ -134,10 +139,8 @@ export default async function ShopStockPage({
             ))}
             {stocks.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-muted">
-                  {shopOnly
-                    ? "No stock here yet. Order from the warehouse."
-                    : "No finished goods here yet. Complete a production order or transfer stock in."}
+                <td colSpan={6} className="px-3 py-6 text-muted">
+                  No stock yet. Use Add stock — manual or CSV / Excel import.
                 </td>
               </tr>
             )}

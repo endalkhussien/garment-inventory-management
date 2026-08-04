@@ -23,7 +23,7 @@ export function ShopLifecycleActions({
             ? `Close ${shopName}? Staff logins stay, but the shop is marked closed.`
             : `Reopen ${shopName}?`
         }
-        action={() => setShopActive(shopId, !isActive)}
+        action={setShopActive.bind(null, shopId, !isActive)}
         variant={isActive ? "danger" : "default"}
       />
       <ConfirmActionButton
@@ -33,7 +33,7 @@ export function ShopLifecycleActions({
             ? "This shop has data — it will be closed (history kept), not wiped. Continue?"
             : `Permanently delete ${shopName}?`
         }
-        action={() => deleteShop(shopId)}
+        action={deleteShop.bind(null, shopId)}
         variant="danger"
         redirectTo="/setup/shops"
       />

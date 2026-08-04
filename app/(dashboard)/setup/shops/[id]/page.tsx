@@ -44,25 +44,6 @@ export default async function ShopDetailPage({ params }: PageProps) {
   const hasData =
     stockUnits > 0 || shop.users.length > 0 || todaySales._count > 0;
 
-  let pendingOrdersList: {
-    id: string;
-    orderNumber: string;
-    status: string;
-  }[] = [];
-  try {
-    pendingOrdersList = await prisma.shopStockOrder.findMany({
-      where: {
-        shopBranchId: shop.id,
-        status: { in: ["PENDING", "APPROVED"] },
-      },
-      select: { id: true, orderNumber: true, status: true },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-    });
-  } catch {
-    pendingOrdersList = [];
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -91,7 +72,7 @@ export default async function ShopDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <p className="text-xs text-muted">Units on hand</p>
           <p className="text-xl font-semibold">{stockUnits}</p>
@@ -101,15 +82,11 @@ export default async function ShopDetailPage({ params }: PageProps) {
           <p className="text-xl font-semibold">{shop.users.length}</p>
         </Card>
         <Card>
-          <p className="text-xs text-muted">Pending stock orders</p>
-          <p className="text-xl font-semibold">{pendingOrdersList.length}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">Today&apos;s sales</p>
+          <p className="text-xs text-muted">Today&apos;s sales (imported)</p>
           <p className="text-xl font-semibold">
             {formatEtb(toNumber(todaySales._sum.total ?? 0))}
           </p>
-          <p className="text-xs text-muted">{todaySales._count} receipts</p>
+          <p className="text-xs text-muted">{todaySales._count} lines</p>
         </Card>
       </div>
 
@@ -156,25 +133,6 @@ export default async function ShopDetailPage({ params }: PageProps) {
         )}
       </Card>
 
-      {pendingOrdersList.length > 0 && (
-        <Card>
-          <h2 className="mb-3 text-sm font-semibold">Open stock orders</h2>
-          <ul className="space-y-2 text-sm">
-            {pendingOrdersList.map((o) => (
-              <li key={o.id}>
-                <Link
-                  href={`/shops/orders/${o.id}`}
-                  className="text-secondary hover:underline"
-                >
-                  {o.orderNumber}
-                </Link>{" "}
-                <span className="text-muted">· {o.status}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
       <Card>
         <h2 className="mb-3 text-sm font-semibold">Shortcuts</h2>
         <div className="flex flex-wrap gap-2 text-sm">
@@ -191,10 +149,22 @@ export default async function ShopDetailPage({ params }: PageProps) {
             Finance
           </Link>
           <Link
-            href="/shops/orders"
+            href="/shops/restock"
             className="rounded-lg border border-border px-3 py-2 text-secondary hover:border-primary/40"
           >
-            Shop orders
+            Restock
+          </Link>
+          <Link
+            href="/shops/sales"
+            className="rounded-lg border border-border px-3 py-2 text-secondary hover:border-primary/40"
+          >
+            Import sales
+          </Link>
+          <Link
+            href="/central"
+            className="rounded-lg border border-border px-3 py-2 text-secondary hover:border-primary/40"
+          >
+            Central inventory
           </Link>
         </div>
       </Card>

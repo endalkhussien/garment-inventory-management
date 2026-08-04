@@ -52,7 +52,7 @@ export default async function StocktakeDetailPage({ params }: PageProps) {
             <ConfirmActionButton
               label="Cancel"
               confirmMessage="Cancel this stocktake?"
-              action={() => cancelStocktake(session.id)}
+              action={cancelStocktake.bind(null, session.id)}
             />
           )}
         </div>

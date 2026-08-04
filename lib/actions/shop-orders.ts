@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import { createNotificationForAdmins, createNotificationForUser } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { getShopBranchId, isAdminRole, isShopRole, requireAdmin } from "@/lib/rbac";
@@ -289,50 +290,29 @@ export async function reviewShopStockOrder(
         const qty = line.quantityApproved ?? line.quantityRequested;
         if (qty <= 0) continue;
 
-        const wh = await tx.finishedGoodsStock.findUnique({
-          where: {
-            variantId_branchId: {
-              variantId: line.variantId,
-              branchId: fresh.warehouseBranchId,
-            },
-          },
-        });
-        if (!wh || wh.quantity < qty) {
-          throw new Error(
-            `Warehouse stock changed. Not enough for one of the lines (need ${qty}, have ${wh?.quantity ?? 0}).`,
-          );
-        }
-
-        // Debit warehouse
-        await tx.finishedGoodsStock.update({
-          where: { id: wh.id },
-          data: { quantity: wh.quantity - qty },
+        await adjustFinishedGoodsWithMovement(tx, {
+          variantId: line.variantId,
+          branchId: fresh.warehouseBranchId,
+          delta: -qty,
+          type: "TRANSFER_OUT",
+          note: `Fulfill ${fresh.orderNumber}`,
+          referenceType: "ShopStockOrder",
+          referenceId: fresh.id,
+          createdById: session?.user?.id ?? null,
+          defaultReorderAt: settings.defaultFinishedGoodsReorderAt,
         });
 
-        // Credit shop
-        const shop = await tx.finishedGoodsStock.findUnique({
-          where: {
-            variantId_branchId: {
-              variantId: line.variantId,
-              branchId: fresh.shopBranchId,
-            },
-          },
+        await adjustFinishedGoodsWithMovement(tx, {
+          variantId: line.variantId,
+          branchId: fresh.shopBranchId,
+          delta: qty,
+          type: "ORDER_FULFILL",
+          note: `Fulfill ${fresh.orderNumber}`,
+          referenceType: "ShopStockOrder",
+          referenceId: fresh.id,
+          createdById: session?.user?.id ?? null,
+          defaultReorderAt: settings.defaultFinishedGoodsReorderAt,
         });
-        if (shop) {
-          await tx.finishedGoodsStock.update({
-            where: { id: shop.id },
-            data: { quantity: shop.quantity + qty },
-          });
-        } else {
-          await tx.finishedGoodsStock.create({
-            data: {
-              variantId: line.variantId,
-              branchId: fresh.shopBranchId,
-              quantity: qty,
-              reorderAt: settings.defaultFinishedGoodsReorderAt,
-            },
-          });
-        }
 
         await tx.stockTransfer.create({
           data: {

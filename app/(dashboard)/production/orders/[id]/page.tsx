@@ -217,7 +217,7 @@ export default async function ProductionOrderDetailPage({ params }: PageProps) {
                   <ConfirmActionButton
                     label="Delete"
                     confirmMessage="Delete this output entry and subtract it from the order totals?"
-                    action={() => deleteOutputEntry(out.id)}
+                    action={deleteOutputEntry.bind(null, out.id)}
                     variant="danger"
                   />
                 )}

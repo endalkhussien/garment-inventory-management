@@ -15,7 +15,6 @@ export type ShopListRow = {
   isActive: boolean;
   userCount: number;
   stockUnits: number;
-  pendingOrders: number;
 };
 
 export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
@@ -39,7 +38,6 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
           <th className="px-3 py-3">Code</th>
           <th className="px-3 py-3">Staff</th>
           <th className="px-3 py-3">Stock</th>
-          <th className="px-3 py-3">Orders</th>
           <th className="px-3 py-3">Status</th>
           <th className="px-3 py-3">Actions</th>
         </tr>
@@ -62,13 +60,6 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
             <td className="px-3 py-3">{s.userCount}</td>
             <td className="px-3 py-3">{s.stockUnits}</td>
             <td className="px-3 py-3">
-              {s.pendingOrders > 0 ? (
-                <Badge variant="warning">{s.pendingOrders} pending</Badge>
-              ) : (
-                <span className="text-muted">—</span>
-              )}
-            </td>
-            <td className="px-3 py-3">
               <Badge variant={s.isActive ? "success" : "danger"}>
                 {s.isActive ? "Open" : "Closed"}
               </Badge>
@@ -82,10 +73,10 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
                   label={s.isActive ? "Close" : "Reopen"}
                   confirmMessage={
                     s.isActive
-                      ? `Close ${s.name}? Staff cannot sell until reopened.`
+                      ? `Close ${s.name}? Shop will not appear in active control until reopened.`
                       : `Reopen ${s.name}?`
                   }
-                  action={() => setShopActive(s.id, !s.isActive)}
+                  action={setShopActive.bind(null, s.id, !s.isActive)}
                   variant={s.isActive ? "danger" : "default"}
                 />
                 <ConfirmActionButton
@@ -95,7 +86,7 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
                       ? `${s.name} has history or stock — it will be closed (not wiped). Continue?`
                       : `Permanently delete ${s.name}? This cannot be undone.`
                   }
-                  action={() => deleteShop(s.id)}
+                  action={deleteShop.bind(null, s.id)}
                   variant="danger"
                   redirectTo="/setup/shops"
                 />

@@ -4,8 +4,10 @@ import { ProductsTable } from "@/components/products/products-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/rbac";
 
 export default async function ProductsPage() {
+  await requireAdmin();
   const products = await prisma.product.findMany({
     where: { isActive: true },
     include: {
@@ -15,38 +17,36 @@ export default async function ProductsPage() {
         orderBy: [{ size: "asc" }, { color: "asc" }],
       },
     },
-    orderBy: { name: "asc" },
+    orderBy: [{ productNo: "asc" }, { name: "asc" }],
   });
-
-  const staleCount = products.filter((p) =>
-    p.variants.some((v) => v.costIsStale),
-  ).length;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Products & BOM
+            Products
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Define what you sew and the materials each piece needs — required
-            before production can issue stock.
+            Register garments with code, buying price, and selling price. Used
+            for stock, sales, and profit calculations.
           </p>
         </div>
         <Button asChild>
-          <Link href="/products/new">Add product</Link>
+          <Link href="/products/new">Register product</Link>
         </Button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
-          <p className="text-xs text-muted">Products</p>
+          <p className="text-xs text-muted">Active products</p>
           <p className="mt-1 text-xl font-semibold">{products.length}</p>
         </Card>
         <Card>
-          <p className="text-xs text-muted">Stale cost alerts</p>
-          <p className="mt-1 text-xl font-semibold text-warning">{staleCount}</p>
+          <p className="text-xs text-muted">Total variants / SKUs</p>
+          <p className="mt-1 text-xl font-semibold">
+            {products.reduce((sum, p) => sum + p.variants.length, 0)}
+          </p>
         </Card>
       </div>
 

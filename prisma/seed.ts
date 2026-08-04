@@ -2,37 +2,81 @@
  * Minimal bootstrap only — no demo products, materials, or sales.
  * Creates roles, HQ warehouse, admin login, and default settings.
  */
+import "dotenv/config";
 import { hash } from "bcryptjs";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+});
+
+async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 5): Promise<T> {
+  let last: unknown;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      last = error;
+      const msg = error instanceof Error ? error.message : String(error);
+      const unreachable =
+        msg.includes("Can't reach database server") ||
+        msg.includes("P1001") ||
+        msg.includes("Timed out");
+      if (!unreachable || i === attempts) throw error;
+      const waitMs = i * 2000;
+      console.warn(`${label}: DB unreachable (attempt ${i}/${attempts}), retrying in ${waitMs}ms…`);
+      await new Promise((r) => setTimeout(r, waitMs));
+    }
+  }
+  throw last;
+}
 
 async function main() {
+  // Wake Neon / confirm connectivity before writes
+  await withRetry("seed connect", () => prisma.$queryRaw`SELECT 1`);
+
   const adminRole = await prisma.role.upsert({
     where: { name: "Admin" },
-    update: { description: "Full access — inventory, production, shops, users" },
+    update: { description: "Central control — products, all shops, stock, sales import, finance" },
     create: {
       name: "Admin",
-      description: "Full access — inventory, production, shops, users",
+      description: "Central control — products, all shops, stock, sales import, finance",
     },
   });
 
   const shopRole = await prisma.role.upsert({
     where: { name: "Shop" },
-    update: { description: "Retail shop — POS, own stock, order from warehouse, finance" },
+    update: {
+      description:
+        "Shop portal — own stock, restock, import external sales, finance",
+    },
     create: {
       name: "Shop",
-      description: "Retail shop — POS, own stock, order from warehouse, finance",
+      description:
+        "Shop portal — own stock, restock, import external sales, finance",
     },
   });
 
   await prisma.role.upsert({
     where: { name: "Manager" },
-    update: { description: "Like Admin — can fulfill shop stock orders" },
+    update: { description: "Like Admin — central inventory control" },
     create: {
       name: "Manager",
-      description: "Like Admin — can fulfill shop stock orders",
+      description: "Like Admin — central inventory control",
     },
+  });
+
+  // Fixed garment categories
+  for (const name of ["Male", "Ladies", "Kids"] as const) {
+    await prisma.productCategory.upsert({
+      where: { name },
+      update: { isActive: true },
+      create: { name, isActive: true },
+    });
+  }
+  await prisma.productCategory.updateMany({
+    where: { name: { notIn: ["Male", "Ladies", "Kids"] } },
+    data: { isActive: false },
   });
 
   const mainBranch = await prisma.branch.upsert({

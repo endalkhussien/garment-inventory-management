@@ -2,35 +2,31 @@ import { ProductForm } from "@/components/products/product-form";
 import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { getAppSettings } from "@/lib/settings";
 
 export default async function NewProductPage() {
   await requireAdmin();
-  const [categories, settings] = await Promise.all([
-    prisma.productCategory.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    getAppSettings(),
-  ]);
+  const categories = await prisma.productCategory.findMany({
+    where: {
+      isActive: true,
+      name: { in: ["Male", "Ladies", "Kids"] },
+    },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-          Add product
+          Register product
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Create a garment with its first size/color variant.
+          Name · code · buying price · selling price — for shop inventory and
+          finance.
         </p>
       </div>
       <Card>
-        <ProductForm
-          mode="create"
-          categories={categories}
-          defaultOverheadPercent={settings.defaultOverheadPercent}
-        />
+        <ProductForm mode="create" categories={categories} />
       </Card>
     </div>
   );

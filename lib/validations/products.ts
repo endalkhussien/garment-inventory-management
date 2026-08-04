@@ -10,24 +10,26 @@ const positiveQuantity = z
 
 export const productSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  code: z.string().trim().min(1, "Code is required"),
   categoryId: z.string().min(1, "Category is required"),
   description: z.string().trim().optional().nullable(),
+  garmentInfo: z.string().trim().optional().nullable(),
 });
 
 export const productWithVariantSchema = productSchema.extend({
   size: z.string().trim().min(1, "Size is required"),
   color: z.string().trim().min(1, "Color is required"),
-  sku: z.string().trim().min(1, "SKU is required"),
-  laborCostPerUnit: nonNegativeNumber,
-  overheadPercent: nonNegativeNumber,
+  sku: z.string().trim().optional().nullable(),
+  buyingPrice: nonNegativeNumber,
+  sellingPrice: nonNegativeNumber,
 });
 
 export const variantSchema = z.object({
   size: z.string().trim().min(1, "Size is required"),
   color: z.string().trim().min(1, "Color is required"),
   sku: z.string().trim().min(1, "SKU is required"),
-  laborCostPerUnit: nonNegativeNumber,
-  overheadPercent: nonNegativeNumber,
+  buyingPrice: nonNegativeNumber,
+  sellingPrice: nonNegativeNumber,
 });
 
 export const bomLineSchema = z.object({
@@ -40,6 +42,7 @@ export const pricingSchema = z
     mode: z.enum(["margin", "manual"]),
     marginPercent: nonNegativeNumber.optional(),
     sellingPrice: nonNegativeNumber.optional(),
+    buyingPrice: nonNegativeNumber.optional(),
   })
   .superRefine((data, ctx) => {
     if (data.mode === "margin" && data.marginPercent === undefined) {

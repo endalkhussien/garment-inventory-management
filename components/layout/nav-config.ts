@@ -1,22 +1,15 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowLeftRight,
-  BarChart3,
-  ClipboardList,
-  Factory,
-  FolderTree,
   LayoutDashboard,
   Layers,
-  MapPin,
   Package,
-  ScanLine,
+  RefreshCw,
   Settings,
   Shirt,
-  ShoppingCart,
   Store,
+  Upload,
   UserRound,
   Users,
-  Wallet,
   WalletCards,
 } from "lucide-react";
 
@@ -35,117 +28,74 @@ export type NavSection = {
   items: NavItem[];
 };
 
-/** Simple Admin nav — stock, production, team, shop, access. */
 const adminSections: NavSection[] = [
   {
-    title: "HOME",
+    title: "CONTROL",
     items: [
       {
-        label: "Home",
+        label: "Control home",
         href: "/",
         icon: LayoutDashboard,
-        description: "Today at a glance",
       },
       {
-        label: "Getting started",
-        href: "/setup",
-        icon: FolderTree,
-        description: "First-week checklist",
-      },
-    ],
-  },
-  {
-    title: "STOCK",
-    items: [
-      {
-        label: "Raw materials",
-        href: "/inventory/raw-materials",
-        icon: Package,
-      },
-      {
-        label: "Lots & rolls",
-        href: "/inventory/lots",
+        label: "Central inventory",
+        href: "/central",
         icon: Layers,
+        description: "All shops rolled up · filter by shop",
       },
       {
-        label: "Stocktake",
-        href: "/inventory/stocktake",
-        icon: ScanLine,
-      },
-      {
-        label: "Finished goods",
-        href: "/shops/stock",
-        icon: Store,
-      },
-      {
-        label: "Transfer to shop",
-        href: "/shops/transfers",
-        icon: ArrowLeftRight,
-      },
-      {
-        label: "Shop orders",
-        href: "/shops/orders",
-        icon: ClipboardList,
-      },
-      {
-        label: "RM transfers",
-        href: "/inventory/raw-transfers",
-        icon: ArrowLeftRight,
+        label: "Finance",
+        href: "/shops/finance",
+        icon: WalletCards,
+        description: "Charts · multi-shop filters",
       },
     ],
   },
   {
-    title: "PRODUCTION",
+    title: "PRODUCTS",
     items: [
       {
-        label: "Products & BOM",
+        label: "Products",
         href: "/products",
         icon: Shirt,
       },
       {
-        label: "Orders",
-        href: "/production/orders",
-        icon: ClipboardList,
-      },
-      {
-        label: "Log output",
-        href: "/production/output",
-        icon: Factory,
+        label: "Categories",
+        href: "/setup/categories",
+        icon: Package,
+        description: "Male · Ladies · Kids",
       },
     ],
   },
   {
-    title: "TEAM & PAY",
+    title: "SHOPS",
     items: [
       {
-        label: "Employees",
-        href: "/production/employees",
+        label: "Manage shops",
+        href: "/setup/shops",
+        icon: Store,
+      },
+      {
+        label: "Shop stock",
+        href: "/shops/stock",
+        icon: Layers,
+      },
+      {
+        label: "Add stock",
+        href: "/shops/restock",
+        icon: RefreshCw,
+      },
+      {
+        label: "Bulk import",
+        href: "/shops/import",
+        icon: Upload,
+        description: "Restock or sales file",
+      },
+      {
+        label: "Shop staff",
+        href: "/shops/staff",
         icon: Users,
-      },
-      {
-        label: "Payroll",
-        href: "/payroll",
-        icon: Wallet,
-      },
-    ],
-  },
-  {
-    title: "SELL",
-    items: [
-      {
-        label: "POS / Sales",
-        href: "/sales",
-        icon: ShoppingCart,
-      },
-    ],
-  },
-  {
-    title: "INSIGHTS",
-    items: [
-      {
-        label: "Reports",
-        href: "/reports",
-        icon: BarChart3,
+        description: "Salary & commission",
       },
     ],
   },
@@ -153,30 +103,14 @@ const adminSections: NavSection[] = [
     title: "ACCESS",
     items: [
       {
-        label: "Shops",
-        href: "/setup/shops",
-        icon: Store,
-        description: "Open, edit, close retail shops",
-      },
-      {
-        label: "Branches",
-        href: "/setup/branches",
-        icon: MapPin,
-      },
-      {
-        label: "Categories",
-        href: "/setup/categories",
-        icon: FolderTree,
-      },
-      {
-        label: "System settings",
-        href: "/setup/settings",
-        icon: Settings,
-      },
-      {
         label: "Users & roles",
         href: "/users",
         icon: Users,
+      },
+      {
+        label: "Settings",
+        href: "/setup/settings",
+        icon: Settings,
       },
     ],
   },
@@ -184,7 +118,7 @@ const adminSections: NavSection[] = [
 
 const shopSections: NavSection[] = [
   {
-    title: "SHOP",
+    title: "MY SHOP",
     items: [
       {
         label: "Home",
@@ -192,32 +126,32 @@ const shopSections: NavSection[] = [
         icon: LayoutDashboard,
       },
       {
-        label: "Sell (POS)",
-        href: "/sales",
-        icon: ShoppingCart,
-      },
-      {
         label: "My stock",
         href: "/shops/stock",
         icon: Store,
       },
       {
-        label: "Order stock",
-        href: "/shops/orders",
-        icon: ClipboardList,
-        description: "Request from warehouse",
+        label: "Add stock",
+        href: "/shops/restock",
+        icon: RefreshCw,
+        description: "Manual · CSV · Excel",
       },
       {
-        label: "Finance",
-        href: "/shops/finance",
-        icon: WalletCards,
-        description: "Sales & cash summary",
+        label: "Bulk import",
+        href: "/shops/import",
+        icon: Upload,
+        description: "Restock or sales",
+      },
+      {
+        label: "My staff",
+        href: "/shops/staff",
+        icon: Users,
+        description: "Salary & commission",
       },
       {
         label: "My account",
         href: "/account",
         icon: UserRound,
-        description: "Username & password",
       },
     ],
   },
@@ -229,5 +163,4 @@ export function getNavSectionsForRole(roleName?: string | null): NavSection[] {
   return adminSections;
 }
 
-/** @deprecated use getNavSectionsForRole */
 export const navSections = adminSections;

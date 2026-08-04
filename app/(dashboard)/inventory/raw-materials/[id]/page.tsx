@@ -90,7 +90,7 @@ export default async function RawMaterialDetailPage({ params }: PageProps) {
                 ? `Deactivate ${material.name}? It stays in history but leaves active lists.`
                 : `Reactivate ${material.name}?`
             }
-            action={() => setRawMaterialActive(material.id, !material.isActive)}
+            action={setRawMaterialActive.bind(null, material.id, !material.isActive)}
             variant={material.isActive ? "danger" : "default"}
             size="default"
           />

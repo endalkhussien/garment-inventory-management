@@ -74,7 +74,7 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
             <ConfirmActionButton
               label="Reactivate"
               confirmMessage={`Reactivate ${employee.name}?`}
-              action={() => reactivateEmployee(employee.id)}
+              action={reactivateEmployee.bind(null, employee.id)}
               size="default"
             />
           )}

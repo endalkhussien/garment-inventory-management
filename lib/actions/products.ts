@@ -89,27 +89,53 @@ export async function createProductWithVariant(
   }
 
   const data = parsed.data;
+  const code = data.code.trim().toUpperCase();
+  const sku =
+    emptyToNull(data.sku) ??
+    `${code}-${data.size}-${data.color}`
+      .replace(/\s+/g, "-")
+      .toUpperCase();
 
   try {
-    const created = await prisma.product.create({
-      data: {
-        name: data.name,
-        categoryId: data.categoryId,
-        description: emptyToNull(data.description),
-        variants: {
-          create: {
-            size: data.size,
-            color: data.color,
-            sku: data.sku,
-            laborCostPerUnit: new Prisma.Decimal(data.laborCostPerUnit),
-            overheadPercent: new Prisma.Decimal(data.overheadPercent),
+    const existingCode = await prisma.product.findFirst({
+      where: { code: { equals: code, mode: "insensitive" }, isActive: true },
+    });
+    if (existingCode) {
+      return { success: false, error: "Product code already exists." };
+    }
+
+    const created = await prisma.$transaction(async (tx) => {
+      const maxNo = await tx.product.aggregate({ _max: { productNo: true } });
+      const nextNo = (maxNo._max.productNo ?? 0) + 1;
+      const buying = new Prisma.Decimal(data.buyingPrice);
+      return tx.product.create({
+        data: {
+          productNo: nextNo,
+          name: data.name,
+          code,
+          categoryId: data.categoryId,
+          description: emptyToNull(data.description),
+          garmentInfo: emptyToNull(data.garmentInfo),
+          variants: {
+            create: {
+              size: data.size,
+              color: data.color,
+              sku,
+              buyingPrice: buying,
+              totalCostCached: buying,
+              materialCostCached: buying,
+              sellingPrice: new Prisma.Decimal(data.sellingPrice),
+              laborCostPerUnit: new Prisma.Decimal(0),
+              overheadPercent: new Prisma.Decimal(0),
+            },
           },
         },
-      },
-      include: { variants: true },
+        include: { variants: true },
+      });
     });
 
     revalidatePath("/products");
+    revalidatePath("/central");
     return {
       success: true,
       id: created.id,
@@ -122,7 +148,7 @@ export async function createProductWithVariant(
     ) {
       return {
         success: false,
-        error: "SKU or size/color combination already exists.",
+        error: "Code, SKU, or size/color already exists.",
       };
     }
     return { success: false, error: "Could not create product." };
@@ -140,12 +166,26 @@ export async function updateProduct(
   }
 
   try {
+    const code = parsed.data.code.trim().toUpperCase();
+    const clash = await prisma.product.findFirst({
+      where: {
+        code: { equals: code, mode: "insensitive" },
+        isActive: true,
+        NOT: { id },
+      },
+    });
+    if (clash) {
+      return { success: false, error: "Product code already exists." };
+    }
+
     await prisma.product.update({
       where: { id },
       data: {
         name: parsed.data.name,
+        code,
         categoryId: parsed.data.categoryId,
         description: emptyToNull(parsed.data.description),
+        garmentInfo: emptyToNull(parsed.data.garmentInfo),
       },
     });
   } catch {
@@ -167,18 +207,24 @@ export async function addProductVariant(
   }
 
   try {
+    const buying = new Prisma.Decimal(parsed.data.buyingPrice);
     const variant = await prisma.productVariant.create({
       data: {
         productId,
         size: parsed.data.size,
         color: parsed.data.color,
         sku: parsed.data.sku,
-        laborCostPerUnit: new Prisma.Decimal(parsed.data.laborCostPerUnit),
-        overheadPercent: new Prisma.Decimal(parsed.data.overheadPercent),
+        buyingPrice: buying,
+        totalCostCached: buying,
+        materialCostCached: buying,
+        sellingPrice: new Prisma.Decimal(parsed.data.sellingPrice),
+        laborCostPerUnit: new Prisma.Decimal(0),
+        overheadPercent: new Prisma.Decimal(0),
       },
     });
 
     revalidatePath(`/products/${productId}`);
+    revalidatePath("/products");
     return { success: true, id: variant.id, productId };
   } catch (error) {
     if (
@@ -204,6 +250,7 @@ export async function updateProductVariant(
   }
 
   try {
+    const buying = new Prisma.Decimal(parsed.data.buyingPrice);
     const variant = await prisma.$transaction(async (tx) => {
       const updated = await tx.productVariant.update({
         where: { id: variantId },
@@ -211,12 +258,19 @@ export async function updateProductVariant(
           size: parsed.data.size,
           color: parsed.data.color,
           sku: parsed.data.sku,
-          laborCostPerUnit: new Prisma.Decimal(parsed.data.laborCostPerUnit),
-          overheadPercent: new Prisma.Decimal(parsed.data.overheadPercent),
+          buyingPrice: buying,
+          sellingPrice: new Prisma.Decimal(parsed.data.sellingPrice),
+          totalCostCached: buying,
+          materialCostCached: buying,
         },
       });
 
-      await recomputeVariantCosts(tx, variantId);
+      // Keep BOM-derived costs optional; explicit buying price is source of truth for shops
+      if (
+        (await tx.billOfMaterial.count({ where: { variantId } })) > 0
+      ) {
+        await recomputeVariantCosts(tx, variantId);
+      }
       return updated;
     });
 
@@ -371,10 +425,14 @@ export async function updateVariantPricing(
       }
 
       const oldPrice = Number(variant.sellingPrice.toString());
+      const costBase =
+        parsed.data.buyingPrice !== undefined
+          ? parsed.data.buyingPrice
+          : Number(variant.buyingPrice.toString()) || breakdown.totalCost;
       const newPrice =
         parsed.data.mode === "margin"
           ? sellingPriceFromMargin(
-              breakdown.totalCost,
+              costBase,
               parsed.data.marginPercent ?? 0,
             )
           : parsed.data.sellingPrice ?? 0;
@@ -392,7 +450,15 @@ export async function updateVariantPricing(
 
       await tx.productVariant.update({
         where: { id: variantId },
-        data: { sellingPrice: new Prisma.Decimal(newPrice) },
+        data: {
+          sellingPrice: new Prisma.Decimal(newPrice),
+          ...(parsed.data.buyingPrice !== undefined
+            ? {
+                buyingPrice: new Prisma.Decimal(parsed.data.buyingPrice),
+                totalCostCached: new Prisma.Decimal(parsed.data.buyingPrice),
+              }
+            : {}),
+        },
       });
 
       return variant;

@@ -69,7 +69,7 @@ export default async function ShopOrderDetailPage({ params }: PageProps) {
               <ConfirmActionButton
                 label="Cancel"
                 confirmMessage="Cancel this stock order?"
-                action={() => cancelShopStockOrder(order.id)}
+                action={cancelShopStockOrder.bind(null, order.id)}
               />
             )}
         </div>

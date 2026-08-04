@@ -52,6 +52,8 @@ model Branch {
   rawTransfersTo    RawMaterialTransfer[] @relation("RawTransferTo")
   shopOrdersAsShop  ShopStockOrder[] @relation("ShopOrderShop")
   shopOrdersAsWarehouse ShopStockOrder[] @relation("ShopOrderWarehouse")
+  finishedGoodsMovements FinishedGoodsMovement[]
+  expenses       Expense[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -80,6 +82,8 @@ model User {
   rawMaterialTransfers RawMaterialTransfer[]
   shopOrdersRequested  ShopStockOrder[] @relation("ShopOrderRequester")
   shopOrdersReviewed   ShopStockOrder[] @relation("ShopOrderReviewer")
+  finishedGoodsMovements FinishedGoodsMovement[]
+  expensesRecorded Expense[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -232,17 +236,25 @@ model RawMaterialTransfer {
 
 model Product {
   id          String           @id @default(cuid())
+  /// Display sequence number for product lists (No.)
+  productNo   Int?
   name        String
+  /// Central product code (garment style code)
+  code        String?
   categoryId  String?
   category    ProductCategory? @relation(fields: [categoryId], references: [id])
   description String?
+  /// Optional garment notes (fabric blend, season, etc.)
+  garmentInfo String?
   isActive    Boolean          @default(true)
   variants    ProductVariant[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
   @@index([name])
+  @@index([code])
   @@index([categoryId])
+  @@index([productNo])
 }
 
 model ProductVariant {
@@ -252,6 +264,8 @@ model ProductVariant {
   size               String
   color              String
   sku                String           @unique
+  /// Cost to acquire / manufacture (used for COGS & profit)
+  buyingPrice        Decimal          @default(0) @db.Decimal(12, 2)
   laborCostPerUnit   Decimal          @default(0) @db.Decimal(12, 2)
   overheadPercent    Decimal          @default(0) @db.Decimal(6, 2)
   sellingPrice       Decimal          @default(0) @db.Decimal(12, 2)
@@ -266,11 +280,13 @@ model ProductVariant {
   stockTransfers     StockTransfer[]
   saleItems          SaleItem[]
   shopOrderLines     ShopStockOrderLine[]
+  stockMovements     FinishedGoodsMovement[]
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
   @@unique([productId, size, color])
   @@index([productId])
+  @@index([sku])
 }
 
 model BillOfMaterial {
@@ -346,6 +362,7 @@ model Employee {
   phone              String?
   hireDate           DateTime?
   monthlyBaseSalary  Decimal            @default(0) @db.Decimal(12, 2)
+  /// For factory: piece rate. For shop staff: commission % of sales.
   pieceRatePerUnit   Decimal            @default(0) @db.Decimal(12, 2)
   isActive           Boolean            @default(true)
   branchId           String?
@@ -357,6 +374,7 @@ model Employee {
   updatedAt          DateTime           @updatedAt
 
   @@index([name])
+  @@index([branchId])
 }
 
 model PayrollRun {
@@ -469,6 +487,74 @@ model FinishedGoodsStock {
 
   @@unique([variantId, branchId])
   @@index([branchId])
+}
+
+enum FinishedGoodsMovementType {
+  SALE
+  RETURN
+  RESTOCK_MANUAL
+  RESTOCK_IMPORT
+  TRANSFER_IN
+  TRANSFER_OUT
+  ORDER_FULFILL
+  ADJUSTMENT
+}
+
+/// Finished-goods stock ledger per shop (sales, restocks, transfers).
+model FinishedGoodsMovement {
+  id            String                    @id @default(cuid())
+  variantId     String
+  variant       ProductVariant            @relation(fields: [variantId], references: [id])
+  branchId      String
+  branch        Branch                    @relation(fields: [branchId], references: [id])
+  type          FinishedGoodsMovementType
+  quantity      Int
+  /// Signed delta applied to stock (+ restock, - sale)
+  delta         Int
+  balanceAfter  Int
+  note          String?
+  referenceType String?
+  referenceId   String?
+  createdById   String?
+  createdBy     User?                     @relation(fields: [createdById], references: [id])
+  createdAt     DateTime                  @default(now())
+
+  @@index([branchId, createdAt])
+  @@index([variantId, createdAt])
+  @@index([type, createdAt])
+  @@index([createdAt])
+}
+
+enum ExpenseCategory {
+  RENT
+  UTILITIES
+  SALARIES
+  TRANSPORT
+  MARKETING
+  PACKAGING
+  MAINTENANCE
+  SUPPLIES
+  OTHER
+}
+
+/// Shop / HQ operating expenses (separate from product COGS).
+model Expense {
+  id          String          @id @default(cuid())
+  branchId    String
+  branch      Branch          @relation(fields: [branchId], references: [id])
+  category    ExpenseCategory @default(OTHER)
+  title       String
+  amount      Decimal         @db.Decimal(12, 2)
+  expenseDate DateTime        @default(now())
+  note        String?
+  createdById String?
+  createdBy   User?           @relation(fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([branchId, expenseDate])
+  @@index([expenseDate])
+  @@index([category])
 }
 
 model StockTransfer {

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import { createNotificationForAdmins } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
@@ -29,41 +30,6 @@ function emptyToNull(value?: string | null) {
   return value;
 }
 
-async function adjustFinishedGoods(
-  tx: Prisma.TransactionClient,
-  variantId: string,
-  branchId: string,
-  delta: number,
-  defaultReorderAt = 5,
-) {
-  const existing = await tx.finishedGoodsStock.findUnique({
-    where: { variantId_branchId: { variantId, branchId } },
-  });
-  const next = (existing?.quantity ?? 0) + delta;
-  if (next < 0) {
-    throw new Error(
-      `Not enough shop stock. Available: ${existing?.quantity ?? 0}`,
-    );
-  }
-  if (existing) {
-    await tx.finishedGoodsStock.update({
-      where: { id: existing.id },
-      data: { quantity: next },
-    });
-  } else if (delta > 0) {
-    await tx.finishedGoodsStock.create({
-      data: {
-        variantId,
-        branchId,
-        quantity: next,
-        reorderAt: defaultReorderAt,
-      },
-    });
-  } else {
-    throw new Error("No stock at this location.");
-  }
-}
-
 async function nextReceiptNumber(tx: Prisma.TransactionClient) {
   const count = await tx.sale.count();
   return `RCP-${String(count + 1).padStart(6, "0")}`;
@@ -84,22 +50,7 @@ export async function transferFinishedGoods(
 
   try {
     const transfer = await prisma.$transaction(async (tx) => {
-      await adjustFinishedGoods(
-        tx,
-        data.variantId,
-        data.fromBranchId,
-        -data.quantity,
-        settings.defaultFinishedGoodsReorderAt,
-      );
-      await adjustFinishedGoods(
-        tx,
-        data.variantId,
-        data.toBranchId,
-        data.quantity,
-        settings.defaultFinishedGoodsReorderAt,
-      );
-
-      return tx.stockTransfer.create({
+      const created = await tx.stockTransfer.create({
         data: {
           variantId: data.variantId,
           fromBranchId: data.fromBranchId,
@@ -109,10 +60,36 @@ export async function transferFinishedGoods(
           transferredById: session?.user?.id ?? null,
         },
       });
+
+      await adjustFinishedGoodsWithMovement(tx, {
+        variantId: data.variantId,
+        branchId: data.fromBranchId,
+        delta: -data.quantity,
+        type: "TRANSFER_OUT",
+        note: emptyToNull(data.note) ?? "Transfer out",
+        referenceType: "StockTransfer",
+        referenceId: created.id,
+        createdById: session?.user?.id ?? null,
+        defaultReorderAt: settings.defaultFinishedGoodsReorderAt,
+      });
+      await adjustFinishedGoodsWithMovement(tx, {
+        variantId: data.variantId,
+        branchId: data.toBranchId,
+        delta: data.quantity,
+        type: "TRANSFER_IN",
+        note: emptyToNull(data.note) ?? "Transfer in",
+        referenceType: "StockTransfer",
+        referenceId: created.id,
+        createdById: session?.user?.id ?? null,
+        defaultReorderAt: settings.defaultFinishedGoodsReorderAt,
+      });
+
+      return created;
     });
 
     revalidatePath("/shops/stock");
     revalidatePath("/shops/transfers");
+    revalidatePath("/central");
     return { success: true, id: transfer.id };
   } catch (error) {
     return {
@@ -145,13 +122,6 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
 
   try {
     const sale = await prisma.$transaction(async (tx) => {
-      await adjustFinishedGoods(
-        tx,
-        data.variantId,
-        data.branchId,
-        -data.quantity,
-      );
-
       let customerId: string | null = null;
       const customerName = emptyToNull(data.customerName);
       if (customerName) {
@@ -173,7 +143,7 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
       }
 
       const receiptNumber = await nextReceiptNumber(tx);
-      return tx.sale.create({
+      const created = await tx.sale.create({
         data: {
           receiptNumber,
           branchId: data.branchId,
@@ -197,6 +167,19 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
           },
         },
       });
+
+      await adjustFinishedGoodsWithMovement(tx, {
+        variantId: data.variantId,
+        branchId: data.branchId,
+        delta: -data.quantity,
+        type: "SALE",
+        note: receiptNumber,
+        referenceType: "Sale",
+        referenceId: created.id,
+        createdById: session?.user?.id ?? null,
+      });
+
+      return created;
     });
 
     if (lineTotal >= 10000) {
@@ -209,6 +192,8 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
 
     revalidatePath("/sales");
     revalidatePath("/shops/stock");
+    revalidatePath("/shops/finance");
+    revalidatePath("/central");
     revalidatePath("/");
     return { success: true, id: sale.id };
   } catch (error) {
@@ -241,18 +226,8 @@ export async function createReturn(input: ReturnInput): Promise<ActionResult> {
         throw new Error("Original sale not found.");
       }
 
-      for (const item of original.items) {
-        await adjustFinishedGoods(
-          tx,
-          item.variantId,
-          original.branchId,
-          item.quantity,
-          settings.defaultFinishedGoodsReorderAt,
-        );
-      }
-
       const receiptNumber = await nextReceiptNumber(tx);
-      return tx.sale.create({
+      const created = await tx.sale.create({
         data: {
           receiptNumber,
           branchId: original.branchId,
@@ -279,11 +254,29 @@ export async function createReturn(input: ReturnInput): Promise<ActionResult> {
           },
         },
       });
+
+      for (const item of original.items) {
+        await adjustFinishedGoodsWithMovement(tx, {
+          variantId: item.variantId,
+          branchId: original.branchId,
+          delta: item.quantity,
+          type: "RETURN",
+          note: parsed.data.reason,
+          referenceType: "Sale",
+          referenceId: created.id,
+          createdById: session?.user?.id ?? null,
+          defaultReorderAt: settings.defaultFinishedGoodsReorderAt,
+        });
+      }
+
+      return created;
     });
 
     revalidatePath("/sales");
     revalidatePath(`/sales/${parsed.data.saleId}`);
     revalidatePath("/shops/stock");
+    revalidatePath("/shops/finance");
+    revalidatePath("/central");
     return { success: true, id: result.id };
   } catch (error) {
     return {

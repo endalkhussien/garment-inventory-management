@@ -85,7 +85,7 @@ export function BranchesAdminTable({ branches }: { branches: BranchRow[] }) {
                             ? `Deactivate ${b.name}? It will hide from new picks.`
                             : `Reactivate ${b.name}?`
                         }
-                        action={() => setBranchActive(b.id, !b.isActive)}
+                        action={setBranchActive.bind(null, b.id, !b.isActive)}
                         variant={b.isActive ? "danger" : "default"}
                       />
                     </div>
