@@ -12,18 +12,12 @@ export default async function NewShopPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Initiate new shop</h1>
-          <p className="mt-1 text-sm text-muted">
-            Creates the location and optionally the first Shop login in one step.
-          </p>
-        </div>
+      <div className="page-header">
+        <h1 className="page-title">New shop</h1>
         <Button asChild variant="secondary">
           <Link href="/setup/shops">Back</Link>
         </Button>
       </div>
-
       <Card>
         <InitiateShopForm suggestedCode={suggestedCode} />
       </Card>

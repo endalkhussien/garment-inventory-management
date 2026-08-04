@@ -63,20 +63,11 @@ export default async function RestockPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          {shopOnly ? "Add stock" : "Restock shops"}
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          {shopOnly
-            ? "Add products to your shop stock manually, or import CSV / Excel (code + quantity)."
-            : "Add stock to any shop manually, or import CSV / Excel."}
-        </p>
-        <p className="mt-2 text-sm">
-          <Link href="/shops/stock" className="text-secondary hover:underline">
-            ← My stock
-          </Link>
-        </p>
+      <div className="page-header">
+        <h1 className="page-title">Restock</h1>
+        <Link href="/shops/stock" className="text-sm text-secondary hover:underline">
+          Stock
+        </Link>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

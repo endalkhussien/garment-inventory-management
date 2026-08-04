@@ -32,6 +32,16 @@ export async function requireAdmin() {
   return session;
 }
 
+/** Admin / Manager or Shop (e.g. product catalogue). */
+export async function requireAdminOrShop() {
+  const session = await requireSession();
+  const role = session.user.role?.name;
+  if (!isAdminRole(role) && !isShopRole(role)) {
+    redirect("/");
+  }
+  return session;
+}
+
 export function getShopBranchId(session: {
   user: { role: { name: string }; branch: { id: string } | null };
 }) {

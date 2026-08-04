@@ -7,12 +7,13 @@ const adminOnlyPrefixes = [
   "/setup",
   "/production",
   "/inventory",
-  "/products",
   "/payroll",
   "/approvals",
   "/reports",
   "/shops/transfers",
   "/users",
+  "/central",
+  "/shops/finance",
 ];
 
 export default withAuth(

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ChevronLeft, ChevronRight, Factory, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package2, X } from "lucide-react";
 
 import { getNavSectionsForRole } from "@/components/layout/nav-config";
 import { Button } from "@/components/ui/button";
@@ -29,30 +29,29 @@ export function Sidebar({
   const pathname = usePathname();
   const { data: session } = useSession();
   const navSections = getNavSectionsForRole(session?.user?.role?.name);
-
-  // On mobile drawer always show labels; on desktop respect collapsed
   const showLabels = mobileOpen || !collapsed;
 
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r border-border bg-surface shadow-card transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 lg:shadow-sm",
+        "fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r border-border transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0",
+        "bg-[var(--sidebar-bg)] text-[var(--sidebar-fg)]",
         mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-        collapsed ? "lg:w-[72px]" : "lg:w-64",
-        "w-[min(18rem,85vw)]",
+        collapsed ? "lg:w-[72px]" : "lg:w-60",
+        "w-[min(17rem,85vw)]",
       )}
     >
-      <div className="flex h-14 items-center justify-between border-b border-border px-3 sm:h-16">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm">
-            <Factory className="h-5 w-5" />
+      <div className="flex h-14 items-center justify-between border-b border-white/10 px-3 sm:h-16">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
+            <Package2 className="h-5 w-5" />
           </div>
           {showLabels && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
-                {companyName}
+              <p className="truncate text-sm font-semibold">{companyName}</p>
+              <p className="truncate text-[11px] text-[var(--sidebar-muted)]">
+                {companyTagline}
               </p>
-              <p className="truncate text-xs text-muted">{companyTagline}</p>
             </div>
           )}
         </div>
@@ -60,7 +59,7 @@ export function Sidebar({
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="text-[var(--sidebar-fg)] hover:bg-white/10 lg:hidden"
             onClick={onCloseMobile}
             aria-label="Close menu"
           >
@@ -69,7 +68,7 @@ export function Sidebar({
           <Button
             variant="ghost"
             size="icon"
-            className="hidden lg:inline-flex"
+            className="hidden text-[var(--sidebar-fg)] hover:bg-white/10 lg:inline-flex"
             onClick={onToggle}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
@@ -82,25 +81,18 @@ export function Sidebar({
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto overscroll-contain p-3 pb-6">
+      <nav className="flex-1 overflow-y-auto overscroll-contain p-2.5 pb-6">
         {navSections.map((section, sectionIndex) => (
           <div
             key={section.title}
-            className={cn(sectionIndex > 0 && "mt-5 border-t border-border pt-4")}
+            className={cn(sectionIndex > 0 && "mt-4 border-t border-white/10 pt-3")}
           >
             {showLabels && (
-              <div className="mb-2 px-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                  {section.title}
-                </p>
-                {section.hint && (
-                  <p className="mt-0.5 text-[11px] leading-snug text-muted/80">
-                    {section.hint}
-                  </p>
-                )}
-              </div>
+              <p className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--sidebar-muted)]">
+                {section.title}
+              </p>
             )}
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const isActive =
@@ -113,41 +105,18 @@ export function Sidebar({
                     <Link
                       href={item.href}
                       onClick={onCloseMobile}
+                      title={!showLabels ? item.label : undefined}
                       className={cn(
-                        "group flex min-h-11 items-center gap-3 rounded-xl px-2 py-2.5 text-sm transition-colors lg:min-h-0 lg:py-2",
+                        "flex min-h-10 items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors lg:min-h-0",
                         !showLabels && "justify-center px-0",
                         isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted hover:bg-page hover:text-[var(--text-primary)]",
+                          ? "bg-[var(--sidebar-active)] font-medium text-[var(--sidebar-active-fg)]"
+                          : "text-[var(--sidebar-muted)] hover:bg-white/5 hover:text-[var(--sidebar-fg)]",
                       )}
-                      title={
-                        !showLabels
-                          ? item.description
-                            ? `${item.label} — ${item.description}`
-                            : item.label
-                          : item.description
-                      }
                     >
-                      <Icon
-                        className={cn(
-                          "h-5 w-5 shrink-0 lg:h-4 lg:w-4",
-                          isActive
-                            ? "text-primary"
-                            : "text-muted group-hover:text-primary",
-                        )}
-                        aria-hidden
-                      />
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
                       {showLabels && (
-                        <span className="min-w-0">
-                          <span className="block truncate font-medium">
-                            {item.label}
-                          </span>
-                          {item.description && (
-                            <span className="hidden truncate text-[11px] text-muted/80 group-hover:text-muted sm:block">
-                              {item.description}
-                            </span>
-                          )}
-                        </span>
+                        <span className="truncate">{item.label}</span>
                       )}
                     </Link>
                   </li>

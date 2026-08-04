@@ -21,31 +21,30 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
   if (shops.length === 0) {
     return (
       <p className="p-6 text-sm text-muted">
-        No shops yet.{" "}
+        No shops.{" "}
         <Link href="/setup/shops/new" className="text-secondary hover:underline">
-          Initiate your first shop
+          Create shop
         </Link>
-        .
       </p>
     );
   }
 
   return (
     <table className="min-w-full text-left text-sm">
-      <thead className="bg-page text-xs uppercase text-muted">
+      <thead className="bg-[var(--bg-elevated)] text-xs uppercase text-muted">
         <tr>
-          <th className="px-3 py-3">Shop</th>
-          <th className="px-3 py-3">Code</th>
-          <th className="px-3 py-3">Staff</th>
-          <th className="px-3 py-3">Stock</th>
-          <th className="px-3 py-3">Status</th>
-          <th className="px-3 py-3">Actions</th>
+          <th className="px-4 py-3 font-medium">Shop</th>
+          <th className="px-4 py-3 font-medium">Code</th>
+          <th className="px-4 py-3 font-medium">Users</th>
+          <th className="px-4 py-3 font-medium">Stock</th>
+          <th className="px-4 py-3 font-medium">Status</th>
+          <th className="px-4 py-3 font-medium">Actions</th>
         </tr>
       </thead>
       <tbody>
         {shops.map((s) => (
-          <tr key={s.id} className="border-t border-border/60">
-            <td className="px-3 py-3">
+          <tr key={s.id} className="border-t border-border/60 hover:bg-page/50">
+            <td className="px-4 py-3">
               <Link
                 href={`/setup/shops/${s.id}`}
                 className="font-medium text-secondary hover:underline"
@@ -56,25 +55,26 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
                 <p className="text-xs text-muted">{s.address}</p>
               )}
             </td>
-            <td className="px-3 py-3 text-muted">{s.code}</td>
-            <td className="px-3 py-3">{s.userCount}</td>
-            <td className="px-3 py-3">{s.stockUnits}</td>
-            <td className="px-3 py-3">
+            <td className="px-4 py-3 text-muted">{s.code}</td>
+            <td className="px-4 py-3 tabular-nums">{s.userCount}</td>
+            <td className="px-4 py-3 tabular-nums">{s.stockUnits}</td>
+            <td className="px-4 py-3">
               <Badge variant={s.isActive ? "success" : "danger"}>
                 {s.isActive ? "Open" : "Closed"}
               </Badge>
             </td>
-            <td className="px-3 py-3">
-              <div className="flex flex-wrap gap-2">
+            <td className="px-4 py-3">
+              <div className="flex flex-wrap gap-1.5">
                 <Button asChild size="sm" variant="secondary">
-                  <Link href={`/setup/shops/${s.id}`}>Manage</Link>
+                  <Link href={`/setup/shops/${s.id}`}>Edit</Link>
+                </Button>
+                <Button asChild size="sm" variant="ghost">
+                  <Link href={`/shops/stock?branchId=${s.id}`}>Stock</Link>
                 </Button>
                 <ConfirmActionButton
-                  label={s.isActive ? "Close" : "Reopen"}
+                  label={s.isActive ? "Close" : "Open"}
                   confirmMessage={
-                    s.isActive
-                      ? `Close ${s.name}? Shop will not appear in active control until reopened.`
-                      : `Reopen ${s.name}?`
+                    s.isActive ? `Close ${s.name}?` : `Open ${s.name}?`
                   }
                   action={setShopActive.bind(null, s.id, !s.isActive)}
                   variant={s.isActive ? "danger" : "default"}
@@ -83,8 +83,8 @@ export function ShopsAdminTable({ shops }: { shops: ShopListRow[] }) {
                   label="Delete"
                   confirmMessage={
                     s.stockUnits > 0 || s.userCount > 0
-                      ? `${s.name} has history or stock — it will be closed (not wiped). Continue?`
-                      : `Permanently delete ${s.name}? This cannot be undone.`
+                      ? `${s.name} has data — close instead of delete?`
+                      : `Delete ${s.name}?`
                   }
                   action={deleteShop.bind(null, s.id)}
                   variant="danger"

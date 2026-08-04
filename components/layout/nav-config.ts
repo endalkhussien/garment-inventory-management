@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Layers,
   Package,
+  PackagePlus,
   RefreshCw,
   Settings,
   Shirt,
@@ -19,140 +20,60 @@ export type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-  description?: string;
 };
 
 export type NavSection = {
   title: string;
-  hint?: string;
   items: NavItem[];
 };
 
 const adminSections: NavSection[] = [
   {
-    title: "CONTROL",
+    title: "Main",
     items: [
-      {
-        label: "Control home",
-        href: "/",
-        icon: LayoutDashboard,
-      },
-      {
-        label: "Central inventory",
-        href: "/central",
-        icon: Layers,
-        description: "All shops rolled up · filter by shop",
-      },
-      {
-        label: "Finance",
-        href: "/shops/finance",
-        icon: WalletCards,
-        description: "Charts · multi-shop filters",
-      },
+      { label: "Dashboard", href: "/", icon: LayoutDashboard },
+      { label: "Inventory", href: "/central", icon: Layers },
+      { label: "Finance", href: "/shops/finance", icon: WalletCards },
     ],
   },
   {
-    title: "PRODUCTS",
+    title: "Catalog",
     items: [
-      {
-        label: "Products",
-        href: "/products",
-        icon: Shirt,
-      },
-      {
-        label: "Categories",
-        href: "/setup/categories",
-        icon: Package,
-        description: "Male · Ladies · Kids",
-      },
+      { label: "Products", href: "/products", icon: Shirt },
+      { label: "Categories", href: "/setup/categories", icon: Package },
     ],
   },
   {
-    title: "SHOPS",
+    title: "Shops",
     items: [
-      {
-        label: "Manage shops",
-        href: "/setup/shops",
-        icon: Store,
-      },
-      {
-        label: "Shop stock",
-        href: "/shops/stock",
-        icon: Layers,
-      },
-      {
-        label: "Add stock",
-        href: "/shops/restock",
-        icon: RefreshCw,
-      },
-      {
-        label: "Bulk import",
-        href: "/shops/import",
-        icon: Upload,
-        description: "Restock or sales file",
-      },
-      {
-        label: "Shop staff",
-        href: "/shops/staff",
-        icon: Users,
-        description: "Salary & commission",
-      },
+      { label: "Manage shops", href: "/setup/shops", icon: Store },
+      { label: "Stock", href: "/shops/stock", icon: Layers },
+      { label: "Restock", href: "/shops/restock", icon: RefreshCw },
+      { label: "Import", href: "/shops/import", icon: Upload },
+      { label: "Staff", href: "/shops/staff", icon: Users },
     ],
   },
   {
-    title: "ACCESS",
+    title: "System",
     items: [
-      {
-        label: "Users & roles",
-        href: "/users",
-        icon: Users,
-      },
-      {
-        label: "Settings",
-        href: "/setup/settings",
-        icon: Settings,
-      },
+      { label: "Users", href: "/users", icon: Users },
+      { label: "Settings", href: "/setup/settings", icon: Settings },
     ],
   },
 ];
 
 const shopSections: NavSection[] = [
   {
-    title: "MY SHOP",
+    title: "Main",
     items: [
-      {
-        label: "Home",
-        href: "/",
-        icon: LayoutDashboard,
-      },
-      {
-        label: "My stock",
-        href: "/shops/stock",
-        icon: Store,
-      },
-      {
-        label: "Add stock",
-        href: "/shops/restock",
-        icon: RefreshCw,
-        description: "Manual · CSV · Excel",
-      },
-      {
-        label: "Bulk import",
-        href: "/shops/import",
-        icon: Upload,
-        description: "Restock or sales",
-      },
-      {
-        label: "My staff",
-        href: "/shops/staff",
-        icon: Users,
-        description: "Salary & commission",
-      },
-      {
-        label: "My account",
-        href: "/account",
-        icon: UserRound,
-      },
+      { label: "Dashboard", href: "/", icon: LayoutDashboard },
+      { label: "Products", href: "/products", icon: Shirt },
+      { label: "New product", href: "/products/new", icon: PackagePlus },
+      { label: "Stock", href: "/shops/stock", icon: Store },
+      { label: "Restock", href: "/shops/restock", icon: RefreshCw },
+      { label: "Import", href: "/shops/import", icon: Upload },
+      { label: "Staff", href: "/shops/staff", icon: Users },
+      { label: "Account", href: "/account", icon: UserRound },
     ],
   },
 ];

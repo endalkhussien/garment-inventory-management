@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 
 import { AuthProvider } from "@/components/providers/session-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { DEFAULT_APP_SETTINGS, getAppSettings } from "@/lib/settings";
 
 import "./globals.css";
@@ -16,12 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
     const settings = await getAppSettings();
     return {
       title: settings.companyName,
-      description: `${settings.companyName} — garment manufacturing and retail`,
+      description: settings.companyName,
     };
   } catch {
     return {
       title: DEFAULT_APP_SETTINGS.companyName,
-      description: "Garment manufacturing and retail management system",
+      description: DEFAULT_APP_SETTINGS.companyName,
     };
   }
 }
@@ -30,8 +31,25 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#5B5CE2",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0f766e" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+  ],
 };
+
+const themeBoot = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.style.colorScheme = 'light';
+    }
+  } catch (e) {}
+})();
+`;
 
 export default function RootLayout({
   children,
@@ -39,9 +57,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

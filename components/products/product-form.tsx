@@ -131,11 +131,11 @@ export function ProductForm(props: ProductFormProps) {
       <form onSubmit={onCreate} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Name of product</Label>
+            <Label htmlFor="name">Name</Label>
             <Input
               id="name"
               {...register("name")}
-              placeholder="Men's Crew Neck Sweater"
+              placeholder="Product name"
             />
             {errors.name && (
               <p className="text-xs text-danger">{errors.name.message}</p>
@@ -159,7 +159,7 @@ export function ProductForm(props: ProductFormProps) {
             error={errors.categoryId?.message}
           />
           <div className="space-y-2">
-            <Label htmlFor="buyingPrice">Buying price (ETB)</Label>
+            <Label htmlFor="buyingPrice">Buy (ETB)</Label>
             <Input
               id="buyingPrice"
               type="number"
@@ -174,7 +174,7 @@ export function ProductForm(props: ProductFormProps) {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="sellingPrice">Selling price (ETB)</Label>
+            <Label htmlFor="sellingPrice">Sell (ETB)</Label>
             <Input
               id="sellingPrice"
               type="number"
@@ -190,7 +190,7 @@ export function ProductForm(props: ProductFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="size">Size</Label>
-            <Input id="size" {...register("size")} placeholder="S / M / L / XL" />
+            <Input id="size" {...register("size")} placeholder="S / M / L" />
             {errors.size && (
               <p className="text-xs text-danger">{errors.size.message}</p>
             )}
@@ -203,19 +203,19 @@ export function ProductForm(props: ProductFormProps) {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="sku">SKU (optional — auto from code)</Label>
-            <Input id="sku" {...register("sku")} placeholder="Auto if empty" />
+            <Label htmlFor="sku">SKU</Label>
+            <Input id="sku" {...register("sku")} placeholder="Optional" />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="garmentInfo">Garment info</Label>
+            <Label htmlFor="garmentInfo">Notes</Label>
             <Input
               id="garmentInfo"
               {...register("garmentInfo")}
-              placeholder="Fabric, season, gender, collection…"
+              placeholder="Optional"
             />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Details</Label>
             <Textarea id="description" rows={2} {...register("description")} />
           </div>
         </div>
@@ -225,7 +225,7 @@ export function ProductForm(props: ProductFormProps) {
             type="submit"
             disabled={isSubmitting || categories.length === 0}
           >
-            {isSubmitting ? "Creating..." : "Register product"}
+            {isSubmitting ? "Saving…" : "Create"}
           </Button>
           <Button
             type="button"
@@ -248,7 +248,7 @@ export function ProductForm(props: ProductFormProps) {
     <form onSubmit={onEdit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">Name of product</Label>
+          <Label htmlFor="name">Name</Label>
           <Input id="name" {...register("name")} />
           {errors.name && (
             <p className="text-xs text-danger">{errors.name.message}</p>
@@ -267,17 +267,17 @@ export function ProductForm(props: ProductFormProps) {
           error={errors.categoryId?.message}
         />
         <div className="space-y-2">
-          <Label htmlFor="garmentInfo">Garment info</Label>
+          <Label htmlFor="garmentInfo">Notes</Label>
           <Input id="garmentInfo" {...register("garmentInfo")} />
         </div>
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">Details</Label>
           <Textarea id="description" rows={2} {...register("description")} />
         </div>
       </div>
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Saving..." : "Save product"}
+        {isSubmitting ? "Saving…" : "Save"}
       </Button>
     </form>
   );

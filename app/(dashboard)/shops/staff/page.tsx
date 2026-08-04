@@ -59,14 +59,7 @@ export default async function ShopStaffPage({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Shop staff</h1>
-        <p className="mt-1 text-sm text-muted">
-          {shopOnly
-            ? "Register people who work at your shop — salary and commission %."
-            : `Staff roster for ${shopName}. Shops manage their own team.`}
-        </p>
-      </div>
+      <h1 className="page-title">Staff</h1>
 
       {!shopOnly && (
         <div className="flex flex-wrap gap-2">

@@ -13,6 +13,7 @@ export function isShopRole(roleName?: string | null) {
 export function canShopAccessPath(pathname: string) {
   if (pathname === "/") return true;
   return (
+    pathname.startsWith("/products") ||
     pathname.startsWith("/shops/stock") ||
     pathname.startsWith("/shops/restock") ||
     pathname.startsWith("/shops/sales") ||
@@ -25,6 +26,7 @@ export function canShopAccessPath(pathname: string) {
 
 export const shopAllowedPrefixes = [
   "/",
+  "/products",
   "/shops/stock",
   "/shops/restock",
   "/shops/sales",

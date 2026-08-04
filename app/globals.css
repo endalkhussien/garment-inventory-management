@@ -2,24 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Esset Inventory light theme */
+/* Inventory app palette — teal primary, slate neutrals */
 :root {
-  --bg-page: #f3f5fa;
+  --bg-page: #eef2f6;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
-  --color-primary: #5b5ce2;
-  --color-primary-hover: #4849c9;
-  --color-secondary: #4f6ef7;
-  --color-success: #22a06b;
-  --color-warning: #d97706;
-  --color-danger: #e5484d;
-  --text-primary: #0f1b33;
-  --text-muted: #6b7289;
+  --bg-elevated: #f8fafc;
+  --color-primary: #0f766e;
+  --color-primary-hover: #0d9488;
+  --color-secondary: #0369a1;
+  --color-accent: #d97706;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #dc2626;
+  --color-info: #0284c7;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
   --text-on-primary: #ffffff;
-  --border-color: rgba(15, 27, 51, 0.12);
-  --border-strong: rgba(15, 27, 51, 0.18);
-  --shadow-card: 0 1px 2px rgba(15, 27, 51, 0.04),
-    0 4px 16px rgba(15, 27, 51, 0.04);
+  --border-color: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+  --sidebar-bg: #0f172a;
+  --sidebar-fg: #e2e8f0;
+  --sidebar-muted: #94a3b8;
+  --sidebar-active: rgba(45, 212, 191, 0.15);
+  --sidebar-active-fg: #5eead4;
+  --kpi-blue: #0369a1;
+  --kpi-green: #15803d;
+  --kpi-amber: #b45309;
+  --kpi-violet: #6d28d9;
+}
+
+html.dark {
+  --bg-page: #0b1220;
+  --bg-surface: #111a2b;
+  --bg-card: #111a2b;
+  --bg-elevated: #1a2438;
+  --color-primary: #14b8a6;
+  --color-primary-hover: #2dd4bf;
+  --color-secondary: #38bdf8;
+  --color-accent: #fbbf24;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #38bdf8;
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-on-primary: #042f2e;
+  --border-color: rgba(148, 163, 184, 0.14);
+  --border-strong: rgba(148, 163, 184, 0.22);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.2);
+  --sidebar-bg: #060b14;
+  --sidebar-fg: #e2e8f0;
+  --sidebar-muted: #64748b;
+  --sidebar-active: rgba(20, 184, 166, 0.18);
+  --sidebar-active-fg: #5eead4;
+  --kpi-blue: #38bdf8;
+  --kpi-green: #4ade80;
+  --kpi-amber: #fbbf24;
+  --kpi-violet: #a78bfa;
 }
 
 @layer base {
@@ -35,7 +77,6 @@
     @apply bg-page text-[var(--text-primary)] font-sans antialiased;
   }
 
-  /* Readable native controls (checkboxes, etc.) */
   input[type="checkbox"],
   input[type="radio"] {
     width: 1rem;
@@ -45,12 +86,12 @@
     vertical-align: middle;
   }
 
-  /* Prefer readable form controls on iOS without zoom glitches */
   input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {
     font-size: 16px;
     color: var(--text-primary);
+    background-color: var(--bg-surface);
   }
 
   @media (min-width: 640px) {
@@ -63,23 +104,44 @@
 
   option {
     color: var(--text-primary);
-    background-color: #ffffff;
+    background-color: var(--bg-surface);
   }
 }
 
 @layer utilities {
   .page-header {
-    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between;
+    @apply flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between;
   }
 
   .page-title {
-    @apply text-xl font-semibold sm:text-2xl;
+    @apply text-xl font-semibold tracking-tight sm:text-2xl;
   }
 
   .ui-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7289' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
     background-position: right 0.75rem center;
     background-repeat: no-repeat;
     background-size: 1rem;
+  }
+
+  .stat-tile {
+    @apply rounded-xl border border-border bg-surface p-4 shadow-card;
+  }
+
+  .kpi-icon-blue {
+    background-color: color-mix(in srgb, var(--kpi-blue) 14%, transparent);
+    color: var(--kpi-blue);
+  }
+  .kpi-icon-green {
+    background-color: color-mix(in srgb, var(--kpi-green) 14%, transparent);
+    color: var(--kpi-green);
+  }
+  .kpi-icon-amber {
+    background-color: color-mix(in srgb, var(--kpi-amber) 14%, transparent);
+    color: var(--kpi-amber);
+  }
+  .kpi-icon-violet {
+    background-color: color-mix(in srgb, var(--kpi-violet) 14%, transparent);
+    color: var(--kpi-violet);
   }
 }

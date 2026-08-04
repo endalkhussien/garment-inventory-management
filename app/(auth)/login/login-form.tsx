@@ -82,11 +82,7 @@ export function LoginForm({
           <h1 className="text-xl font-semibold text-[var(--text-primary)]">
             {companyName}
           </h1>
-          <p className="text-sm text-muted">
-            {companyTagline
-              ? `Sign in · ${companyTagline}`
-              : "Sign in to your factory workspace"}
-          </p>
+          <p className="text-sm text-muted">Sign in</p>
         </div>
       </div>
 
@@ -99,12 +95,9 @@ export function LoginForm({
             autoComplete="username"
             value={login}
             onChange={(event) => setLogin(event.target.value)}
-            placeholder="admin or bole_shop"
+            placeholder="username"
             required
           />
-          <p className="text-xs text-muted">
-            Shop staff use the username you created. Email still works too.
-          </p>
         </div>
 
         <div className="space-y-2">
@@ -123,7 +116,7 @@ export function LoginForm({
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in..." : "Sign in"}
+          {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>
     </div>

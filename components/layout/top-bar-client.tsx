@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LogOut, Menu } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +26,6 @@ function getInitials(name?: string | null, email?: string | null) {
       .slice(0, 2)
       .toUpperCase();
   }
-
   return email?.slice(0, 2).toUpperCase() ?? "U";
 }
 
@@ -38,9 +38,10 @@ export function TopBarClient({
 }) {
   const { data: session } = useSession();
   const user = session?.user;
+  const isShop = user?.role?.name === "Shop";
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-3 shadow-sm sm:h-16 sm:gap-4 sm:px-4">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-surface/95 px-3 backdrop-blur sm:h-14 sm:gap-4 sm:px-4">
       <div className="flex min-w-0 items-center gap-2">
         <Button
           type="button"
@@ -53,16 +54,17 @@ export function TopBarClient({
           <Menu className="h-5 w-5" />
         </Button>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
-            {user?.role?.name === "Shop" ? "Shop counter" : "Factory dashboard"}
+          <p className="truncate text-sm font-semibold">
+            {isShop ? "Shop" : "Dashboard"}
           </p>
           <p className="truncate text-xs text-muted">
-            {user?.branch?.name ?? "All branches"}
+            {user?.branch?.name ?? "All shops"}
           </p>
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+      <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <ThemeToggle />
         {notificationSlot}
 
         <DropdownMenu>
@@ -77,33 +79,24 @@ export function TopBarClient({
                 <p className="text-sm font-medium leading-none">
                   {user?.name ?? "User"}
                 </p>
-                <p className="text-xs text-muted">
-                  {user?.role?.name ?? "Role"}
-                </p>
+                <p className="text-xs text-muted">{user?.role?.name ?? "Role"}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <p className="text-sm font-medium">{user?.name ?? "User"}</p>
                 <p className="text-xs font-normal text-muted">
                   {user?.username ? `@${user.username}` : user?.email}
                 </p>
-                {user?.branch && (
-                  <p className="text-xs font-normal text-muted">
-                    {user.branch.name}
-                  </p>
-                )}
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/account">My account</Link>
+              <Link href="/account">Account</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </DropdownMenuItem>

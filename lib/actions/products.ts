@@ -11,7 +11,7 @@ import {
   sellingPriceFromMargin,
 } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/rbac";
+import { requireAdminOrShop } from "@/lib/rbac";
 import {
   bomLineSchema,
   pricingSchema,
@@ -82,7 +82,7 @@ async function recomputeVariantCosts(
 export async function createProductWithVariant(
   input: ProductWithVariantInput,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdminOrShop();
   const parsed = productWithVariantSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
@@ -159,7 +159,7 @@ export async function updateProduct(
   id: string,
   input: ProductInput,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdminOrShop();
   const parsed = productSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
@@ -201,6 +201,7 @@ export async function addProductVariant(
   productId: string,
   input: VariantInput,
 ): Promise<ActionResult> {
+  await requireAdminOrShop();
   const parsed = variantSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
@@ -244,6 +245,7 @@ export async function updateProductVariant(
   variantId: string,
   input: VariantInput,
 ): Promise<ActionResult> {
+  await requireAdminOrShop();
   const parsed = variantSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
@@ -503,7 +505,7 @@ export async function setProductActive(
   id: string,
   isActive: boolean,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdminOrShop();
   try {
     await prisma.$transaction(async (tx) => {
       await tx.product.update({
@@ -527,7 +529,7 @@ export async function setVariantActive(
   id: string,
   isActive: boolean,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireAdminOrShop();
   try {
     const variant = await prisma.productVariant.update({
       where: { id },

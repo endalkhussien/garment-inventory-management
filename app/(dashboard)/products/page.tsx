@@ -1,13 +1,14 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 
 import { ProductsTable } from "@/components/products/products-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/rbac";
+import { requireAdminOrShop } from "@/lib/rbac";
 
 export default async function ProductsPage() {
-  await requireAdmin();
+  await requireAdminOrShop();
   const products = await prisma.product.findMany({
     where: { isActive: true },
     include: {
@@ -20,32 +21,31 @@ export default async function ProductsPage() {
     orderBy: [{ productNo: "asc" }, { name: "asc" }],
   });
 
+  const variantCount = products.reduce((sum, p) => sum + p.variants.length, 0);
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Products
-          </h1>
-          <p className="mt-1 text-sm text-muted">
-            Register garments with code, buying price, and selling price. Used
-            for stock, sales, and profit calculations.
-          </p>
-        </div>
+    <div className="space-y-5">
+      <div className="page-header">
+        <h1 className="page-title">Products</h1>
         <Button asChild>
-          <Link href="/products/new">Register product</Link>
+          <Link href="/products/new">
+            <Plus className="h-4 w-4" />
+            New product
+          </Link>
         </Button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
-          <p className="text-xs text-muted">Active products</p>
-          <p className="mt-1 text-xl font-semibold">{products.length}</p>
+          <p className="text-xs font-medium uppercase text-muted">Products</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {products.length}
+          </p>
         </Card>
         <Card>
-          <p className="text-xs text-muted">Total variants / SKUs</p>
-          <p className="mt-1 text-xl font-semibold">
-            {products.reduce((sum, p) => sum + p.variants.length, 0)}
+          <p className="text-xs font-medium uppercase text-muted">SKUs</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {variantCount}
           </p>
         </Card>
       </div>
