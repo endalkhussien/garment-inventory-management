@@ -82,7 +82,9 @@ export function LoginForm({
           <h1 className="text-xl font-semibold text-[var(--text-primary)]">
             {companyName}
           </h1>
-          <p className="text-sm text-muted">Sign in</p>
+          <p className="text-sm text-muted">
+            {companyTagline ? `${companyTagline} · Sign in` : "Sign in"}
+          </p>
         </div>
       </div>
 

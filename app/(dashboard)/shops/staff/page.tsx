@@ -52,11 +52,6 @@ export default async function ShopStaffPage({
       })
     : [];
 
-  const shopName =
-    shops.find((s) => s.id === activeBranchId)?.name ??
-    session.user.branch?.name ??
-    "Shop";
-
   return (
     <div className="space-y-4">
       <h1 className="page-title">Staff</h1>
