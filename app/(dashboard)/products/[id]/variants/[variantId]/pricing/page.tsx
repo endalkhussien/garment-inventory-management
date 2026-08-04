@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatEtb, toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/rbac";
 import { getAppSettings } from "@/lib/settings";
 
 type PageProps = {
@@ -13,6 +14,7 @@ type PageProps = {
 };
 
 export default async function VariantPricingPage({ params }: PageProps) {
+  await requireAdmin();
   const [variant, settings] = await Promise.all([
     prisma.productVariant.findUnique({
       where: { id: params.variantId },

@@ -12,8 +12,10 @@ import {
 import {
   productSchema,
   productWithVariantSchema,
+  shopProductWithVariantSchema,
   type ProductInput,
   type ProductWithVariantInput,
+  type ShopProductWithVariantInput,
 } from "@/lib/validations/products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,8 @@ type ProductFormProps =
   | {
       mode: "create";
       categories: Option[];
+      /** When true: hide buying price; admin sets cost later. */
+      shopMode?: boolean;
     }
   | {
       mode: "edit";
@@ -49,7 +53,7 @@ function CategorySelect({
       <Label>Category</Label>
       <Select {...selectProps}>
         {categories.length === 0 ? (
-          <option value="">Create categories in Setup first</option>
+          <option value="">No categories</option>
         ) : (
           categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -67,21 +71,28 @@ export function ProductForm(props: ProductFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const isCreate = props.mode === "create";
+  const shopMode = isCreate && Boolean(props.shopMode);
   const categories = props.categories;
 
-  const createForm = useForm<ProductWithVariantInput>({
-    resolver: zodResolver(productWithVariantSchema),
+  const createSchema = shopMode
+    ? shopProductWithVariantSchema
+    : productWithVariantSchema;
+
+  const createForm = useForm<
+    ProductWithVariantInput | ShopProductWithVariantInput
+  >({
+    resolver: zodResolver(createSchema),
     defaultValues: {
       name: "",
       code: "",
       categoryId: categories[0]?.id ?? "",
       description: "",
       garmentInfo: "",
-      size: "M",
-      color: "Navy",
+      size: "",
+      color: "",
       sku: "",
-      buyingPrice: 0,
       sellingPrice: 0,
+      ...(shopMode ? {} : { buyingPrice: 0 }),
     },
   });
 
@@ -127,16 +138,15 @@ export function ProductForm(props: ProductFormProps) {
       formState: { errors, isSubmitting },
     } = createForm;
 
+    const buyErrors =
+      "buyingPrice" in errors ? errors.buyingPrice : undefined;
+
     return (
       <form onSubmit={onCreate} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              {...register("name")}
-              placeholder="Product name"
-            />
+            <Input id="name" {...register("name")} placeholder="Product name" />
             {errors.name && (
               <p className="text-xs text-danger">{errors.name.message}</p>
             )}
@@ -158,21 +168,21 @@ export function ProductForm(props: ProductFormProps) {
             selectProps={register("categoryId")}
             error={errors.categoryId?.message}
           />
-          <div className="space-y-2">
-            <Label htmlFor="buyingPrice">Buy (ETB)</Label>
-            <Input
-              id="buyingPrice"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("buyingPrice", { valueAsNumber: true })}
-            />
-            {errors.buyingPrice && (
-              <p className="text-xs text-danger">
-                {errors.buyingPrice.message}
-              </p>
-            )}
-          </div>
+          {!shopMode && (
+            <div className="space-y-2">
+              <Label htmlFor="buyingPrice">Buy (ETB)</Label>
+              <Input
+                id="buyingPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("buyingPrice", { valueAsNumber: true })}
+              />
+              {buyErrors && (
+                <p className="text-xs text-danger">{buyErrors.message}</p>
+              )}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="sellingPrice">Sell (ETB)</Label>
             <Input
@@ -189,18 +199,12 @@ export function ProductForm(props: ProductFormProps) {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="size">Size</Label>
+            <Label htmlFor="size">Size (optional)</Label>
             <Input id="size" {...register("size")} placeholder="S / M / L" />
-            {errors.size && (
-              <p className="text-xs text-danger">{errors.size.message}</p>
-            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="color">Color</Label>
+            <Label htmlFor="color">Color (optional)</Label>
             <Input id="color" {...register("color")} />
-            {errors.color && (
-              <p className="text-xs text-danger">{errors.color.message}</p>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="sku">SKU</Label>
@@ -219,6 +223,11 @@ export function ProductForm(props: ProductFormProps) {
             <Textarea id="description" rows={2} {...register("description")} />
           </div>
         </div>
+        {shopMode && (
+          <p className="text-xs text-muted">
+            Cost price is set by admin. Enter sell price only.
+          </p>
+        )}
         {serverError && <p className="text-sm text-danger">{serverError}</p>}
         <div className="flex gap-2">
           <Button

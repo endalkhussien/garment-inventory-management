@@ -259,3 +259,87 @@ export async function deleteShop(id: string): Promise<ActionResult> {
     return { success: true, id };
   }
 }
+
+/**
+ * Wipe every retail shop and related stock/sales/expenses/logins.
+ * Keeps HQ, admin, products, and roles.
+ */
+export async function clearAllShops(): Promise<ActionResult & { count?: number }> {
+  await requireAdmin();
+
+  const shops = await prisma.branch.findMany({
+    where: { isShop: true },
+    select: { id: true },
+  });
+  if (shops.length === 0) {
+    return { success: true, count: 0 };
+  }
+  const shopIds = shops.map((s) => s.id);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const saleIds = (
+        await tx.sale.findMany({
+          where: { branchId: { in: shopIds } },
+          select: { id: true },
+        })
+      ).map((s) => s.id);
+
+      if (saleIds.length) {
+        await tx.payment.deleteMany({ where: { saleId: { in: saleIds } } });
+        await tx.saleItem.deleteMany({ where: { saleId: { in: saleIds } } });
+        await tx.sale.deleteMany({ where: { id: { in: saleIds } } });
+      }
+
+      await tx.expense.deleteMany({ where: { branchId: { in: shopIds } } });
+      await tx.finishedGoodsMovement.deleteMany({
+        where: { branchId: { in: shopIds } },
+      });
+      await tx.finishedGoodsStock.deleteMany({
+        where: { branchId: { in: shopIds } },
+      });
+
+      const orderIds = (
+        await tx.shopStockOrder.findMany({
+          where: {
+            OR: [
+              { shopBranchId: { in: shopIds } },
+              { warehouseBranchId: { in: shopIds } },
+            ],
+          },
+          select: { id: true },
+        })
+      ).map((o) => o.id);
+      if (orderIds.length) {
+        await tx.shopStockOrderLine.deleteMany({
+          where: { orderId: { in: orderIds } },
+        });
+        await tx.shopStockOrder.deleteMany({
+          where: { id: { in: orderIds } },
+        });
+      }
+
+      await tx.stockTransfer.deleteMany({
+        where: {
+          OR: [
+            { fromBranchId: { in: shopIds } },
+            { toBranchId: { in: shopIds } },
+          ],
+        },
+      });
+
+      await tx.employee.deleteMany({ where: { branchId: { in: shopIds } } });
+      await tx.user.deleteMany({ where: { branchId: { in: shopIds } } });
+      await tx.branch.deleteMany({ where: { id: { in: shopIds } } });
+    });
+
+    revalidateShopPaths();
+    revalidatePath("/");
+    revalidatePath("/central");
+    return { success: true, count: shopIds.length };
+  } catch (error) {
+    console.error("[shops] clearAllShops failed", error);
+    return { success: false, error: "Could not clear shops. Check constraints." };
+  }
+}
+

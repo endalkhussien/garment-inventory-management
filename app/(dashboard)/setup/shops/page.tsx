@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { MapPin, Package, Plus, Users } from "lucide-react";
 
+import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { ShopsAdminTable } from "@/components/shops/shops-admin-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { clearAllShops } from "@/lib/actions/shops";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
 
@@ -37,12 +39,23 @@ export default async function ShopsSetupPage() {
     <div className="space-y-5">
       <div className="page-header">
         <h1 className="page-title">Shops</h1>
-        <Button asChild>
-          <Link href="/setup/shops/new">
-            <Plus className="h-4 w-4" />
-            New shop
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {rows.length > 0 && (
+            <ConfirmActionButton
+              label="Clear all shops"
+              confirmMessage="Delete ALL shops, stock, sales, expenses, and shop logins? HQ and products stay. This cannot be undone."
+              action={clearAllShops}
+              variant="danger"
+              redirectTo="/setup/shops"
+            />
+          )}
+          <Button asChild>
+            <Link href="/setup/shops/new">
+              <Plus className="h-4 w-4" />
+              New shop
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">

@@ -192,6 +192,9 @@ export default async function FinancePage({
       };
     });
 
+  const marginPct = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
+  const netMarginPct = revenue > 0 ? (netAfterStaff / revenue) * 100 : 0;
+
   const shopsParam = searchParams?.shops ?? "all";
   const qs = (patch: { shops?: string; days?: string }) => {
     const p = new URLSearchParams();
@@ -207,28 +210,45 @@ export default async function FinancePage({
         ? allShops.find((s) => s.id === selectedIds[0])?.name
         : `${selectedIds.length} shops`;
 
+  const pnlRows = [
+    { label: "Gross sales", amount: revenue, tone: "default" as const },
+    { label: "Returns", amount: -returnTotal, tone: "muted" as const },
+    { label: "COGS", amount: -cogs, tone: "muted" as const },
+    {
+      label: "Gross profit",
+      amount: grossProfit,
+      tone: "emphasis" as const,
+      hint: `${marginPct.toFixed(1)}% margin`,
+    },
+    { label: "Operating expenses", amount: -expenseTotal, tone: "muted" as const },
+    { label: "Staff (salary + commission)", amount: -staffCost, tone: "muted" as const },
+    {
+      label: "Net profit",
+      amount: netAfterStaff,
+      tone: "net" as const,
+      hint: `${netMarginPct.toFixed(1)}% of sales`,
+    },
+  ];
+
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold">Finance insights</h1>
-        <p className="mt-1 text-sm text-muted">
-          Revenue, COGS (buying price), expenses, and estimated staff cost for{" "}
-          <strong className="font-medium text-[var(--text-primary)]">
-            {scope}
-          </strong>{" "}
-          · last {days} day(s).
-        </p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Finance</h1>
+          <p className="mt-1 text-sm text-muted">
+            {scope} · {days} days
+          </p>
+        </div>
       </div>
 
       <Card className="space-y-3">
-        <p className="text-sm font-semibold">Filters</p>
         <div className="flex flex-wrap gap-2">
           <Link
             href={qs({ shops: "all" })}
             className={`rounded-lg px-3 py-1.5 text-sm ${
               selectedIds.length === 0
                 ? "bg-primary text-on-primary"
-                : "bg-surface text-muted"
+                : "bg-page text-muted"
             }`}
           >
             All shops
@@ -248,7 +268,7 @@ export default async function FinancePage({
                 className={`rounded-lg px-3 py-1.5 text-sm ${
                   selected
                     ? "bg-primary/15 text-primary"
-                    : "bg-surface text-muted"
+                    : "bg-page text-muted"
                 }`}
               >
                 {s.name}
@@ -262,59 +282,106 @@ export default async function FinancePage({
               key={d}
               href={qs({ days: String(d) })}
               className={`rounded-lg px-3 py-1.5 text-sm ${
-                d === days
-                  ? "bg-primary/15 text-primary"
-                  : "bg-surface text-muted"
+                d === days ? "bg-primary/15 text-primary" : "bg-page text-muted"
               }`}
             >
-              {d === 7 ? "7 days" : d === 14 ? "14 days" : d === 30 ? "30 days" : "90 days"}
+              {d}d
             </Link>
           ))}
         </div>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <p className="text-xs text-muted">Gross sales</p>
-          <p className="text-lg font-semibold">{formatEtb(revenue)}</p>
-          <p className="text-xs text-muted">{salesOnly.length} receipts</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">COGS</p>
-          <p className="text-lg font-semibold">{formatEtb(cogs)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">Gross profit</p>
-          <p className="text-lg font-semibold">{formatEtb(grossProfit)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">Op. expenses</p>
-          <p className="text-lg font-semibold">{formatEtb(expenseTotal)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-muted">Staff (est.)</p>
-          <p className="text-lg font-semibold">{formatEtb(staffCost)}</p>
+          <p className="text-xs font-medium uppercase text-muted">Sales</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {formatEtb(revenue)}
+          </p>
           <p className="text-xs text-muted">
-            Salary {formatEtb(salaryPortion)} + comm.{" "}
-            {formatEtb(commissionPortion)}
+            {salesOnly.length} receipts · {unitsSold} units
           </p>
         </Card>
         <Card>
-          <p className="text-xs text-muted">Net (after staff)</p>
+          <p className="text-xs font-medium uppercase text-muted">Gross profit</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-success">
+            {formatEtb(grossProfit)}
+          </p>
+          <p className="text-xs text-muted">{marginPct.toFixed(1)}% margin</p>
+        </Card>
+        <Card>
+          <p className="text-xs font-medium uppercase text-muted">Expenses + staff</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {formatEtb(expenseTotal + staffCost)}
+          </p>
+          <p className="text-xs text-muted">
+            Op {formatEtb(expenseTotal)} · Staff {formatEtb(staffCost)}
+          </p>
+        </Card>
+        <Card>
+          <p className="text-xs font-medium uppercase text-muted">Net profit</p>
           <p
-            className={`text-lg font-semibold ${
+            className={`mt-1 text-2xl font-semibold tabular-nums ${
               netAfterStaff >= 0 ? "text-success" : "text-danger"
             }`}
           >
             {formatEtb(netAfterStaff)}
           </p>
-          <p className="text-xs text-muted">{unitsSold} units</p>
+          <p className="text-xs text-muted">{netMarginPct.toFixed(1)}% of sales</p>
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <FinanceTrendChart series={trend} />
-        <FinanceShopCompareChart rows={shopCompare} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
+          <h2 className="mb-3 text-sm font-semibold">P&amp;L</h2>
+          <ul className="space-y-0 text-sm">
+            {pnlRows.map((row) => (
+              <li
+                key={row.label}
+                className={`flex items-baseline justify-between gap-3 border-b border-border/50 py-2.5 last:border-0 ${
+                  row.tone === "emphasis" || row.tone === "net"
+                    ? "font-semibold"
+                    : ""
+                }`}
+              >
+                <span>
+                  <span
+                    className={
+                      row.tone === "net"
+                        ? netAfterStaff >= 0
+                          ? "text-success"
+                          : "text-danger"
+                        : undefined
+                    }
+                  >
+                    {row.label}
+                  </span>
+                  {row.hint && (
+                    <span className="mt-0.5 block text-[11px] font-normal text-muted">
+                      {row.hint}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`tabular-nums ${
+                    row.tone === "net"
+                      ? netAfterStaff >= 0
+                        ? "text-success"
+                        : "text-danger"
+                      : row.amount < 0
+                        ? "text-muted"
+                        : ""
+                  }`}
+                >
+                  {formatEtb(row.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+        <div className="grid gap-4 lg:col-span-2">
+          <FinanceTrendChart series={trend} />
+          <FinanceShopCompareChart rows={shopCompare} />
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -349,7 +416,7 @@ export default async function FinancePage({
         </Card>
         <Card>
           <h2 className="mb-3 text-sm font-semibold">
-            Staff cost breakdown ({staff.length} active)
+            Staff ({staff.length})
           </h2>
           <ul className="max-h-72 space-y-2 overflow-y-auto text-sm">
             {staff.map((e) => {
@@ -364,28 +431,26 @@ export default async function FinancePage({
                     <span className="font-medium">{e.name}</span>
                     <span className="text-muted">
                       {" "}
-                      · {toNumber(e.pieceRatePerUnit)}% comm.
+                      · {toNumber(e.pieceRatePerUnit)}%
                     </span>
                   </span>
-                  <span>{formatEtb(sal + comm)}</span>
+                  <span className="tabular-nums">{formatEtb(sal + comm)}</span>
                 </li>
               );
             })}
             {staff.length === 0 && (
-              <li className="text-muted">
-                No staff in selection. Shops add staff under Shop staff.
-              </li>
+              <li className="text-muted">No staff in selection.</li>
             )}
           </ul>
         </Card>
       </div>
 
       <Card className="overflow-x-auto p-0">
-        <div className="border-b border-border/40 px-4 py-3 text-sm font-semibold">
+        <div className="border-b border-border px-4 py-3 text-sm font-semibold">
           Recent sales
         </div>
         <table className="min-w-full text-left text-sm">
-          <thead className="text-xs uppercase text-muted">
+          <thead className="bg-[var(--bg-elevated)] text-xs uppercase text-muted">
             <tr>
               <th className="px-3 py-3">Receipt</th>
               <th className="px-3 py-3">Shop</th>
@@ -404,8 +469,10 @@ export default async function FinancePage({
                 <td className="px-3 py-2">
                   {s.isReturn ? "Return" : "Sale"}
                 </td>
-                <td className="px-3 py-2">{formatEtb(toNumber(s.total))}</td>
-                <td className="px-3 py-2 text-muted text-xs">
+                <td className="px-3 py-2 tabular-nums">
+                  {formatEtb(toNumber(s.total))}
+                </td>
+                <td className="px-3 py-2 text-xs text-muted">
                   {s.createdAt.toLocaleString("en-ET")}
                 </td>
               </tr>
@@ -413,7 +480,7 @@ export default async function FinancePage({
             {sales.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-6 text-muted">
-                  No sales in this filter.
+                  No sales in this period.
                 </td>
               </tr>
             )}

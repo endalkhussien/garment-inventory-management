@@ -10,7 +10,9 @@ import {
   updateProductVariant,
 } from "@/lib/actions/products";
 import {
+  shopVariantSchema,
   variantSchema,
+  type ShopVariantInput,
   type VariantInput,
 } from "@/lib/validations/products";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,8 @@ type VariantFormProps = {
   mode: "create" | "edit";
   variantId?: string;
   defaultValues?: Partial<VariantInput>;
+  /** Hide buying price / margin fields. */
+  shopMode?: boolean;
 };
 
 export function VariantForm({
@@ -29,6 +33,7 @@ export function VariantForm({
   mode,
   variantId,
   defaultValues,
+  shopMode = false,
 }: VariantFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -38,14 +43,14 @@ export function VariantForm({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<VariantInput>({
-    resolver: zodResolver(variantSchema),
+  } = useForm<VariantInput | ShopVariantInput>({
+    resolver: zodResolver(shopMode ? shopVariantSchema : variantSchema),
     defaultValues: {
       size: "",
       color: "",
       sku: "",
-      buyingPrice: 0,
       sellingPrice: 0,
+      ...(shopMode ? {} : { buyingPrice: 0 }),
       ...defaultValues,
     },
   });
@@ -69,22 +74,19 @@ export function VariantForm({
     router.refresh();
   });
 
+  const buyError =
+    "buyingPrice" in errors ? errors.buyingPrice : undefined;
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="size">Size</Label>
+          <Label htmlFor="size">Size (optional)</Label>
           <Input id="size" {...register("size")} placeholder="S / M / L" />
-          {errors.size && (
-            <p className="text-xs text-danger">{errors.size.message}</p>
-          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
+          <Label htmlFor="color">Color (optional)</Label>
           <Input id="color" {...register("color")} />
-          {errors.color && (
-            <p className="text-xs text-danger">{errors.color.message}</p>
-          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="sku">SKU / Code</Label>
@@ -93,21 +95,23 @@ export function VariantForm({
             <p className="text-xs text-danger">{errors.sku.message}</p>
           )}
         </div>
+        {!shopMode && (
+          <div className="space-y-2">
+            <Label htmlFor="buyingPrice">Buy (ETB)</Label>
+            <Input
+              id="buyingPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              {...register("buyingPrice", { valueAsNumber: true })}
+            />
+            {buyError && (
+              <p className="text-xs text-danger">{buyError.message}</p>
+            )}
+          </div>
+        )}
         <div className="space-y-2">
-          <Label htmlFor="buyingPrice">Buying price (ETB)</Label>
-          <Input
-            id="buyingPrice"
-            type="number"
-            step="0.01"
-            min="0"
-            {...register("buyingPrice", { valueAsNumber: true })}
-          />
-          {errors.buyingPrice && (
-            <p className="text-xs text-danger">{errors.buyingPrice.message}</p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="sellingPrice">Selling price (ETB)</Label>
+          <Label htmlFor="sellingPrice">Sell (ETB)</Label>
           <Input
             id="sellingPrice"
             type="number"
@@ -122,13 +126,18 @@ export function VariantForm({
           )}
         </div>
       </div>
+      {shopMode && (
+        <p className="text-xs text-muted">
+          Cost price is managed by admin.
+        </p>
+      )}
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting
-          ? "Saving..."
+          ? "Saving…"
           : mode === "create"
             ? "Add variant"
-            : "Save variant"}
+            : "Save"}
       </Button>
     </form>
   );

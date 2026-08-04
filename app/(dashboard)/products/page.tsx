@@ -5,10 +5,12 @@ import { ProductsTable } from "@/components/products/products-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
-import { requireAdminOrShop } from "@/lib/rbac";
+import { isShopRole, requireAdminOrShop } from "@/lib/rbac";
 
 export default async function ProductsPage() {
-  await requireAdminOrShop();
+  const session = await requireAdminOrShop();
+  const shopMode = isShopRole(session.user.role.name);
+
   const products = await prisma.product.findMany({
     where: { isActive: true },
     include: {
@@ -50,7 +52,7 @@ export default async function ProductsPage() {
         </Card>
       </div>
 
-      <ProductsTable items={products} />
+      <ProductsTable items={products} showCost={!shopMode} />
     </div>
   );
 }

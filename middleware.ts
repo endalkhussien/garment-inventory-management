@@ -37,7 +37,8 @@ export default withAuth(
   {
     pages: { signIn: "/login" },
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token }) =>
+        Boolean(token?.id && token?.role?.name && !token.invalid),
     },
   },
 );

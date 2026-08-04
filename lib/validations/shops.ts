@@ -34,10 +34,10 @@ export const initiateShopSchema = z
         path: ["username"],
       });
     }
-    if (!data.password || data.password.length < 6) {
+    if (!data.password || data.password.length < 8) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Password must be at least 6 characters",
+        message: "Password must be at least 8 characters",
         path: ["password"],
       });
     }

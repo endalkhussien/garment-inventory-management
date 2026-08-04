@@ -11,8 +11,9 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:seed": "tsx --env-file=.env prisma/seed.ts",
-    "db:clean": "tsx --env-file=.env prisma/clean.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:clean": "tsx prisma/clean.ts",
+    "db:clear-shops": "tsx prisma/clear-shops.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

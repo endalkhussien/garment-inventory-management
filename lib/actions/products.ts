@@ -11,17 +11,21 @@ import {
   sellingPriceFromMargin,
 } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
-import { requireAdminOrShop } from "@/lib/rbac";
+import { requireAdmin, requireAdminOrShop, isShopRole } from "@/lib/rbac";
 import {
   bomLineSchema,
   pricingSchema,
   productSchema,
   productWithVariantSchema,
+  shopProductWithVariantSchema,
+  shopVariantSchema,
   variantSchema,
   type BomLineInput,
   type PricingInput,
   type ProductInput,
   type ProductWithVariantInput,
+  type ShopProductWithVariantInput,
+  type ShopVariantInput,
   type VariantInput,
 } from "@/lib/validations/products";
 
@@ -80,21 +84,33 @@ async function recomputeVariantCosts(
 }
 
 export async function createProductWithVariant(
-  input: ProductWithVariantInput,
+  input: ProductWithVariantInput | ShopProductWithVariantInput,
 ): Promise<ActionResult> {
-  await requireAdminOrShop();
-  const parsed = productWithVariantSchema.safeParse(input);
+  const session = await requireAdminOrShop();
+  const shopUser = isShopRole(session.user.role.name);
+
+  const parsed = shopUser
+    ? shopProductWithVariantSchema.safeParse(input)
+    : productWithVariantSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
   }
 
   const data = parsed.data;
   const code = data.code.trim().toUpperCase();
+  const size = data.size;
+  const color = data.color;
   const sku =
     emptyToNull(data.sku) ??
-    `${code}-${data.size}-${data.color}`
-      .replace(/\s+/g, "-")
-      .toUpperCase();
+    `${code}-${size}-${color}`.replace(/\s+/g, "-").toUpperCase();
+
+  // Shops never set cost — admin fills buying price later.
+  const buyingPrice = shopUser
+    ? 0
+    : "buyingPrice" in data
+      ? Number(data.buyingPrice)
+      : 0;
+  const sellingPrice = data.sellingPrice;
 
   try {
     const existingCode = await prisma.product.findFirst({
@@ -107,7 +123,7 @@ export async function createProductWithVariant(
     const created = await prisma.$transaction(async (tx) => {
       const maxNo = await tx.product.aggregate({ _max: { productNo: true } });
       const nextNo = (maxNo._max.productNo ?? 0) + 1;
-      const buying = new Prisma.Decimal(data.buyingPrice);
+      const buying = new Prisma.Decimal(buyingPrice);
       return tx.product.create({
         data: {
           productNo: nextNo,
@@ -118,13 +134,13 @@ export async function createProductWithVariant(
           garmentInfo: emptyToNull(data.garmentInfo),
           variants: {
             create: {
-              size: data.size,
-              color: data.color,
+              size,
+              color,
               sku,
               buyingPrice: buying,
               totalCostCached: buying,
               materialCostCached: buying,
-              sellingPrice: new Prisma.Decimal(data.sellingPrice),
+              sellingPrice: new Prisma.Decimal(sellingPrice),
               laborCostPerUnit: new Prisma.Decimal(0),
               overheadPercent: new Prisma.Decimal(0),
             },
@@ -199,16 +215,24 @@ export async function updateProduct(
 
 export async function addProductVariant(
   productId: string,
-  input: VariantInput,
+  input: VariantInput | ShopVariantInput,
 ): Promise<ActionResult> {
-  await requireAdminOrShop();
-  const parsed = variantSchema.safeParse(input);
+  const session = await requireAdminOrShop();
+  const shopUser = isShopRole(session.user.role.name);
+  const parsed = shopUser
+    ? shopVariantSchema.safeParse(input)
+    : variantSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
   }
 
   try {
-    const buying = new Prisma.Decimal(parsed.data.buyingPrice);
+    const buyingPrice = shopUser
+      ? 0
+      : "buyingPrice" in parsed.data
+        ? parsed.data.buyingPrice
+        : 0;
+    const buying = new Prisma.Decimal(buyingPrice);
     const variant = await prisma.productVariant.create({
       data: {
         productId,
@@ -243,17 +267,30 @@ export async function addProductVariant(
 
 export async function updateProductVariant(
   variantId: string,
-  input: VariantInput,
+  input: VariantInput | ShopVariantInput,
 ): Promise<ActionResult> {
-  await requireAdminOrShop();
-  const parsed = variantSchema.safeParse(input);
+  const session = await requireAdminOrShop();
+  const shopUser = isShopRole(session.user.role.name);
+  const parsed = shopUser
+    ? shopVariantSchema.safeParse(input)
+    : variantSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };
   }
 
   try {
-    const buying = new Prisma.Decimal(parsed.data.buyingPrice);
     const variant = await prisma.$transaction(async (tx) => {
+      const existing = await tx.productVariant.findUnique({
+        where: { id: variantId },
+      });
+      if (!existing) throw new Error("not found");
+
+      const buying = shopUser
+        ? existing.buyingPrice
+        : new Prisma.Decimal(
+            "buyingPrice" in parsed.data ? parsed.data.buyingPrice : 0,
+          );
+
       const updated = await tx.productVariant.update({
         where: { id: variantId },
         data: {
@@ -262,13 +299,17 @@ export async function updateProductVariant(
           sku: parsed.data.sku,
           buyingPrice: buying,
           sellingPrice: new Prisma.Decimal(parsed.data.sellingPrice),
-          totalCostCached: buying,
-          materialCostCached: buying,
+          ...(!shopUser
+            ? {
+                totalCostCached: buying,
+                materialCostCached: buying,
+              }
+            : {}),
         },
       });
 
-      // Keep BOM-derived costs optional; explicit buying price is source of truth for shops
       if (
+        !shopUser &&
         (await tx.billOfMaterial.count({ where: { variantId } })) > 0
       ) {
         await recomputeVariantCosts(tx, variantId);
@@ -409,6 +450,7 @@ export async function updateVariantPricing(
   variantId: string,
   input: PricingInput,
 ): Promise<ActionResult> {
+  await requireAdmin();
   const parsed = pricingSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message };

@@ -8,7 +8,11 @@ export const createUserSchema = z.object({
   email: z
     .union([z.literal(""), z.string().trim().email("Valid email is required")])
     .optional(),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Za-z]/, "Include a letter")
+    .regex(/[0-9]/, "Include a number"),
   roleId: z.string().min(1, "Select a role"),
   branchId: z.string().optional().nullable(),
 });
@@ -21,7 +25,7 @@ export const updateUserSchema = z.object({
   isActive: z.enum(["true", "false"]),
   password: z
     .string()
-    .min(6, "Password must be at least 6 characters")
+    .min(8, "Password must be at least 8 characters")
     .optional()
     .or(z.literal("")),
 });

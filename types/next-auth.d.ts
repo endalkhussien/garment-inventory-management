@@ -44,5 +44,7 @@ declare module "next-auth/jwt" {
       name: string;
       code: string;
     } | null;
+    lastValidated?: number;
+    invalid?: boolean;
   }
 }
