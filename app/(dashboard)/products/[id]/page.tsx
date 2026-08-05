@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { ProductForm } from "@/components/products/product-form";
+import { ProductRowActions } from "@/components/products/product-row-actions";
 import { VariantForm } from "@/components/products/variant-form";
+import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { setProductActive, setVariantActive } from "@/lib/actions/products";
+import { setVariantActive } from "@/lib/actions/products";
 import { formatEtb, toNumber } from "@/lib/format";
 import { marginFromPrice } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
@@ -48,36 +49,33 @@ export default async function ProductDetailPage({ params }: PageProps) {
     <div className="space-y-4">
       <div className="page-header">
         <div>
-          <h1 className="page-title">{product.name}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="page-title">{product.name}</h1>
+            {product.isActive ? (
+              <Badge variant="success">Active</Badge>
+            ) : (
+              <Badge variant="danger">Cancelled</Badge>
+            )}
+          </div>
           <p className="mt-1 text-sm text-muted">
             {product.code ?? ""}
             {product.category?.name ? ` · ${product.category.name}` : ""}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <ConfirmActionButton
-            label={product.isActive ? "Deactivate" : "Reactivate"}
-            confirmMessage={
-              product.isActive
-                ? `Deactivate ${product.name}?`
-                : `Reactivate ${product.name}?`
-            }
-            action={setProductActive.bind(
-              null,
-              product.id,
-              !product.isActive,
-            )}
-            variant={product.isActive ? "danger" : "default"}
-            size="default"
+        <div className="flex flex-col items-end gap-2">
+          <ProductRowActions
+            productId={product.id}
+            productName={product.name}
+            isActive={product.isActive}
           />
-          <Button asChild variant="secondary">
-            <Link href="/products">Back</Link>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/products">← Back to catalog</Link>
           </Button>
         </div>
       </div>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold">Details</h2>
+        <h2 className="mb-3 text-sm font-semibold">Edit details</h2>
         <ProductForm
           mode="edit"
           productId={product.id}
@@ -165,19 +163,28 @@ export default async function ProductDetailPage({ params }: PageProps) {
                         )}
                       </td>
                       <td className="px-3 py-3">
-                        <ConfirmActionButton
-                          label={variant.isActive ? "Hide" : "Show"}
-                          confirmMessage={
-                            variant.isActive
-                              ? `Hide ${variant.sku}?`
-                              : `Show ${variant.sku}?`
-                          }
-                          action={setVariantActive.bind(
-                            null,
-                            variant.id,
-                            !variant.isActive,
-                          )}
-                        />
+                        <div className="flex flex-wrap gap-1">
+                          <Button asChild size="sm" variant="secondary">
+                            <Link
+                              href={`/products/${product.id}/variants/${variant.id}`}
+                            >
+                              Edit
+                            </Link>
+                          </Button>
+                          <ConfirmActionButton
+                            label={variant.isActive ? "Hide" : "Show"}
+                            confirmMessage={
+                              variant.isActive
+                                ? `Hide ${variant.sku}?`
+                                : `Show ${variant.sku}?`
+                            }
+                            action={setVariantActive.bind(
+                              null,
+                              variant.id,
+                              !variant.isActive,
+                            )}
+                          />
+                        </div>
                       </td>
                     </tr>
                   );

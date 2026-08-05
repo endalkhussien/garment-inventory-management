@@ -135,13 +135,22 @@ export function VariantForm({
         </p>
       )}
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting
-          ? "Saving…"
-          : mode === "create"
-            ? "Add variant"
-            : "Save"}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting
+            ? "Saving…"
+            : mode === "create"
+              ? "Add variant"
+              : "Save changes"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => router.push(`/products/${productId}`)}
+        >
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

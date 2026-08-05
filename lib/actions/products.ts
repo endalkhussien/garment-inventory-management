@@ -578,6 +578,89 @@ export async function setProductActive(
   }
 }
 
+/**
+ * Permanently remove a product when it has no sales/stock history.
+ * Otherwise refuse — use cancel (deactivate) instead.
+ */
+export async function deleteProduct(id: string): Promise<ActionResult> {
+  await requireAdminOrShop();
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      variants: {
+        select: {
+          id: true,
+          _count: {
+            select: {
+              saleItems: true,
+              stockMovements: true,
+              productionOrders: true,
+              shopOrderLines: true,
+              stockTransfers: true,
+            },
+          },
+          finishedGoods: { select: { quantity: true } },
+        },
+      },
+    },
+  });
+
+  if (!product) {
+    return { success: false, error: "Product not found." };
+  }
+
+  const blocked = product.variants.some((v) => {
+    const counts = v._count;
+    const hasStock = v.finishedGoods.some((fg) => fg.quantity > 0);
+    return (
+      hasStock ||
+      counts.saleItems > 0 ||
+      counts.stockMovements > 0 ||
+      counts.productionOrders > 0 ||
+      counts.shopOrderLines > 0 ||
+      counts.stockTransfers > 0
+    );
+  });
+
+  if (blocked) {
+    return {
+      success: false,
+      error:
+        "This product has stock, sales, or history. Use Cancel to remove it from the catalog instead of Delete.",
+    };
+  }
+
+  try {
+    // Clear zero stock rows and child rows that block cascade.
+    await prisma.$transaction(async (tx) => {
+      const variantIds = product.variants.map((v) => v.id);
+      if (variantIds.length > 0) {
+        await tx.finishedGoodsStock.deleteMany({
+          where: { variantId: { in: variantIds } },
+        });
+        await tx.billOfMaterial.deleteMany({
+          where: { variantId: { in: variantIds } },
+        });
+        await tx.priceHistory.deleteMany({
+          where: { variantId: { in: variantIds } },
+        });
+      }
+      await tx.product.delete({ where: { id } });
+    });
+
+    revalidatePath("/products");
+    revalidatePath("/central");
+    return { success: true, id };
+  } catch {
+    return {
+      success: false,
+      error:
+        "Could not delete product. Cancel it instead, or remove linked stock first.",
+    };
+  }
+}
+
 export async function setVariantActive(
   id: string,
   isActive: boolean,

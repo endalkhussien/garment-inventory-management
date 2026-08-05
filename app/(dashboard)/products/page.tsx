@@ -7,15 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { isShopRole, requireAdminOrShop } from "@/lib/rbac";
+import { cn } from "@/lib/utils";
 
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams?: { category?: string; q?: string };
+  searchParams?: { category?: string; q?: string; status?: string };
 }) {
   const session = await requireAdminOrShop();
   const shopMode = isShopRole(session.user.role.name);
   const q = searchParams?.q?.trim();
+  const status = searchParams?.status === "cancelled" ? "cancelled" : "active";
+  const showActive = status === "active";
 
   const categories = await prisma.productCategory.findMany({
     where: { isActive: true },
@@ -31,7 +34,7 @@ export default async function ProductsPage({
 
   const products = await prisma.product.findMany({
     where: {
-      isActive: true,
+      isActive: showActive,
       ...(categoryId ? { categoryId } : {}),
       ...(q
         ? {
@@ -41,7 +44,6 @@ export default async function ProductsPage({
               {
                 variants: {
                   some: {
-                    isActive: true,
                     sku: { contains: q, mode: "insensitive" },
                   },
                 },
@@ -53,7 +55,7 @@ export default async function ProductsPage({
     include: {
       category: true,
       variants: {
-        where: { isActive: true },
+        where: showActive ? { isActive: true } : {},
         orderBy: [{ size: "asc" }, { color: "asc" }],
       },
     },
@@ -61,6 +63,12 @@ export default async function ProductsPage({
   });
 
   const variantCount = products.reduce((sum, p) => sum + p.variants.length, 0);
+
+  const baseParams = {
+    category: categoryId,
+    q: q || undefined,
+    status: showActive ? undefined : "cancelled",
+  };
 
   return (
     <div className="space-y-6">
@@ -71,7 +79,7 @@ export default async function ProductsPage({
             <p className="page-subtitle">
               Results for “{q}” ·{" "}
               <Link href="/products" className="text-secondary hover:underline">
-                Clear
+                Clear search
               </Link>
             </p>
           )}
@@ -84,15 +92,43 @@ export default async function ProductsPage({
         </Button>
       </div>
 
-      <Card>
+      <Card className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="label-caps">Show</span>
+          <Link
+            href={buildStatusHref(
+              { category: categoryId, q: q || undefined },
+              "active",
+            )}
+            className={cn(
+              "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+              showActive
+                ? "bg-[var(--primary-container)] text-white"
+                : "bg-[var(--surface-container)] text-muted hover:text-[var(--text-primary)]",
+            )}
+          >
+            Active
+          </Link>
+          <Link
+            href={buildStatusHref(
+              { category: categoryId, q: q || undefined },
+              "cancelled",
+            )}
+            className={cn(
+              "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+              !showActive
+                ? "bg-[var(--primary-container)] text-white"
+                : "bg-[var(--surface-container)] text-muted hover:text-[var(--text-primary)]",
+            )}
+          >
+            Cancelled
+          </Link>
+        </div>
         <CategoryFilterChips
           path="/products"
           categories={categories}
           activeId={categoryId}
-          currentParams={{
-            category: categoryId,
-            q: q || undefined,
-          }}
+          currentParams={baseParams}
         />
       </Card>
 
@@ -114,4 +150,16 @@ export default async function ProductsPage({
       <ProductsTable items={products} showCost={!shopMode} />
     </div>
   );
+}
+
+function buildStatusHref(
+  params: { category?: string; q?: string },
+  status: "active" | "cancelled",
+) {
+  const p = new URLSearchParams();
+  if (params.category) p.set("category", params.category);
+  if (params.q) p.set("q", params.q);
+  if (status === "cancelled") p.set("status", "cancelled");
+  const qs = p.toString();
+  return qs ? `/products?${qs}` : "/products";
 }

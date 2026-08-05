@@ -284,9 +284,18 @@ export function ProductForm(props: ProductFormProps) {
         </div>
       </div>
       {serverError && <p className="text-sm text-danger">{serverError}</p>}
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Saving…" : "Save"}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving…" : "Save changes"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => router.push("/products")}
+        >
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

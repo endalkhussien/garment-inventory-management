@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ProductRowActions } from "@/components/products/product-row-actions";
 import { Badge } from "@/components/ui/badge";
 import { formatEtb, toNumber } from "@/lib/format";
 
@@ -8,6 +9,7 @@ type ProductRow = {
   productNo: number | null;
   name: string;
   code: string | null;
+  isActive: boolean;
   category: { name: string } | null;
   garmentInfo: string | null;
   variants: Array<{
@@ -30,28 +32,26 @@ export function ProductsTable({
 }) {
   if (items.length === 0) {
     return (
-      <p className="rounded-lg border border-border bg-surface p-6 text-sm text-muted">
-        No products yet.
+      <p className="rounded-xl border border-border bg-surface p-6 text-sm text-muted">
+        No products in this list.
       </p>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
       <table className="min-w-full text-left text-sm">
-        <thead className="bg-[var(--bg-elevated)] text-xs uppercase tracking-wide text-muted">
+        <thead className="bg-[var(--surface-container-low)] text-xs uppercase tracking-wide text-muted">
           <tr>
             <th className="px-3 py-3 font-medium">No</th>
             <th className="px-3 py-3 font-medium">Name</th>
             <th className="px-3 py-3 font-medium">Code</th>
             <th className="px-3 py-3 font-medium">Size / Color</th>
-            {showCost && (
-              <th className="px-3 py-3 font-medium">Buy</th>
-            )}
+            {showCost && <th className="px-3 py-3 font-medium">Buy</th>}
             <th className="px-3 py-3 font-medium">Sell</th>
-            {showCost && (
-              <th className="px-3 py-3 font-medium">Margin</th>
-            )}
+            {showCost && <th className="px-3 py-3 font-medium">Margin</th>}
+            <th className="px-3 py-3 font-medium">Status</th>
+            <th className="px-3 py-3 font-medium text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -66,9 +66,9 @@ export function ProductsTable({
             return (
               <tr
                 key={product.id}
-                className="border-t border-border/60 hover:bg-page/60"
+                className="border-t border-border/60 hover:bg-[var(--surface-container-low)]"
               >
-                <td className="px-3 py-3 text-muted">
+                <td className="px-3 py-3 text-muted font-data">
                   {product.productNo ?? "—"}
                 </td>
                 <td className="px-3 py-3">
@@ -93,9 +93,13 @@ export function ProductsTable({
                   )}
                 </td>
                 {showCost && (
-                  <td className="px-3 py-3 tabular-nums">{formatEtb(buy)}</td>
+                  <td className="px-3 py-3 font-data tabular-nums">
+                    {formatEtb(buy)}
+                  </td>
                 )}
-                <td className="px-3 py-3 tabular-nums">{formatEtb(sell)}</td>
+                <td className="px-3 py-3 font-data tabular-nums">
+                  {formatEtb(sell)}
+                </td>
                 {showCost && (
                   <td className="px-3 py-3">
                     <Badge variant={margin >= 20 ? "success" : "default"}>
@@ -103,6 +107,21 @@ export function ProductsTable({
                     </Badge>
                   </td>
                 )}
+                <td className="px-3 py-3">
+                  {product.isActive ? (
+                    <Badge variant="success">Active</Badge>
+                  ) : (
+                    <Badge variant="danger">Cancelled</Badge>
+                  )}
+                </td>
+                <td className="px-3 py-3">
+                  <ProductRowActions
+                    productId={product.id}
+                    productName={product.name}
+                    isActive={product.isActive}
+                    compact
+                  />
+                </td>
               </tr>
             );
           })}
