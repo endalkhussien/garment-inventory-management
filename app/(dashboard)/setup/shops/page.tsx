@@ -36,9 +36,14 @@ export default async function ShopsSetupPage() {
   const totalUsers = rows.reduce((sum, r) => sum + r.userCount, 0);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="page-header">
-        <h1 className="page-title">Shops</h1>
+        <div>
+          <h1 className="page-title">Shop Management</h1>
+          <p className="page-subtitle">
+            Branches, logins, and stock footprint across locations
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2">
           {rows.length > 0 && (
             <ConfirmActionButton

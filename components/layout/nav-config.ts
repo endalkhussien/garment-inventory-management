@@ -12,6 +12,7 @@ import {
   UserRound,
   Users,
   WalletCards,
+  Warehouse,
 } from "lucide-react";
 
 import { isAdminRole, isShopRole } from "@/lib/rbac-shared";
@@ -25,36 +26,35 @@ export type NavItem = {
 export type NavSection = {
   title: string;
   items: NavItem[];
+  /** Pinned to sidebar footer */
+  footer?: boolean;
 };
 
+/** Stitch HQ: main command nav + operations for multi-shop retail. */
 const adminSections: NavSection[] = [
   {
     title: "Main",
     items: [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
-      { label: "Inventory", href: "/central", icon: Layers },
+      { label: "Central Inventory", href: "/central", icon: Warehouse },
       { label: "Finance", href: "/shops/finance", icon: WalletCards },
+      { label: "Products", href: "/products", icon: Shirt },
+      { label: "Shop Management", href: "/setup/shops", icon: Store },
     ],
   },
   {
-    title: "Catalog",
+    title: "Operations",
     items: [
-      { label: "Products", href: "/products", icon: Shirt },
+      { label: "Stock", href: "/shops/stock", icon: Layers },
+      { label: "Restock", href: "/shops/restock", icon: RefreshCw },
+      { label: "Sales", href: "/shops/sales", icon: Upload },
+      { label: "Staff", href: "/shops/staff", icon: Users },
       { label: "Categories", href: "/setup/categories", icon: Package },
     ],
   },
   {
-    title: "Shops",
-    items: [
-      { label: "Manage shops", href: "/setup/shops", icon: Store },
-      { label: "Stock", href: "/shops/stock", icon: Layers },
-      { label: "Restock", href: "/shops/restock", icon: RefreshCw },
-      { label: "Import", href: "/shops/import", icon: Upload },
-      { label: "Staff", href: "/shops/staff", icon: Users },
-    ],
-  },
-  {
     title: "System",
+    footer: true,
     items: [
       { label: "Users", href: "/users", icon: Users },
       { label: "Settings", href: "/setup/settings", icon: Settings },
@@ -62,21 +62,27 @@ const adminSections: NavSection[] = [
   },
 ];
 
+/** Stitch Shop Manager: branch-focused tools. */
 const shopSections: NavSection[] = [
   {
     title: "Main",
     items: [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
       { label: "Products", href: "/products", icon: Shirt },
-      { label: "New product", href: "/products/new", icon: PackagePlus },
-      { label: "Stock", href: "/shops/stock", icon: Store },
+      { label: "Stock", href: "/shops/stock", icon: Layers },
       { label: "Restock", href: "/shops/restock", icon: RefreshCw },
-      { label: "Import", href: "/shops/import", icon: Upload },
+      { label: "Sales", href: "/shops/sales", icon: Upload },
       { label: "Staff", href: "/shops/staff", icon: Users },
-      { label: "Account", href: "/account", icon: UserRound },
     ],
   },
+  {
+    title: "Account",
+    footer: true,
+    items: [{ label: "Account", href: "/account", icon: UserRound }],
+  },
 ];
+
+export const ADD_PRODUCT_HREF = "/products/new";
 
 export function getNavSectionsForRole(roleName?: string | null): NavSection[] {
   if (isShopRole(roleName)) return shopSections;

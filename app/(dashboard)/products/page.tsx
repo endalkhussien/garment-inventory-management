@@ -11,10 +11,11 @@ import { isShopRole, requireAdminOrShop } from "@/lib/rbac";
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams?: { category?: string };
+  searchParams?: { category?: string; q?: string };
 }) {
   const session = await requireAdminOrShop();
   const shopMode = isShopRole(session.user.role.name);
+  const q = searchParams?.q?.trim();
 
   const categories = await prisma.productCategory.findMany({
     where: { isActive: true },
@@ -32,6 +33,22 @@ export default async function ProductsPage({
     where: {
       isActive: true,
       ...(categoryId ? { categoryId } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { code: { contains: q, mode: "insensitive" } },
+              {
+                variants: {
+                  some: {
+                    isActive: true,
+                    sku: { contains: q, mode: "insensitive" },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
     },
     include: {
       category: true,
@@ -46,13 +63,23 @@ export default async function ProductsPage({
   const variantCount = products.reduce((sum, p) => sum + p.variants.length, 0);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="page-header">
-        <h1 className="page-title">Products</h1>
+        <div>
+          <h1 className="page-title">Product Catalog</h1>
+          {q && (
+            <p className="page-subtitle">
+              Results for “{q}” ·{" "}
+              <Link href="/products" className="text-secondary hover:underline">
+                Clear
+              </Link>
+            </p>
+          )}
+        </div>
         <Button asChild>
           <Link href="/products/new">
             <Plus className="h-4 w-4" />
-            New product
+            Add product
           </Link>
         </Button>
       </div>
@@ -62,20 +89,23 @@ export default async function ProductsPage({
           path="/products"
           categories={categories}
           activeId={categoryId}
-          currentParams={{ category: categoryId }}
+          currentParams={{
+            category: categoryId,
+            q: q || undefined,
+          }}
         />
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Card>
-          <p className="text-xs font-medium uppercase text-muted">Products</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">
+          <p className="label-caps">Products</p>
+          <p className="mt-2 font-data text-2xl font-bold tabular-nums">
             {products.length}
           </p>
         </Card>
         <Card>
-          <p className="text-xs font-medium uppercase text-muted">SKUs</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">
+          <p className="label-caps">SKUs</p>
+          <p className="mt-2 font-data text-2xl font-bold tabular-nums">
             {variantCount}
           </p>
         </Card>

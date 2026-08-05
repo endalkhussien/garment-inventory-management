@@ -22,7 +22,7 @@ export function AppShell({
   userId,
   notifications,
   companyName = "Esset Inventory",
-  companyTagline = "Ethiopia",
+  companyTagline = "Garment Management",
 }: {
   children: ReactNode;
   userId?: string;
@@ -34,12 +34,10 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close drawer after navigation on mobile
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Prevent body scroll when drawer is open
   useEffect(() => {
     if (!mobileOpen) return;
     const prev = document.body.style.overflow;
@@ -51,7 +49,6 @@ export function AppShell({
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-page">
-      {/* Mobile backdrop */}
       <button
         type="button"
         aria-label="Close menu"
@@ -65,7 +62,7 @@ export function AppShell({
       <Sidebar
         collapsed={collapsed}
         mobileOpen={mobileOpen}
-        onToggle={() => setCollapsed((current) => !current)}
+        onToggle={() => setCollapsed((c) => !c)}
         onCloseMobile={() => setMobileOpen(false)}
         companyName={companyName}
         companyTagline={companyTagline}
@@ -78,8 +75,8 @@ export function AppShell({
             <NotificationBell userId={userId} items={notifications} />
           }
         />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-5">
-          <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+          <div className="mx-auto w-full max-w-content">{children}</div>
         </main>
       </div>
     </div>

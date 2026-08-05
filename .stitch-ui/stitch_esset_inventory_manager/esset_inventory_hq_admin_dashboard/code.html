@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Esset Inventory - HQ Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-tint": "#565e74",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#76777d",
+                        "background": "#fcf8fa",
+                        "inverse-surface": "#303032",
+                        "inverse-primary": "#bec6e0",
+                        "surface-container-low": "#f6f3f5",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "primary-container": "#131b2e",
+                        "secondary-container": "#d0e1fb",
+                        "surface-container": "#f0edef",
+                        "surface-dim": "#dcd9db",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#dec29a",
+                        "surface": "#fcf8fa",
+                        "on-surface": "#1b1b1d",
+                        "on-primary-container": "#7c839b",
+                        "primary-fixed": "#dae2fd",
+                        "on-secondary-fixed": "#0b1c30",
+                        "surface-container-highest": "#e4e2e4",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary-container": "#54647a",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#271901",
+                        "tertiary-container": "#271901",
+                        "on-background": "#1b1b1d",
+                        "tertiary-fixed": "#fcdeb5",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#45464d",
+                        "surface-bright": "#fcf8fa",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-tertiary-fixed-variant": "#574425",
+                        "inverse-on-surface": "#f3f0f2",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#eae7e9",
+                        "secondary": "#505f76",
+                        "surface-variant": "#e4e2e4",
+                        "on-tertiary-container": "#98805d",
+                        "on-error": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "primary": "#000000",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit-2": "0.5rem",
+                        "unit-1": "0.25rem",
+                        "unit-4": "1rem",
+                        "unit-8": "2rem",
+                        "base": "4px",
+                        "sidebar-width": "260px",
+                        "sidebar-collapsed": "64px",
+                        "unit-6": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "data-tabular": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-sm": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "data-tabular": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-sm": ["18px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base min-h-screen flex">
+<!-- SideNavBar -->
+<nav class="h-screen w-sidebar-width fixed left-0 top-0 bg-primary-container dark:bg-primary-container flex flex-col p-unit-4 overflow-y-auto z-50">
+<div class="mb-unit-8 flex items-center gap-unit-2">
+<span class="material-symbols-outlined text-on-primary text-[32px]">inventory</span>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary dark:text-on-primary">Esset Inventory</h1>
+<p class="font-body-sm text-body-sm text-on-primary-container">Garment Management</p>
+</div>
+</div>
+<button class="w-full bg-secondary-fixed text-on-secondary-fixed py-unit-2 rounded-lg font-title-sm text-title-sm font-bold mb-unit-6 hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center gap-unit-2">
+<span class="material-symbols-outlined">add</span>
+            Add Product
+        </button>
+<ul class="flex flex-col gap-unit-1 flex-1">
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 bg-secondary-fixed-dim text-on-secondary-fixed rounded-lg font-bold hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all scale-[0.98] transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-base text-body-base">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 text-on-primary-container opacity-60 hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-base text-body-base">Central Inventory</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 text-on-primary-container opacity-60 hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-base text-body-base">Finance</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 text-on-primary-container opacity-60 hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">apparel</span>
+<span class="font-body-base text-body-base">Products</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 text-on-primary-container opacity-60 hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-body-base text-body-base">Shop Management</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto">
+<ul class="flex flex-col gap-unit-1">
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 text-on-primary-container opacity-60 hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-base text-body-base">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-unit-4 p-unit-2 text-on-primary-container opacity-60 hover:bg-secondary-fixed-dim/20 hover:opacity-100 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-base text-body-base">Support</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 ml-[260px] min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-260px)] h-16 z-40 bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline flex justify-between items-center px-unit-6 max-w-[1440px] mx-auto">
+<div class="flex items-center gap-unit-6">
+<!-- Navigation Links / Global Switcher -->
+<nav class="flex gap-unit-4">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-base text-body-base hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors opacity-80" href="#">HQ Warehouse</a>
+<a class="text-on-surface-variant font-body-base text-body-base hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors" href="#">Global View</a>
+</nav>
+</div>
+<div class="flex items-center gap-unit-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-8 pr-4 py-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none w-64" placeholder="Search SKUs..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">apps</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-sm ml-2">
+                    A
+                </div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<main class="mt-16 p-unit-6 flex-1 max-w-[1440px] w-full mx-auto">
+<!-- Header Section -->
+<div class="flex justify-between items-center mb-unit-6">
+<h2 class="font-headline-md text-headline-md text-on-surface">Business Overview</h2>
+<div class="flex items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-unit-2 py-unit-1 shadow-sm">
+<span class="material-symbols-outlined text-outline mr-2 text-sm">calendar_today</span>
+<select class="bg-transparent border-none text-body-sm font-medium focus:ring-0 cursor-pointer">
+<option>Last 30 Days</option>
+<option>This Month</option>
+<option>Last Quarter</option>
+</select>
+</div>
+</div>
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-unit-4 mb-unit-6">
+<!-- Revenue -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-unit-4 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">TOTAL REVENUE</p>
+<div class="bg-secondary-container text-on-secondary-container p-1 rounded-md">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-on-surface font-data-tabular">ETB 1,240,500</p>
+<p class="font-body-sm text-body-sm text-secondary mt-1"><span class="text-[#059669] font-medium">+12.5%</span> vs last month</p>
+</div>
+<!-- Sales -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-unit-4 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">TOTAL SALES</p>
+<div class="bg-surface-container-high text-on-surface p-1 rounded-md">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-on-surface font-data-tabular">8,420 Units</p>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Across all branches</p>
+</div>
+<!-- Low Stock -->
+<div class="bg-surface-container-lowest border border-error-container rounded-xl p-unit-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-error-container/20 rounded-bl-full -mr-4 -mt-4"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<p class="font-label-caps text-label-caps text-on-surface-variant">LOW STOCK ITEMS</p>
+<div class="bg-error-container text-on-error-container p-1 rounded-md">
+<span class="material-symbols-outlined text-sm">warning</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-on-surface font-data-tabular relative z-10">14 SKUs</p>
+<p class="font-body-sm text-body-sm text-error mt-1 relative z-10 font-medium">Requires attention</p>
+</div>
+<!-- Active Shops -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-unit-4 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-2">
+<p class="font-label-caps text-label-caps text-on-surface-variant">ACTIVE SHOPS</p>
+<div class="bg-surface-container-high text-on-surface p-1 rounded-md">
+<span class="material-symbols-outlined text-sm">store</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-on-surface font-data-tabular">6 Locations</p>
+<p class="font-body-sm text-body-sm text-secondary mt-1">All systems online</p>
+</div>
+</div>
+<!-- Charts & Data Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-unit-6 mb-unit-6">
+<!-- Chart Area (Placeholder for actual chart) -->
+<div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-unit-4 shadow-sm">
+<div class="flex justify-between items-center mb-unit-4">
+<h3 class="font-title-sm text-title-sm text-on-surface">Sales Trend</h3>
+<button class="text-body-sm font-medium text-secondary hover:text-on-surface transition-colors flex items-center">
+                            Export <span class="material-symbols-outlined text-sm ml-1">download</span>
+</button>
+</div>
+<div class="h-64 w-full bg-surface-container-low rounded-lg flex items-center justify-center border border-dashed border-outline-variant">
+<p class="text-on-surface-variant font-body-sm">[ Line Chart Visualization: Revenue Growth ]</p>
+</div>
+</div>
+<!-- Stock Distribution -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-unit-4 shadow-sm">
+<div class="flex justify-between items-center mb-unit-4">
+<h3 class="font-title-sm text-title-sm text-on-surface">Stock by Location</h3>
+</div>
+<div class="space-y-4">
+<!-- Bar item -->
+<div>
+<div class="flex justify-between text-body-sm mb-1">
+<span class="text-on-surface font-medium">HQ Warehouse</span>
+<span class="font-data-tabular text-on-surface-variant">12,450</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-primary-container h-2 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-body-sm mb-1">
+<span class="text-on-surface font-medium">Bole Branch</span>
+<span class="font-data-tabular text-on-surface-variant">3,200</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-secondary-fixed-dim h-2 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-body-sm mb-1">
+<span class="text-on-surface font-medium">Piassa Shop</span>
+<span class="font-data-tabular text-on-surface-variant">2,800</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-secondary-fixed-dim h-2 rounded-full" style="width: 35%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-body-sm mb-1">
+<span class="text-on-surface font-medium">Megenagna</span>
+<span class="font-data-tabular text-on-surface-variant">1,500</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-secondary-fixed-dim h-2 rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+<div class="p-unit-4 border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+<h3 class="font-title-sm text-title-sm text-on-surface">Recent Activity</h3>
+<button class="font-body-sm text-body-sm font-medium text-secondary hover:text-on-surface transition-colors">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-unit-3 font-label-caps text-label-caps text-on-surface-variant">DATE</th>
+<th class="p-unit-3 font-label-caps text-label-caps text-on-surface-variant">BRANCH</th>
+<th class="p-unit-3 font-label-caps text-label-caps text-on-surface-variant">TYPE</th>
+<th class="p-unit-3 font-label-caps text-label-caps text-on-surface-variant text-right">AMOUNT</th>
+<th class="p-unit-3 font-label-caps text-label-caps text-on-surface-variant">STATUS</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-unit-3 text-on-surface font-data-tabular">Oct 24, 14:30</td>
+<td class="p-unit-3 text-on-surface font-medium">Bole Branch</td>
+<td class="p-unit-3"><span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">sell</span>Sale Import</span></td>
+<td class="p-unit-3 text-right font-data-tabular text-on-surface">ETB 45,200</td>
+<td class="p-unit-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#ecfdf5] text-[#065f46]">Completed</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-unit-3 text-on-surface font-data-tabular">Oct 24, 11:15</td>
+<td class="p-unit-3 text-on-surface font-medium">Piassa Shop</td>
+<td class="p-unit-3"><span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">local_shipping</span>Restock</span></td>
+<td class="p-unit-3 text-right font-data-tabular text-on-surface">-</td>
+<td class="p-unit-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#fffbeb] text-[#92400e]">Pending</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-unit-3 text-on-surface font-data-tabular">Oct 23, 18:00</td>
+<td class="p-unit-3 text-on-surface font-medium">HQ Warehouse</td>
+<td class="p-unit-3"><span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>Stock Intake</span></td>
+<td class="p-unit-3 text-right font-data-tabular text-on-surface">ETB 120,000</td>
+<td class="p-unit-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#ecfdf5] text-[#065f46]">Completed</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</body></html>

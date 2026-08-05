@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Finance &amp; Profitability - Esset Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#ffffff",
+                      "secondary-container": "#d0e1fb",
+                      "primary-fixed-dim": "#bec6e0",
+                      "primary-container": "#131b2e",
+                      "surface-container-high": "#eae7e9",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#505f76",
+                      "on-tertiary-fixed-variant": "#574425",
+                      "tertiary-fixed": "#fcdeb5",
+                      "on-surface-variant": "#45464d",
+                      "background": "#fcf8fa",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "on-error-container": "#93000a",
+                      "surface-container-low": "#f6f3f5",
+                      "on-surface": "#1b1b1d",
+                      "surface-dim": "#dcd9db",
+                      "tertiary-container": "#271901",
+                      "on-secondary-container": "#54647a",
+                      "on-background": "#1b1b1d",
+                      "primary-fixed": "#dae2fd",
+                      "error": "#ba1a1a",
+                      "outline-variant": "#c6c6cd",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#76777d",
+                      "on-primary-container": "#7c839b",
+                      "tertiary": "#000000",
+                      "surface": "#fcf8fa",
+                      "surface-tint": "#565e74",
+                      "on-primary-fixed": "#131b2e",
+                      "surface-variant": "#e4e2e4",
+                      "error-container": "#ffdad6",
+                      "surface-container": "#f0edef",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "inverse-primary": "#bec6e0",
+                      "inverse-surface": "#303032",
+                      "on-error": "#ffffff",
+                      "on-tertiary-container": "#98805d",
+                      "surface-container-highest": "#e4e2e4",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed": "#271901",
+                      "on-secondary-fixed": "#0b1c30",
+                      "primary": "#000000",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "surface-bright": "#fcf8fa",
+                      "secondary-fixed": "#d3e4fe",
+                      "tertiary-fixed-dim": "#dec29a",
+                      "inverse-on-surface": "#f3f0f2"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "sidebar-width": "260px",
+                      "unit-1": "0.25rem",
+                      "unit-4": "1rem",
+                      "sidebar-collapsed": "64px",
+                      "unit-8": "2rem",
+                      "unit-2": "0.5rem",
+                      "unit-6": "1.5rem",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "data-tabular": [
+                              "JetBrains Mono"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-base": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "title-sm": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "data-tabular": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-base": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "title-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[style*="FILL' 1"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-base text-body-base min-h-screen antialiased flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex w-sidebar-width h-screen fixed left-0 top-0 bg-primary-container dark:bg-primary-container border-r border-outline-variant flex-col py-unit-6 px-unit-4 z-50">
+<!-- Brand / Header -->
+<div class="flex items-center gap-unit-2 mb-unit-8 px-unit-2">
+<div class="w-8 h-8 rounded bg-primary-fixed flex items-center justify-center shrink-0">
+<span class="text-on-primary-fixed font-bold text-lg">E</span>
+</div>
+<div>
+<h1 class="text-title-sm font-title-sm text-on-primary font-bold leading-tight">Esset Industrial</h1>
+<p class="text-on-primary-container text-xs">Inventory HQ</p>
+</div>
+</div>
+<!-- Main Nav Links -->
+<div class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary/60 font-body-base text-body-base hover:bg-primary/20 hover:text-on-primary transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary/60 font-body-base text-body-base hover:bg-primary/20 hover:text-on-primary transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Central Inventory</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary font-bold bg-primary/10 hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="payments" data-weight="fill" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span>Finance</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary/60 font-body-base text-body-base hover:bg-primary/20 hover:text-on-primary transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+<span>Products</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary/60 font-body-base text-body-base hover:bg-primary/20 hover:text-on-primary transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span>Shop Management</span>
+</a>
+</div>
+<!-- Footer Nav Links -->
+<div class="flex flex-col gap-1 mt-auto pt-4 border-t border-outline-variant/20">
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary/60 font-body-base text-body-base hover:bg-primary/20 hover:text-on-primary transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-on-primary/60 font-body-base text-body-base hover:bg-primary/20 hover:text-on-primary transition-colors hover:scale-[0.98] duration-150 text-error" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 md:ml-sidebar-width flex flex-col min-h-screen relative">
+<!-- TopNavBar -->
+<header class="h-16 fixed top-0 right-0 left-0 md:left-sidebar-width z-40 bg-surface-container-lowest dark:bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center px-unit-8 w-full">
+<!-- Mobile Menu & Left Side -->
+<div class="flex items-center gap-unit-4">
+<button class="md:hidden text-primary p-2 -ml-2 rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden sm:flex items-center gap-unit-4 font-title-sm text-title-sm text-primary font-bold">
+                    Esset HQ
+                </div>
+</div>
+<!-- Search Bar (on_left in design, but positioned centrally for better balance in typical layouts, adjusting to left-ish) -->
+<div class="flex-1 max-w-md mx-4 hidden sm:block">
+<div class="relative flex items-center w-full h-10 rounded-lg bg-surface-variant focus-within:bg-surface-container-lowest border border-transparent focus-within:border-primary transition-all">
+<div class="grid place-items-center h-full w-12 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="peer h-full w-full outline-none text-body-sm font-body-sm text-on-surface bg-transparent pr-2 placeholder-on-surface-variant/60" id="search" placeholder="Search inventory, transactions..." type="text"/>
+</div>
+</div>
+<!-- Right Actions & Profile -->
+<div class="flex items-center gap-unit-2">
+<div class="hidden md:flex items-center h-full mr-unit-4">
+<a class="h-16 flex items-center px-unit-4 text-on-surface-variant font-body-base text-body-base hover:text-primary hover:bg-surface-container-low transition-all" href="#">HQ Warehouse</a>
+<a class="h-16 flex items-center px-unit-4 text-on-surface-variant font-body-base text-body-base hover:text-primary hover:bg-surface-container-low transition-all" href="#">Global View</a>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all hidden sm:flex">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<button class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+<img alt="User Avatar" class="w-9 h-9 rounded-full object-cover border border-outline-variant" data-alt="A clean, professional headshot of a corporate inventory manager against a light gray background, bright, modern, high-key lighting, minimalist corporate aesthetic, confident and composed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr3n8qS5CvvLbKfmByarOFvSXty_hd6T7Rn23q2zSRvzjnGenHIXFqW5qd2bFxNFWyiL_R9usmmkE4MMOG6zdA67eS-PL-KtECgebg5U2F82TYb-gkNNPg1bHwlyyHf7AGiWG_1XGH-IN8KLMfNQA9_ZI8hmjeCyakCW5YFaBps_sIJPIv__a4jAv961N2dDPpFlKfuzwhJ1WKc60TXkdSJ7TyYc8StultRcM2SL8VRLRjLXSvdHii"/>
+</button>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 mt-16 p-unit-4 md:p-unit-8 pb-24 md:pb-8 w-full max-w-[1440px] mx-auto">
+<!-- Page Header & Filters -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-unit-8">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Finance &amp; Profitability</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mt-1">Business-wide P&amp;L overview and expense tracking</p>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-body-sm hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span>Last 30 Days</span>
+<span class="material-symbols-outlined text-[18px] ml-1">expand_more</span>
+</button>
+</div>
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-body-sm hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+<span class="material-symbols-outlined text-[18px]">store</span>
+<span>All Branches</span>
+<span class="material-symbols-outlined text-[18px] ml-1">expand_more</span>
+</button>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-body-sm font-body-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Report
+                    </button>
+</div>
+</div>
+<!-- KPI Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-unit-8">
+<!-- Total Revenue -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 flex flex-col shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Total Revenue</span>
+<div class="p-1.5 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-on-surface mt-1">4,250,000 ETB</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="flex items-center text-secondary font-medium text-sm bg-secondary/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +12.5%
+                        </span>
+<span class="text-body-sm font-body-sm text-on-surface-variant text-xs">vs last period</span>
+</div>
+</div>
+<!-- COGS -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 flex flex-col shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Cost of Goods Sold</span>
+<div class="p-1.5 bg-surface-variant rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">inventory</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-on-surface mt-1">1,850,000 ETB</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="flex items-center text-error font-medium text-sm bg-error/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +4.2%
+                        </span>
+<span class="text-body-sm font-body-sm text-on-surface-variant text-xs">vs last period</span>
+</div>
+</div>
+<!-- Operating Expenses -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 flex flex-col shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Operating Expenses</span>
+<div class="p-1.5 bg-surface-variant rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-on-surface mt-1">820,000 ETB</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="flex items-center text-secondary font-medium text-sm bg-secondary/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">trending_down</span>
+                            -2.1%
+                        </span>
+<span class="text-body-sm font-body-sm text-on-surface-variant text-xs">vs last period</span>
+</div>
+</div>
+<!-- Net Profit -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 flex flex-col shadow-sm relative overflow-hidden">
+<div class="absolute inset-0 bg-secondary/5 pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Net Profit</span>
+<div class="p-1.5 bg-secondary rounded-lg text-on-secondary">
+<span class="material-symbols-outlined text-[20px]">savings</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-secondary relative z-10 mt-1">1,580,000 ETB</div>
+<div class="flex items-center justify-between mt-3 relative z-10">
+<div class="flex items-center gap-1">
+<span class="flex items-center text-secondary font-medium text-sm bg-secondary/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                                +18.4%
+                            </span>
+</div>
+<span class="text-xs font-medium text-secondary">37.1% Margin</span>
+</div>
+</div>
+</div>
+<!-- Main Bento Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-unit-6 mb-unit-8">
+<!-- Left Column: P&L Statement (Takes up 2 columns on lg) -->
+<div class="lg:col-span-2 flex flex-col gap-unit-6">
+<!-- P&L Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden flex flex-col h-full">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low/50 flex justify-between items-center">
+<h3 class="font-title-sm text-title-sm text-on-surface">Profit &amp; Loss Statement</h3>
+<button class="p-1 rounded text-on-surface-variant hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[500px]">
+<thead>
+<tr class="border-b border-outline-variant/60">
+<th class="py-3 px-2 font-label-caps text-label-caps text-on-surface-variant font-medium">Account</th>
+<th class="py-3 px-2 font-label-caps text-label-caps text-on-surface-variant font-medium text-right">Amount (ETB)</th>
+<th class="py-3 px-2 font-label-caps text-label-caps text-on-surface-variant font-medium text-right">% of Rev</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-on-surface divide-y divide-outline-variant/30">
+<!-- Revenue Section -->
+<tr class="hover:bg-surface-variant/30 transition-colors">
+<td class="py-3 px-2 font-medium">Gross Revenue</td>
+<td class="py-3 px-2 text-right font-data-tabular">4,350,000.00</td>
+<td class="py-3 px-2 text-right text-on-surface-variant">102.3%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors text-error">
+<td class="py-2 px-2 pl-6">Less: Returns &amp; Allowances</td>
+<td class="py-2 px-2 text-right font-data-tabular">(100,000.00)</td>
+<td class="py-2 px-2 text-right text-on-surface-variant/70">-2.3%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors bg-surface-container-low/30 border-y border-outline-variant/50">
+<td class="py-3 px-2 font-bold text-on-surface">Net Revenue</td>
+<td class="py-3 px-2 text-right font-data-tabular font-bold">4,250,000.00</td>
+<td class="py-3 px-2 text-right font-medium">100.0%</td>
+</tr>
+<!-- COGS Section -->
+<tr class="hover:bg-surface-variant/30 transition-colors text-error mt-2">
+<td class="py-3 px-2 pl-6">Less: Cost of Goods Sold (COGS)</td>
+<td class="py-3 px-2 text-right font-data-tabular">(1,850,000.00)</td>
+<td class="py-3 px-2 text-right text-on-surface-variant/70">-43.5%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors bg-surface-container-low/30 border-y border-outline-variant/50">
+<td class="py-3 px-2 font-bold text-on-surface">Gross Profit</td>
+<td class="py-3 px-2 text-right font-data-tabular font-bold">2,400,000.00</td>
+<td class="py-3 px-2 text-right font-medium">56.5%</td>
+</tr>
+<!-- Expenses Section -->
+<tr class="hover:bg-surface-variant/30 transition-colors">
+<td class="py-3 px-2 font-medium pt-4">Operating Expenses</td>
+<td class="py-3 px-2 text-right"></td>
+<td class="py-3 px-2 text-right"></td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors text-on-surface-variant">
+<td class="py-2 px-2 pl-6">Staff &amp; Payroll</td>
+<td class="py-2 px-2 text-right font-data-tabular">450,000.00</td>
+<td class="py-2 px-2 text-right">10.6%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors text-on-surface-variant">
+<td class="py-2 px-2 pl-6">Rent &amp; Facilities</td>
+<td class="py-2 px-2 text-right font-data-tabular">210,000.00</td>
+<td class="py-2 px-2 text-right">4.9%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors text-on-surface-variant">
+<td class="py-2 px-2 pl-6">Marketing &amp; Promos</td>
+<td class="py-2 px-2 text-right font-data-tabular">95,000.00</td>
+<td class="py-2 px-2 text-right">2.2%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors text-on-surface-variant">
+<td class="py-2 px-2 pl-6">Utilities &amp; Misc</td>
+<td class="py-2 px-2 text-right font-data-tabular">65,000.00</td>
+<td class="py-2 px-2 text-right">1.5%</td>
+</tr>
+<tr class="hover:bg-surface-variant/30 transition-colors text-error border-b border-outline-variant/50">
+<td class="py-2 px-2 pl-6 font-medium">Total Expenses</td>
+<td class="py-2 px-2 text-right font-data-tabular">(820,000.00)</td>
+<td class="py-2 px-2 text-right">-19.3%</td>
+</tr>
+<!-- Net Income -->
+<tr class="hover:bg-surface-variant/30 transition-colors bg-secondary/5 border-b-2 border-secondary/20">
+<td class="py-4 px-2 font-bold text-title-sm text-secondary">Net Income</td>
+<td class="py-4 px-2 text-right font-data-tabular font-bold text-[16px] text-secondary">1,580,000.00</td>
+<td class="py-4 px-2 text-right font-bold text-secondary">37.1%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Revenue vs Profit Chart (Placeholder for structural rep) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-4 h-64 flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-title-sm text-title-sm text-on-surface">Monthly Revenue vs. Net Profit</h3>
+<div class="flex gap-4 text-xs font-medium">
+<div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-primary/20 border border-primary"></span> Revenue</div>
+<div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-secondary"></span> Net Profit</div>
+</div>
+</div>
+<div class="flex-1 relative flex items-end justify-between px-2 gap-2 border-l border-b border-outline-variant/50 pb-2 pl-2">
+<!-- Abstract chart bars -->
+<div class="w-full flex justify-around items-end h-full mt-4">
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-primary/20 border border-primary/40 rounded-t h-[60%] hover:bg-primary/30 transition-colors"></div>
+<div class="w-2 bg-secondary rounded-t h-[20%] absolute bottom-0"></div>
+<span class="text-[10px] text-on-surface-variant mt-1 absolute -bottom-5">Jan</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-primary/20 border border-primary/40 rounded-t h-[65%] hover:bg-primary/30 transition-colors"></div>
+<div class="w-2 bg-secondary rounded-t h-[25%] absolute bottom-0"></div>
+<span class="text-[10px] text-on-surface-variant mt-1 absolute -bottom-5">Feb</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-primary/20 border border-primary/40 rounded-t h-[80%] hover:bg-primary/30 transition-colors"></div>
+<div class="w-2 bg-secondary rounded-t h-[35%] absolute bottom-0"></div>
+<span class="text-[10px] text-on-surface-variant mt-1 absolute -bottom-5">Mar</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-primary/20 border border-primary/40 rounded-t h-[75%] hover:bg-primary/30 transition-colors"></div>
+<div class="w-2 bg-secondary rounded-t h-[30%] absolute bottom-0"></div>
+<span class="text-[10px] text-on-surface-variant mt-1 absolute -bottom-5">Apr</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-primary/20 border border-primary/40 rounded-t h-[90%] hover:bg-primary/30 transition-colors"></div>
+<div class="w-2 bg-secondary rounded-t h-[45%] absolute bottom-0"></div>
+<span class="text-[10px] text-on-surface-variant mt-1 absolute -bottom-5">May</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-primary/20 border border-primary/40 rounded-t h-[85%] hover:bg-primary/30 transition-colors"></div>
+<div class="w-2 bg-secondary rounded-t h-[40%] absolute bottom-0"></div>
+<span class="text-[10px] text-on-surface-variant mt-1 absolute -bottom-5">Jun</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Charts & Lists -->
+<div class="flex flex-col gap-unit-6">
+<!-- Expense Breakdown Donut Chart -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-4 flex flex-col h-72">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-2">Expense Breakdown</h3>
+<div class="flex-1 flex items-center justify-center relative">
+<!-- Abstract Donut using CSS -->
+<div class="w-40 h-40 rounded-full border-[16px] border-surface-variant relative overflow-hidden" style="border-top-color: #505f76; border-right-color: #505f76; border-bottom-color: #131b2e; border-left-color: #bec6e0; transform: rotate(45deg);">
+<div class="absolute inset-0 bg-transparent rounded-full flex items-center justify-center" style="transform: rotate(-45deg);">
+<div class="text-center bg-surface-container-lowest rounded-full w-24 h-24 flex flex-col items-center justify-center shadow-inner">
+<span class="text-xs text-on-surface-variant">Total</span>
+<span class="font-data-tabular font-bold text-sm">820k</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-2">
+<div class="flex items-center gap-2 text-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> <span class="truncate">Staff (55%)</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span> <span class="truncate">Rent (25%)</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim"></span> <span class="truncate">Mktg (12%)</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="w-2 h-2 rounded-full bg-surface-variant"></span> <span class="truncate">Util (8%)</span>
+</div>
+</div>
+</div>
+<!-- Recent Expenses List -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col flex-1 overflow-hidden">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low/50 flex justify-between items-center">
+<h3 class="font-title-sm text-title-sm text-on-surface">Recent Expenses</h3>
+<a class="text-xs font-medium text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="flex-1 overflow-y-auto p-2">
+<ul class="flex flex-col gap-1">
+<!-- Item 1 -->
+<li class="p-2 hover:bg-surface-variant/30 rounded-lg flex justify-between items-center transition-colors border border-transparent hover:border-outline-variant/30">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[16px]">groups</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium leading-none mb-1">Payroll - Jun</p>
+<div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
+<span>Oct 24</span> • <span>HQ &amp; All Branches</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium">450,000.00</div>
+</li>
+<!-- Item 2 -->
+<li class="p-2 hover:bg-surface-variant/30 rounded-lg flex justify-between items-center transition-colors border border-transparent hover:border-outline-variant/30">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[16px]">real_estate_agent</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium leading-none mb-1">Warehouse Rent</p>
+<div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
+<span>Oct 22</span> • <span>Bole Branch</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium">85,000.00</div>
+</li>
+<!-- Item 3 -->
+<li class="p-2 hover:bg-surface-variant/30 rounded-lg flex justify-between items-center transition-colors border border-transparent hover:border-outline-variant/30">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[16px]">campaign</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium leading-none mb-1">FB Ad Campaign</p>
+<div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
+<span>Oct 20</span> • <span>Marketing HQ</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium">45,000.00</div>
+</li>
+<!-- Item 4 -->
+<li class="p-2 hover:bg-surface-variant/30 rounded-lg flex justify-between items-center transition-colors border border-transparent hover:border-outline-variant/30">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium leading-none mb-1">Electricity Bill</p>
+<div class="flex items-center gap-2 text-[11px] text-on-surface-variant">
+<span>Oct 18</span> • <span>Factory 1</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium">32,500.00</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

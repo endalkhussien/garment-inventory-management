@@ -241,13 +241,11 @@ export default async function CentralInventoryPage({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">
-          Roll-up of shop inventories
-        </p>
-        <h1 className="text-2xl font-semibold">Central inventory</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
+        <p className="label-caps">Roll-up of shop inventories</p>
+        <h1 className="page-title">Central Inventory</h1>
+        <p className="page-subtitle max-w-2xl">
           Central does not hold its own stock. Numbers below are the{" "}
           <strong className="font-medium text-[var(--text-primary)]">
             sum of selected shops

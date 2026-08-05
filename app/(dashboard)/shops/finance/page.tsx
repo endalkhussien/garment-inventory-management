@@ -300,12 +300,12 @@ export default async function FinancePage({
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Finance</h1>
-          <p className="mt-1 text-sm text-muted">
-            {scope} · {days} days
+          <h1 className="page-title">Finance &amp; Profitability</h1>
+          <p className="page-subtitle">
+            {scope} · last {days} days
           </p>
         </div>
       </div>

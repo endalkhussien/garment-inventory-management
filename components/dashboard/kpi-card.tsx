@@ -13,6 +13,7 @@ type KpiCardProps = {
   icon?: LucideIcon;
   variant?: "default" | "success" | "warning" | "danger";
   accent?: "blue" | "green" | "amber" | "violet" | "primary";
+  alert?: boolean;
 };
 
 const valueVariants = {
@@ -27,7 +28,7 @@ const accentIcon = {
   green: "kpi-icon-green",
   amber: "kpi-icon-amber",
   violet: "kpi-icon-violet",
-  primary: "bg-primary/10 text-primary",
+  primary: "bg-[var(--secondary-container)] text-[var(--on-secondary-container)]",
 };
 
 export function KpiCard({
@@ -39,49 +40,53 @@ export function KpiCard({
   icon: Icon,
   variant = "default",
   accent = "primary",
+  alert = false,
 }: KpiCardProps) {
   const trendUp = trend !== undefined && trend >= 0;
   const TrendIcon = trendUp ? TrendingUp : TrendingDown;
 
   return (
-    <Card className="relative overflow-hidden">
-      <div
-        className={cn(
-          "absolute inset-y-0 left-0 w-1 rounded-l-xl",
-          accent === "blue" && "bg-[var(--kpi-blue)]",
-          accent === "green" && "bg-[var(--kpi-green)]",
-          accent === "amber" && "bg-[var(--kpi-amber)]",
-          accent === "violet" && "bg-[var(--kpi-violet)]",
-          accent === "primary" && "bg-primary",
-        )}
-      />
-      <div className="flex items-start justify-between gap-2 pl-1">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
-            {label}
-          </p>
+    <Card
+      className={cn(
+        "relative overflow-hidden transition-shadow hover:shadow-md",
+        alert && "border-[var(--error-container)]",
+      )}
+    >
+      {alert && (
+        <div className="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-bl-full bg-[var(--error-container)]/25" />
+      )}
+      <div className="relative z-10 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="label-caps">{label}</p>
           <p
             className={cn(
-              "mt-1.5 text-2xl font-semibold tabular-nums tracking-tight",
+              "mt-2 font-mono text-2xl font-bold tracking-tight sm:text-[28px]",
               valueVariants[variant],
             )}
           >
             {value}
           </p>
-          {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
+          {hint && (
+            <p className="mt-1 text-sm text-muted">{hint}</p>
+          )}
         </div>
         {Icon && (
-          <div className={cn("rounded-lg p-2.5", accentIcon[accent])}>
+          <div className={cn("rounded-md p-1.5", accentIcon[accent])}>
             <Icon className="h-4 w-4" />
           </div>
         )}
       </div>
       {trend !== undefined && (
-        <div className="mt-3 flex items-center gap-1 pl-1 text-xs">
+        <div className="relative z-10 mt-2 flex items-center gap-1 text-sm">
           <TrendIcon
             className={cn("h-3.5 w-3.5", trendUp ? "text-success" : "text-danger")}
           />
-          <span className={trendUp ? "text-success" : "text-danger"}>
+          <span
+            className={cn(
+              "font-medium",
+              trendUp ? "text-success" : "text-danger",
+            )}
+          >
             {trend > 0 ? "+" : ""}
             {trend}%
           </span>

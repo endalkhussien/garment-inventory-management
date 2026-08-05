@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Esset Inventory - Product Catalog</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "secondary-fixed": "#39ff14",
+          "on-surface": "#e0e0e0",
+          "inverse-primary": "#00e5ff",
+          "surface-variant": "#1f1f2e",
+          "surface-container-high": "#232336",
+          "surface-container-highest": "#28283e",
+          "on-surface-variant": "#a0a0b8",
+          "surface-tint": "#39ff14",
+          "on-primary-fixed": "#0a0a12",
+          "inverse-on-surface": "#0a0a12",
+          "surface-container-low": "#151522",
+          "on-primary": "#ffffff",
+          "surface-dim": "#0f0f18",
+          "tertiary-fixed-dim": "#00e5ff",
+          "on-secondary": "#ffffff",
+          "primary-fixed": "#39ff14",
+          "inverse-surface": "#e0e0e0",
+          "outline": "#4a4a68",
+          "on-secondary-container": "#baccb0",
+          "secondary-fixed-dim": "#2ae500",
+          "error-container": "#4d0014",
+          "primary": "#39ff14",
+          "surface-container-lowest": "#0a0a12",
+          "error": "#ff3366",
+          "on-secondary-fixed": "#0a0a12",
+          "primary-fixed-dim": "#2ae500",
+          "tertiary-fixed": "#00e5ff",
+          "on-tertiary-container": "#b3fbff",
+          "on-tertiary": "#0a0a12",
+          "on-tertiary-fixed-variant": "#00b3cc",
+          "on-background": "#e0e0e0",
+          "on-error-container": "#ffb3c6",
+          "tertiary-container": "#004d56",
+          "secondary-container": "#095300",
+          "on-primary-container": "#efffe3",
+          "background": "#0a0a12",
+          "on-primary-fixed-variant": "#107100",
+          "surface-bright": "#232336",
+          "on-tertiary-fixed": "#0a0a12",
+          "on-secondary-fixed-variant": "#107100",
+          "surface-container": "#1a1a28",
+          "primary-container": "#151522",
+          "surface": "#0a0a12",
+          "outline-variant": "#33334d",
+          "on-error": "#ffffff",
+          "tertiary": "#00e5ff",
+          "secondary": "#39ff14"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "base": "4px",
+          "unit-4": "1rem",
+          "unit-6": "1.5rem",
+          "sidebar-collapsed": "64px",
+          "sidebar-width": "260px",
+          "unit-1": "0.25rem",
+          "unit-8": "2rem",
+          "unit-2": "0.5rem"
+        },
+        "fontFamily": {
+          "body-base": ["Inter"],
+          "body-sm": ["Inter"],
+          "headline-md": ["Sora"],
+          "display-lg": ["Sora"],
+          "label-caps": ["Inter"],
+          "data-tabular": ["JetBrains Mono"],
+          "title-sm": ["Sora"]
+        },
+        "fontSize": {
+          "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+          "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+          "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+          "title-sm": ["18px", {"lineHeight": "28px", "fontWeight": "600"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .filled-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  /* Neon Glow Effects */
+  .glow-text {
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
+  }
+  .glow-border {
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4), inset 0 0 8px rgba(57, 255, 20, 0.2);
+  }
+  .glow-border-cyan {
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.2);
+  }
+</style>
+</head>
+<body class="bg-background text-on-background font-body-base overflow-hidden">
+<!-- Top Navigation Bar -->
+<nav class="bg-surface-container-low text-primary fixed top-0 right-0 w-full md:w-[calc(100%-260px)] h-16 z-40 border-b border-outline-variant flat no shadows flex justify-between items-center px-unit-6 max-w-[1440px] mx-auto">
+<div class="flex items-center gap-unit-6">
+<button class="md:hidden p-2 text-on-surface-variant hover:bg-surface-container transition-colors rounded-full">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<div class="hidden md:flex items-center gap-unit-4">
+<div class="relative group">
+<span class="text-primary font-bold border-b-2 border-primary pb-1 cursor-pointer opacity-100 glow-text">HQ Warehouse</span>
+</div>
+<div class="relative group">
+<span class="text-on-surface-variant cursor-pointer hover:bg-surface-container hover:text-on-surface transition-colors">Global View</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-unit-4">
+<div class="relative hidden sm:flex">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-tertiary text-sm">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container border border-outline-variant rounded text-body-sm focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary w-64 transition-all text-on-surface placeholder:text-on-surface-variant glow-border-cyan" placeholder="Search products..." type="text"/>
+</div>
+<button class="p-2 text-on-surface hover:bg-surface-container transition-colors rounded-full relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full shadow-[0_0_8px_rgba(255,51,102,0.8)]"></span>
+</button>
+<button class="p-2 text-on-surface hover:bg-surface-container transition-colors rounded-full hidden sm:block">
+<span class="material-symbols-outlined" data-icon="apps">apps</span>
+</button>
+<div class="w-8 h-8 rounded overflow-hidden border border-primary glow-border cursor-pointer">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate inventory manager in a well-lit office setting, conveying reliability and expertise. The lighting is soft and neutral, fitting a modern minimalist corporate environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2v8dfVUjABcG9bnMdO_aiKqyoQa2wnUfeIGdrje70n-HkzfoveLR_Ma2jm6PYUOWF8L1IxV67V-hEg1KGs3N9lCLIEKEpzgSSSVvdpKVraPdHACn84XvbYODB9MTorCMV4qecTC8IlW6eFjn_0jAgsiRVqIDFUX2inuGWRkskw6FPWgF0LftHHD5m5dqaswJ0uEXaYJl9fsH1K4gEZzvlKGrrTsjNtqYTSRESXgpN7ykTBzpbjDMJ"/>
+</div>
+</div>
+</nav>
+<!-- Side Navigation Bar -->
+<aside class="bg-primary-container text-on-primary-fixed font-headline-md text-headline-md font-body-sm text-body-sm font-label-caps text-label-caps h-screen w-sidebar-width fixed left-0 top-0 flat no shadows flex flex-col p-unit-4 overflow-y-auto z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 border-r border-outline-variant">
+<div class="flex items-center gap-3 mb-unit-8 mt-2 px-2">
+<div class="w-10 h-10 bg-primary-container border border-primary rounded flex items-center justify-center shrink-0 glow-border">
+<span class="material-symbols-outlined text-primary filled-icon">inventory_2</span>
+</div>
+<div>
+<h1 class="font-headline-md text-title-sm font-bold text-primary leading-tight glow-text">Esset Inventory</h1>
+<p class="font-body-sm text-xs text-tertiary">Garment Management</p>
+</div>
+</div>
+<button class="w-full bg-primary/20 border border-primary text-primary py-2.5 rounded font-title-sm text-sm mb-unit-6 hover:bg-primary/30 hover:glow-border transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+    Add Product
+</button>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-body-sm text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="inventory_2">inventory_2</span>
+<span class="font-body-sm text-sm">Central Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="payments">payments</span>
+<span class="font-body-sm text-sm">Finance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded bg-primary/20 border border-primary/50 text-primary font-bold scale-[0.98] transition-transform duration-150 glow-border" href="#">
+<span class="material-symbols-outlined text-[20px] filled-icon" data-icon="apparel">apparel</span>
+<span class="font-body-sm text-sm">Products</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="storefront">storefront</span>
+<span class="font-body-sm text-sm">Shop Management</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="font-body-sm text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="help">help</span>
+<span class="font-body-sm text-sm">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-[260px] pt-16 h-screen flex flex-col bg-background">
+<!-- Header -->
+<header class="px-unit-6 py-unit-4 flex justify-between items-center shrink-0 border-b border-outline-variant bg-surface-container-low">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Product Catalog</h2>
+<p class="font-body-sm text-tertiary mt-1">Manage master products, variants, and Bills of Material.</p>
+</div>
+<button class="bg-primary/20 border border-primary text-primary px-4 py-2 rounded font-title-sm text-sm flex items-center gap-2 hover:bg-primary/30 transition-colors shadow-sm glow-border">
+<span class="material-symbols-outlined text-[18px]">add</span>
+        New Product
+    </button>
+</header>
+<!-- Main Layout Split -->
+<div class="flex-1 flex flex-col lg:flex-row gap-unit-6 px-unit-6 py-unit-6 overflow-hidden">
+<!-- Left Panel: Data Grid -->
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant rounded flex flex-col overflow-hidden shadow-sm">
+<!-- Grid Toolbar -->
+<div class="p-unit-4 border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<div class="flex gap-2">
+<button class="px-3 py-1.5 border border-outline-variant bg-surface-container-low rounded text-sm font-body-sm text-on-surface hover:border-tertiary hover:text-tertiary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+          Filter
+        </button>
+<button class="px-3 py-1.5 border border-outline-variant bg-surface-container-low rounded text-sm font-body-sm text-on-surface hover:border-tertiary hover:text-tertiary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">view_column</span>
+          Columns
+        </button>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-body-sm text-sm text-on-surface-variant">Showing 1-4 of 124</span>
+<div class="flex border border-outline-variant rounded overflow-hidden bg-surface-container-low">
+<button class="p-1 hover:text-tertiary text-on-surface-variant border-r border-outline-variant transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="p-1 hover:text-tertiary text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+<!-- Grid Table -->
+<div class="flex-1 overflow-auto bg-surface-container-lowest">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-surface-container border-b border-outline-variant z-10">
+<tr>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary w-10"><input class="rounded border-outline-variant bg-surface-container-low text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/></th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary uppercase">Product Name</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary uppercase">Code</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary uppercase">Category</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary uppercase text-right">SKUs</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary uppercase text-right">Base Price</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-tertiary uppercase text-center">Status</th>
+</tr>
+</thead>
+<tbody class="font-body-sm divide-y divide-outline-variant">
+<!-- Row 1 (Active/Selected) -->
+<tr class="hover:bg-surface-container-high transition-colors bg-surface-container cursor-pointer border-l-2 border-l-primary">
+<td class="py-3 px-4 pl-3"><input checked="" class="rounded border-outline-variant bg-surface-container-low text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/></td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant overflow-hidden shrink-0">
+<img class="w-full h-full object-cover opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all" data-alt="A clean, isolated product shot of a premium heavy cotton t-shirt in navy blue, laid flat against a pure white background. Studio lighting, sharp focus, minimalist commercial photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiRSr7QLsusphdC3QrvQtONyZNE3dHb3V4jiLF7nPm0QiujsEYAg1NvsBKlPWPT74iqIN3ugEyUU7aH3hkIBtQHKAK58E1tY9mC4oNZaQg7zNdRoVrM3dYeRbw4c7DEpGWSOC-msTU_lwbQEnYsDnJWXCrVLX1LTP9IrO1U0pz5Aaudj1cEXxoGtk8gv3PZr1JSXyZc_UGhQ-7r1rotOrwrVrInBL-1VU3Ayk3p3wPS6les02D8YhZ"/>
+</div>
+<span class="font-title-sm text-sm text-primary font-semibold glow-text">Heavyweight Essential Tee</span>
+</div>
+</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-on-surface-variant">HW-TEE-01</td>
+<td class="py-3 px-4 text-on-surface-variant">T-Shirts</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-on-surface">12</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-tertiary">$34.00</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[#00e5ff] text-[#00e5ff] bg-[#00e5ff]/10">Active</span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer border-l-2 border-l-transparent">
+<td class="py-3 px-4 pl-3"><input class="rounded border-outline-variant bg-surface-container-low text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/></td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant text-sm">image</span>
+</div>
+<span class="font-title-sm text-sm text-on-surface">Oxford Button-Down</span>
+</div>
+</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-on-surface-variant">OX-SHR-02</td>
+<td class="py-3 px-4 text-on-surface-variant">Shirts</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-on-surface">24</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-tertiary">$58.00</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[#00e5ff] text-[#00e5ff] bg-[#00e5ff]/10">Active</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer border-l-2 border-l-transparent">
+<td class="py-3 px-4 pl-3"><input class="rounded border-outline-variant bg-surface-container-low text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/></td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant text-sm">image</span>
+</div>
+<span class="font-title-sm text-sm text-on-surface">Utility Cargo Pant</span>
+</div>
+</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-on-surface-variant">UT-PNT-05</td>
+<td class="py-3 px-4 text-on-surface-variant">Pants</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-on-surface">8</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-tertiary">$85.00</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[#ffaa00] text-[#ffaa00] bg-[#ffaa00]/10">Draft</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer border-l-2 border-l-transparent">
+<td class="py-3 px-4 pl-3"><input class="rounded border-outline-variant bg-surface-container-low text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/></td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant text-sm">image</span>
+</div>
+<span class="font-title-sm text-sm text-on-surface">Lightweight Windbreaker</span>
+</div>
+</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-on-surface-variant">LW-JKT-09</td>
+<td class="py-3 px-4 text-on-surface-variant">Outerwear</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-on-surface">16</td>
+<td class="py-3 px-4 font-data-tabular text-data-tabular text-right text-tertiary">$110.00</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[#00e5ff] text-[#00e5ff] bg-[#00e5ff]/10">Active</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Right Panel: Detailed View / BOM -->
+<div class="w-full lg:w-[400px] xl:w-[480px] bg-surface-container-lowest border border-outline-variant rounded flex flex-col overflow-hidden shadow-sm shrink-0">
+<!-- Detail Header -->
+<div class="p-unit-6 border-b border-outline-variant bg-surface-container relative">
+<button class="absolute top-4 right-4 p-1 text-on-surface-variant hover:text-primary transition-colors rounded-full">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+<div class="flex gap-4 items-start">
+<div class="w-20 h-20 rounded border border-primary overflow-hidden shrink-0 bg-surface glow-border">
+<img class="w-full h-full object-cover opacity-80 mix-blend-luminosity" data-alt="Close up detail shot of navy blue heavy cotton fabric texture, showing the tight weave and premium quality of a t-shirt material. High resolution, bright neutral lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDArrbhTMgUpyxFzsmCRjnOVHEi60h8M1pNmHZZ4vRXEzL0EqaNw-ursZ_yUKbtwE_YqFFIj3-ZO4DgHpztVuAgoaXr_V5k_0vIgKrjBw3TbpuiO0ejuWwkR1DW-jqx2FIq4hGRmAMJi4sZyV_yQatmIyjV3czTOSIhz9-us9dA-Z8qGNwc35_KEsoYhDCIOJfN5P-I9-ITPoKm0DtT0ldCBg4c9Y6HTNFRIMim8s9TULwBywb4sWWY"/>
+</div>
+<div>
+<div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-label-caps tracking-wider bg-surface border border-outline-variant text-tertiary mb-2">HW-TEE-01</div>
+<h3 class="font-title-sm text-lg font-bold text-on-surface leading-tight">Heavyweight Essential Tee</h3>
+<p class="font-body-sm text-sm text-on-surface-variant mt-1">Variant: Navy / L</p>
+</div>
+</div>
+</div>
+<!-- Detail Content Scrollable -->
+<div class="flex-1 overflow-y-auto p-unit-6 flex flex-col gap-unit-6 bg-surface-container-lowest">
+<!-- Tabs -->
+<div class="flex border-b border-outline-variant gap-6">
+<button class="pb-2 font-title-sm text-sm text-primary border-b-2 border-primary glow-text">BOM &amp; Costing</button>
+<button class="pb-2 font-title-sm text-sm text-on-surface-variant hover:text-tertiary transition-colors">Specifications</button>
+<button class="pb-2 font-title-sm text-sm text-on-surface-variant hover:text-tertiary transition-colors">Inventory</button>
+</div>
+<!-- Bill of Materials Section -->
+<section>
+<div class="flex justify-between items-center mb-3">
+<h4 class="font-title-sm text-sm font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-tertiary">precision_manufacturing</span>
+          Bill of Materials
+        </h4>
+<button class="text-tertiary font-body-sm text-xs hover:underline">Edit BOM</button>
+</div>
+<div class="border border-outline-variant rounded overflow-hidden">
+<table class="w-full text-left font-body-sm text-sm">
+<thead class="bg-surface-container border-b border-outline-variant">
+<tr>
+<th class="py-2 px-3 font-medium text-on-surface-variant">Material</th>
+<th class="py-2 px-3 font-medium text-on-surface-variant text-right">Qty</th>
+<th class="py-2 px-3 font-medium text-on-surface-variant text-right">Unit Cost</th>
+<th class="py-2 px-3 font-medium text-on-surface-variant text-right">Ext</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant bg-surface-container-lowest">
+<tr>
+<td class="py-2 px-3 text-on-surface">240gsm Cotton Jersey - Navy</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">1.2m</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">$4.50</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-primary">$5.40</td>
+</tr>
+<tr>
+<td class="py-2 px-3 text-on-surface">Cotton Thread #40 - Navy</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">50m</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">$0.02</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-primary">$1.00</td>
+</tr>
+<tr>
+<td class="py-2 px-3 text-on-surface">Woven Neck Label</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">1pc</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">$0.15</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-primary">$0.15</td>
+</tr>
+<tr>
+<td class="py-2 px-3 text-on-surface">Care Label</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">1pc</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-tertiary">$0.05</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-primary">$0.05</td>
+</tr>
+</tbody>
+<tfoot class="bg-surface-container border-t border-outline-variant font-medium">
+<tr>
+<td class="py-2 px-3 text-right text-on-surface-variant" colspan="3">Total Material Cost</td>
+<td class="py-2 px-3 text-right font-data-tabular text-data-tabular text-primary">$6.60</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</section>
+<!-- Costing & Pricing Calculation -->
+<section class="bg-surface-container rounded p-unit-4 border border-outline-variant">
+<h4 class="font-title-sm text-sm font-semibold text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-tertiary">calculate</span>
+        Pricing Calculation
+      </h4>
+<div class="space-y-3 font-body-sm text-sm">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">Material Cost (BOM)</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">$6.60</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">Labor Cost</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">$3.50</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">Factory Overhead (15%)</span>
+<span class="font-data-tabular text-data-tabular text-on-surface">$1.51</span>
+</div>
+<div class="h-px bg-outline-variant my-1"></div>
+<div class="flex justify-between items-center font-semibold">
+<span class="text-on-surface">Total Cost of Goods (COGS)</span>
+<span class="font-data-tabular text-data-tabular text-primary">$11.61</span>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant border-dashed">
+<div class="flex justify-between items-center mb-2">
+<span class="text-on-surface-variant">Target Margin</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[#00e5ff] text-[#00e5ff] bg-[#00e5ff]/10">65.8%</span>
+</div>
+<div class="flex justify-between items-center font-title-sm text-lg font-bold text-tertiary">
+<span>Selling Price</span>
+<span class="font-data-tabular text-data-tabular glow-text">$34.00</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Detail Actions -->
+<div class="p-unit-4 border-t border-outline-variant bg-surface-container flex gap-3">
+<button class="flex-1 bg-surface-container-low border border-outline-variant text-on-surface py-2 rounded font-title-sm text-sm hover:border-tertiary hover:text-tertiary transition-colors">Duplicate</button>
+<button class="flex-1 bg-primary/20 border border-primary text-primary py-2 rounded font-title-sm text-sm hover:bg-primary/30 transition-all glow-border">Edit Variant</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

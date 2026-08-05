@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Factory } from "lucide-react";
+import { Package2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { loginSchema } from "@/lib/validations/auth";
 
 export function LoginForm({
   companyName = "Esset Inventory",
-  companyTagline = "Ethiopia",
+  companyTagline = "Garment Management",
 }: {
   companyName?: string;
   companyTagline?: string;
@@ -73,54 +73,61 @@ export function LoginForm({
   }
 
   return (
-    <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-card">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm">
-          <Factory className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-            {companyName}
-          </h1>
-          <p className="text-sm text-muted">
-            {companyTagline ? `${companyTagline} · Sign in` : "Sign in"}
-          </p>
+    <div className="w-full max-w-md overflow-hidden rounded-xl border border-border bg-surface shadow-elevated">
+      <div className="bg-[var(--primary-container)] px-6 py-8 text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--primary-fixed)] text-[var(--on-primary-fixed)]">
+            <Package2 className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">{companyName}</h1>
+            <p className="text-sm text-[var(--on-primary-container)]">
+              {companyTagline || "Garment Management"}
+            </p>
+          </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="login">Username</Label>
-          <Input
-            id="login"
-            type="text"
-            autoComplete="username"
-            value={login}
-            onChange={(event) => setLogin(event.target.value)}
-            placeholder="username"
-            required
-          />
-        </div>
+      <div className="p-6 sm:p-8">
+        <p className="label-caps mb-4">Sign in</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="login">Username or email</Label>
+            <Input
+              id="login"
+              type="text"
+              autoComplete="username"
+              value={login}
+              onChange={(event) => setLogin(event.target.value)}
+              placeholder="username"
+              required
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="••••••••"
-            required
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
+          {error && (
+            <p className="rounded-lg bg-[var(--error-container)]/40 px-3 py-2 text-sm text-danger">
+              {error}
+            </p>
+          )}
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in…" : "Sign in"}
-        </Button>
-      </form>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Signing in…" : "Sign in"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

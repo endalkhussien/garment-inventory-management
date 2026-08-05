@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Finance &amp; Profitability - Esset Industrial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-fixed": "#d3e4fe",
+                "on-surface": "#1b1b1d",
+                "inverse-primary": "#bec6e0",
+                "surface-variant": "#e4e2e4",
+                "surface-container-high": "#eae7e9",
+                "surface-container-highest": "#e4e2e4",
+                "on-surface-variant": "#45464d",
+                "surface-tint": "#565e74",
+                "on-primary-fixed": "#131b2e",
+                "inverse-on-surface": "#f3f0f2",
+                "surface-container-low": "#f6f3f5",
+                "on-primary": "#ffffff",
+                "surface-dim": "#dcd9db",
+                "tertiary-fixed-dim": "#dec29a",
+                "on-secondary": "#ffffff",
+                "primary-fixed": "#dae2fd",
+                "inverse-surface": "#303032",
+                "outline": "#76777d",
+                "on-secondary-container": "#54647a",
+                "secondary-fixed-dim": "#b7c8e1",
+                "error-container": "#ffdad6",
+                "primary": "#000000",
+                "surface-container-lowest": "#ffffff",
+                "error": "#ba1a1a",
+                "on-secondary-fixed": "#0b1c30",
+                "primary-fixed-dim": "#bec6e0",
+                "tertiary-fixed": "#fcdeb5",
+                "on-tertiary-container": "#98805d",
+                "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#574425",
+                "on-background": "#1b1b1d",
+                "on-error-container": "#93000a",
+                "tertiary-container": "#271901",
+                "secondary-container": "#d0e1fb",
+                "on-primary-container": "#7c839b",
+                "background": "#fcf8fa",
+                "on-primary-fixed-variant": "#3f465c",
+                "surface-bright": "#fcf8fa",
+                "on-tertiary-fixed": "#271901",
+                "on-secondary-fixed-variant": "#38485d",
+                "surface-container": "#f0edef",
+                "primary-container": "#131b2e",
+                "surface": "#fcf8fa",
+                "outline-variant": "#c6c6cd",
+                "on-error": "#ffffff",
+                "tertiary": "#000000",
+                "secondary": "#505f76"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "base": "4px",
+                "unit-4": "1rem",
+                "unit-6": "1.5rem",
+                "sidebar-collapsed": "64px",
+                "sidebar-width": "260px",
+                "unit-1": "0.25rem",
+                "unit-8": "2rem",
+                "unit-2": "0.5rem"
+        },
+        "fontFamily": {
+                "body-base": [
+                        "Inter"
+                ],
+                "body-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Sora"
+                ],
+                "display-lg": [
+                        "Sora"
+                ],
+                "label-caps": [
+                        "Inter"
+                ],
+                "data-tabular": [
+                        "JetBrains Mono"
+                ],
+                "title-sm": [
+                        "Sora"
+                ]
+        },
+        "fontSize": {
+                "body-base": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "data-tabular": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "title-sm": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[style*="FILL' 1"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0c10] text-[#c5c6c7] font-body-base text-body-base min-h-screen antialiased flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex w-sidebar-width h-screen fixed left-0 top-0 bg-[#1f2833] dark:bg-[#1f2833] border-r border-[#45a29e]/20 flex-col py-unit-6 px-unit-4 z-50">
+<!-- Brand / Header -->
+<div class="flex items-center gap-unit-2 mb-unit-8 px-unit-2">
+<div class="w-8 h-8 rounded bg-[#ff2d78] flex items-center justify-center shrink-0 shadow-[0_0_10px_#ff2d78]">
+<span class="text-white font-bold text-lg">E</span>
+</div>
+<div>
+<h1 class="text-title-sm font-title-sm text-white font-bold leading-tight drop-shadow-[0_0_5px_#45a29e]">Esset Industrial</h1>
+<p class="text-[#66fcf1] text-xs">Inventory HQ</p>
+</div>
+</div>
+<!-- Main Nav Links -->
+<div class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-[#c5c6c7] font-body-base text-body-base hover:bg-[#45a29e]/20 hover:text-[#66fcf1] transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-[#c5c6c7] font-body-base text-body-base hover:bg-[#45a29e]/20 hover:text-[#66fcf1] transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Central Inventory</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-white font-bold bg-[#ff2d78]/20 border border-[#ff2d78] shadow-[inset_0_0_10px_#ff2d7840] hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined text-[#ff2d78]" data-icon="payments" data-weight="fill" style="font-variation-settings: 'FILL' 1; filter: drop-shadow(0 0 5px #ff2d78);">payments</span>
+<span>Finance</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-[#c5c6c7] font-body-base text-body-base hover:bg-[#45a29e]/20 hover:text-[#66fcf1] transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+<span>Products</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-[#c5c6c7] font-body-base text-body-base hover:bg-[#45a29e]/20 hover:text-[#66fcf1] transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span>Shop Management</span>
+</a>
+</div>
+<!-- Footer Nav Links -->
+<div class="flex flex-col gap-1 mt-auto pt-4 border-t border-[#45a29e]/20">
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-[#c5c6c7] font-body-base text-body-base hover:bg-[#45a29e]/20 hover:text-[#66fcf1] transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-unit-2 px-unit-2 py-unit-2 rounded text-[#c5c6c7] font-body-base text-body-base hover:bg-[#ff2d78]/20 hover:text-[#ff2d78] transition-colors hover:scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 md:ml-sidebar-width flex flex-col min-h-screen relative">
+<!-- TopNavBar -->
+<header class="h-16 fixed top-0 right-0 left-0 md:left-sidebar-width z-40 bg-[#0b0c10]/90 backdrop-blur-md border-b border-[#45a29e]/20 flex justify-between items-center px-unit-8 w-full">
+<!-- Mobile Menu & Left Side -->
+<div class="flex items-center gap-unit-4">
+<button class="md:hidden text-[#66fcf1] p-2 -ml-2 rounded-lg hover:bg-[#1f2833] transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden sm:flex items-center gap-unit-4 font-title-sm text-title-sm text-[#ff2d78] font-bold drop-shadow-[0_0_2px_#ff2d78]">
+                    Esset HQ
+                </div>
+</div>
+<!-- Search Bar (on_left in design, but positioned centrally for better balance in typical layouts, adjusting to left-ish) -->
+<div class="flex-1 max-w-md mx-4 hidden sm:block">
+<div class="relative flex items-center w-full h-10 rounded-lg bg-[#1f2833] focus-within:bg-[#0b0c10] border border-[#45a29e]/30 focus-within:border-[#66fcf1] shadow-[0_0_10px_#45a29e20] focus-within:shadow-[0_0_15px_#66fcf150] transition-all">
+<div class="grid place-items-center h-full w-12 text-[#45a29e]">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="peer h-full w-full outline-none text-body-sm font-body-sm text-[#c5c6c7] bg-transparent pr-2 placeholder-[#45a29e]/50" id="search" placeholder="Search inventory, transactions..." type="text"/>
+</div>
+</div>
+<!-- Right Actions & Profile -->
+<div class="flex items-center gap-unit-2">
+<div class="hidden md:flex items-center h-full mr-unit-4">
+<a class="h-16 flex items-center px-unit-4 text-[#c5c6c7] font-body-base text-body-base hover:text-[#66fcf1] hover:bg-[#1f2833] transition-all" href="#">HQ Warehouse</a>
+<a class="h-16 flex items-center px-unit-4 text-[#c5c6c7] font-body-base text-body-base hover:text-[#66fcf1] hover:bg-[#1f2833] transition-all" href="#">Global View</a>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-[#c5c6c7] hover:text-[#66fcf1] hover:bg-[#1f2833] transition-all relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-[#ff2d78] rounded-full shadow-[0_0_5px_#ff2d78]"></span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-[#c5c6c7] hover:text-[#66fcf1] hover:bg-[#1f2833] transition-all hidden sm:flex">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-px bg-[#45a29e]/30 mx-2"></div>
+<button class="flex items-center gap-2 hover:opacity-80 transition-opacity hover:shadow-[0_0_10px_#66fcf1] rounded-full">
+<img alt="User Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-[#66fcf1]" data-alt="A clean, professional headshot of a corporate inventory manager against a light gray background, bright, modern, high-key lighting, minimalist corporate aesthetic, confident and composed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr3n8qS5CvvLbKfmByarOFvSXty_hd6T7Rn23q2zSRvzjnGenHIXFqW5qd2bFxNFWyiL_R9usmmkE4MMOG6zdA67eS-PL-KtECgebg5U2F82TYb-gkNNPg1bHwlyyHf7AGiWG_1XGH-IN8KLMfNQA9_ZI8hmjeCyakCW5YFaBps_sIJPIv__a4jAv961N2dDPpFlKfuzwhJ1WKc60TXkdSJ7TyYc8StultRcM2SL8VRLRjLXSvdHii"/>
+</button>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 mt-16 p-unit-4 md:p-unit-8 pb-24 md:pb-8 w-full max-w-[1440px] mx-auto">
+<!-- Page Header & Filters -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-unit-8">
+<div>
+<h2 class="font-headline-md text-headline-md text-[#66fcf1] drop-shadow-[0_0_5px_#66fcf180]">Finance &amp; Profitability</h2>
+<p class="font-body-base text-body-base text-[#45a29e] mt-1">Business-wide P&amp;L overview and expense tracking</p>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-2 bg-[#1f2833] border border-[#45a29e]/30 rounded-lg text-body-sm font-body-sm text-[#c5c6c7] hover:border-[#66fcf1] hover:text-[#66fcf1] hover:shadow-[0_0_10px_#66fcf140] transition-all focus:outline-none focus:ring-2 focus:ring-[#66fcf1]/50">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span>Last 30 Days</span>
+<span class="material-symbols-outlined text-[18px] ml-1">expand_more</span>
+</button>
+</div>
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-2 bg-[#1f2833] border border-[#45a29e]/30 rounded-lg text-body-sm font-body-sm text-[#c5c6c7] hover:border-[#66fcf1] hover:text-[#66fcf1] hover:shadow-[0_0_10px_#66fcf140] transition-all focus:outline-none focus:ring-2 focus:ring-[#66fcf1]/50">
+<span class="material-symbols-outlined text-[18px]">store</span>
+<span>All Branches</span>
+<span class="material-symbols-outlined text-[18px] ml-1">expand_more</span>
+</button>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-[#ff2d78] text-white rounded-lg text-body-sm font-body-sm font-medium hover:bg-[#ff2d78]/90 transition-all shadow-[0_0_15px_#ff2d7880]">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Report
+                    </button>
+</div>
+</div>
+<!-- KPI Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-unit-8">
+<!-- Total Revenue -->
+<div class="bg-[#1f2833] rounded-xl border border-[#45a29e]/30 p-4 flex flex-col shadow-[0_0_15px_#0b0c10] hover:border-[#66fcf1]/50 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-caps text-label-caps text-[#45a29e]">Total Revenue</span>
+<div class="p-1.5 bg-[#66fcf1]/10 rounded-lg text-[#66fcf1] shadow-[0_0_10px_#66fcf120]">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-white mt-1 drop-shadow-[0_0_2px_#ffffff]">4,250,000 ETB</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="flex items-center text-[#66fcf1] font-medium text-sm bg-[#66fcf1]/10 px-1.5 py-0.5 rounded border border-[#66fcf1]/30">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +12.5%
+                        </span>
+<span class="text-body-sm font-body-sm text-[#45a29e] text-xs">vs last period</span>
+</div>
+</div>
+<!-- COGS -->
+<div class="bg-[#1f2833] rounded-xl border border-[#45a29e]/30 p-4 flex flex-col shadow-[0_0_15px_#0b0c10] hover:border-[#ff2d78]/50 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-caps text-label-caps text-[#45a29e]">Cost of Goods Sold</span>
+<div class="p-1.5 bg-[#ff2d78]/10 rounded-lg text-[#ff2d78] shadow-[0_0_10px_#ff2d7820]">
+<span class="material-symbols-outlined text-[20px]">inventory</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-white mt-1 drop-shadow-[0_0_2px_#ffffff]">1,850,000 ETB</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="flex items-center text-[#ff2d78] font-medium text-sm bg-[#ff2d78]/10 px-1.5 py-0.5 rounded border border-[#ff2d78]/30">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +4.2%
+                        </span>
+<span class="text-body-sm font-body-sm text-[#45a29e] text-xs">vs last period</span>
+</div>
+</div>
+<!-- Operating Expenses -->
+<div class="bg-[#1f2833] rounded-xl border border-[#45a29e]/30 p-4 flex flex-col shadow-[0_0_15px_#0b0c10] hover:border-[#66fcf1]/50 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-caps text-label-caps text-[#45a29e]">Operating Expenses</span>
+<div class="p-1.5 bg-[#45a29e]/20 rounded-lg text-[#66fcf1]">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-white mt-1 drop-shadow-[0_0_2px_#ffffff]">820,000 ETB</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="flex items-center text-[#66fcf1] font-medium text-sm bg-[#66fcf1]/10 px-1.5 py-0.5 rounded border border-[#66fcf1]/30">
+<span class="material-symbols-outlined text-[14px]">trending_down</span>
+                            -2.1%
+                        </span>
+<span class="text-body-sm font-body-sm text-[#45a29e] text-xs">vs last period</span>
+</div>
+</div>
+<!-- Net Profit -->
+<div class="bg-[#1f2833] rounded-xl border border-[#66fcf1]/50 p-4 flex flex-col shadow-[0_0_20px_#66fcf130] relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-[#66fcf1]/10 to-transparent pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2 relative z-10">
+<span class="font-label-caps text-label-caps text-[#66fcf1]">Net Profit</span>
+<div class="p-1.5 bg-[#66fcf1] rounded-lg text-[#0b0c10] shadow-[0_0_10px_#66fcf1]">
+<span class="material-symbols-outlined text-[20px]">savings</span>
+</div>
+</div>
+<div class="font-data-tabular text-[24px] font-bold text-[#66fcf1] relative z-10 mt-1 drop-shadow-[0_0_5px_#66fcf180]">1,580,000 ETB</div>
+<div class="flex items-center justify-between mt-3 relative z-10">
+<div class="flex items-center gap-1">
+<span class="flex items-center text-[#66fcf1] font-medium text-sm bg-[#0b0c10]/50 px-1.5 py-0.5 rounded border border-[#66fcf1]/50">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                                +18.4%
+                            </span>
+</div>
+<span class="text-xs font-medium text-[#66fcf1]">37.1% Margin</span>
+</div>
+</div>
+</div>
+<!-- Main Bento Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-unit-6 mb-unit-8">
+<!-- Left Column: P&L Statement (Takes up 2 columns on lg) -->
+<div class="lg:col-span-2 flex flex-col gap-unit-6">
+<!-- P&L Table Card -->
+<div class="bg-[#1f2833] border border-[#45a29e]/30 rounded-xl shadow-[0_0_20px_#0b0c10] overflow-hidden flex flex-col h-full relative">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff2d78] via-[#66fcf1] to-[#ff2d78]"></div>
+<div class="p-4 border-b border-[#45a29e]/30 bg-[#0b0c10]/50 flex justify-between items-center">
+<h3 class="font-title-sm text-title-sm text-white drop-shadow-[0_0_2px_#ffffff]">Profit &amp; Loss Statement</h3>
+<button class="p-1 rounded text-[#45a29e] hover:text-[#66fcf1] hover:bg-[#45a29e]/20 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="p-4 flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[500px]">
+<thead>
+<tr class="border-b border-[#45a29e]/50">
+<th class="py-3 px-2 font-label-caps text-label-caps text-[#66fcf1] font-medium tracking-widest">Account</th>
+<th class="py-3 px-2 font-label-caps text-label-caps text-[#66fcf1] font-medium text-right tracking-widest">Amount (ETB)</th>
+<th class="py-3 px-2 font-label-caps text-label-caps text-[#66fcf1] font-medium text-right tracking-widest">% of Rev</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-[#c5c6c7] divide-y divide-[#45a29e]/20">
+<!-- Revenue Section -->
+<tr class="hover:bg-[#45a29e]/10 transition-colors">
+<td class="py-3 px-2 font-medium">Gross Revenue</td>
+<td class="py-3 px-2 text-right font-data-tabular text-white">4,350,000.00</td>
+<td class="py-3 px-2 text-right text-[#45a29e]">102.3%</td>
+</tr>
+<tr class="hover:bg-[#ff2d78]/10 transition-colors text-[#ff2d78]">
+<td class="py-2 px-2 pl-6">Less: Returns &amp; Allowances</td>
+<td class="py-2 px-2 text-right font-data-tabular">(100,000.00)</td>
+<td class="py-2 px-2 text-right opacity-80">-2.3%</td>
+</tr>
+<tr class="hover:bg-[#45a29e]/10 transition-colors bg-[#0b0c10]/30 border-y border-[#45a29e]/50">
+<td class="py-3 px-2 font-bold text-[#66fcf1]">Net Revenue</td>
+<td class="py-3 px-2 text-right font-data-tabular font-bold text-[#66fcf1] drop-shadow-[0_0_2px_#66fcf1]">4,250,000.00</td>
+<td class="py-3 px-2 text-right font-medium text-[#66fcf1]">100.0%</td>
+</tr>
+<!-- COGS Section -->
+<tr class="hover:bg-[#ff2d78]/10 transition-colors text-[#ff2d78] mt-2">
+<td class="py-3 px-2 pl-6">Less: Cost of Goods Sold (COGS)</td>
+<td class="py-3 px-2 text-right font-data-tabular">(1,850,000.00)</td>
+<td class="py-3 px-2 text-right opacity-80">-43.5%</td>
+</tr>
+<tr class="hover:bg-[#45a29e]/10 transition-colors bg-[#0b0c10]/30 border-y border-[#45a29e]/50">
+<td class="py-3 px-2 font-bold text-white">Gross Profit</td>
+<td class="py-3 px-2 text-right font-data-tabular font-bold text-white">2,400,000.00</td>
+<td class="py-3 px-2 text-right font-medium">56.5%</td>
+</tr>
+<!-- Expenses Section -->
+<tr class="hover:bg-[#45a29e]/10 transition-colors">
+<td class="py-3 px-2 font-medium pt-4 text-[#66fcf1]">Operating Expenses</td>
+<td class="py-3 px-2 text-right"></td>
+<td class="py-3 px-2 text-right"></td>
+</tr>
+<tr class="hover:bg-[#45a29e]/10 transition-colors text-[#c5c6c7]">
+<td class="py-2 px-2 pl-6">Staff &amp; Payroll</td>
+<td class="py-2 px-2 text-right font-data-tabular">450,000.00</td>
+<td class="py-2 px-2 text-right">10.6%</td>
+</tr>
+<tr class="hover:bg-[#45a29e]/10 transition-colors text-[#c5c6c7]">
+<td class="py-2 px-2 pl-6">Rent &amp; Facilities</td>
+<td class="py-2 px-2 text-right font-data-tabular">210,000.00</td>
+<td class="py-2 px-2 text-right">4.9%</td>
+</tr>
+<tr class="hover:bg-[#45a29e]/10 transition-colors text-[#c5c6c7]">
+<td class="py-2 px-2 pl-6">Marketing &amp; Promos</td>
+<td class="py-2 px-2 text-right font-data-tabular">95,000.00</td>
+<td class="py-2 px-2 text-right">2.2%</td>
+</tr>
+<tr class="hover:bg-[#45a29e]/10 transition-colors text-[#c5c6c7]">
+<td class="py-2 px-2 pl-6">Utilities &amp; Misc</td>
+<td class="py-2 px-2 text-right font-data-tabular">65,000.00</td>
+<td class="py-2 px-2 text-right">1.5%</td>
+</tr>
+<tr class="hover:bg-[#ff2d78]/10 transition-colors text-[#ff2d78] border-b border-[#45a29e]/50">
+<td class="py-2 px-2 pl-6 font-medium">Total Expenses</td>
+<td class="py-2 px-2 text-right font-data-tabular">(820,000.00)</td>
+<td class="py-2 px-2 text-right">-19.3%</td>
+</tr>
+<!-- Net Income -->
+<tr class="hover:bg-[#66fcf1]/10 transition-colors bg-[#66fcf1]/5 border-b-2 border-[#66fcf1]/50">
+<td class="py-4 px-2 font-bold text-title-sm text-[#66fcf1]">Net Income</td>
+<td class="py-4 px-2 text-right font-data-tabular font-bold text-[16px] text-[#66fcf1] drop-shadow-[0_0_5px_#66fcf1]">1,580,000.00</td>
+<td class="py-4 px-2 text-right font-bold text-[#66fcf1]">37.1%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Revenue vs Profit Chart (Placeholder for structural rep) -->
+<div class="bg-[#1f2833] border border-[#45a29e]/30 rounded-xl shadow-[0_0_20px_#0b0c10] p-4 h-64 flex flex-col relative">
+<div class="absolute top-0 right-0 w-16 h-1 bg-[#ff2d78] shadow-[0_0_10px_#ff2d78]"></div>
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-title-sm text-title-sm text-white drop-shadow-[0_0_2px_#ffffff]">Monthly Revenue vs. Net Profit</h3>
+<div class="flex gap-4 text-xs font-medium">
+<div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-[#ff2d78]/30 border border-[#ff2d78] shadow-[0_0_5px_#ff2d78]"></span> <span class="text-[#c5c6c7]">Revenue</span></div>
+<div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-[#66fcf1] shadow-[0_0_5px_#66fcf1]"></span> <span class="text-[#c5c6c7]">Net Profit</span></div>
+</div>
+</div>
+<div class="flex-1 relative flex items-end justify-between px-2 gap-2 border-l border-b border-[#45a29e]/50 pb-2 pl-2">
+<!-- Abstract chart bars -->
+<div class="w-full flex justify-around items-end h-full mt-4">
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-[#ff2d78]/20 border border-[#ff2d78]/50 rounded-t h-[60%] hover:bg-[#ff2d78]/40 hover:shadow-[0_0_10px_#ff2d78] transition-all"></div>
+<div class="w-2 bg-[#66fcf1] rounded-t h-[20%] absolute bottom-0 shadow-[0_0_5px_#66fcf1]"></div>
+<span class="text-[10px] text-[#45a29e] mt-1 absolute -bottom-5">Jan</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-[#ff2d78]/20 border border-[#ff2d78]/50 rounded-t h-[65%] hover:bg-[#ff2d78]/40 hover:shadow-[0_0_10px_#ff2d78] transition-all"></div>
+<div class="w-2 bg-[#66fcf1] rounded-t h-[25%] absolute bottom-0 shadow-[0_0_5px_#66fcf1]"></div>
+<span class="text-[10px] text-[#45a29e] mt-1 absolute -bottom-5">Feb</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-[#ff2d78]/20 border border-[#ff2d78]/50 rounded-t h-[80%] hover:bg-[#ff2d78]/40 hover:shadow-[0_0_10px_#ff2d78] transition-all"></div>
+<div class="w-2 bg-[#66fcf1] rounded-t h-[35%] absolute bottom-0 shadow-[0_0_5px_#66fcf1]"></div>
+<span class="text-[10px] text-[#45a29e] mt-1 absolute -bottom-5">Mar</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-[#ff2d78]/20 border border-[#ff2d78]/50 rounded-t h-[75%] hover:bg-[#ff2d78]/40 hover:shadow-[0_0_10px_#ff2d78] transition-all"></div>
+<div class="w-2 bg-[#66fcf1] rounded-t h-[30%] absolute bottom-0 shadow-[0_0_5px_#66fcf1]"></div>
+<span class="text-[10px] text-[#45a29e] mt-1 absolute -bottom-5">Apr</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-[#ff2d78]/20 border border-[#ff2d78]/50 rounded-t h-[90%] hover:bg-[#ff2d78]/40 hover:shadow-[0_0_10px_#ff2d78] transition-all"></div>
+<div class="w-2 bg-[#66fcf1] rounded-t h-[45%] absolute bottom-0 shadow-[0_0_5px_#66fcf1]"></div>
+<span class="text-[10px] text-[#45a29e] mt-1 absolute -bottom-5">May</span>
+</div>
+<div class="flex flex-col items-center justify-end h-full w-12 gap-1 group relative">
+<div class="w-full bg-[#ff2d78]/20 border border-[#ff2d78]/50 rounded-t h-[85%] hover:bg-[#ff2d78]/40 hover:shadow-[0_0_10px_#ff2d78] transition-all"></div>
+<div class="w-2 bg-[#66fcf1] rounded-t h-[40%] absolute bottom-0 shadow-[0_0_5px_#66fcf1]"></div>
+<span class="text-[10px] text-[#45a29e] mt-1 absolute -bottom-5">Jun</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Charts & Lists -->
+<div class="flex flex-col gap-unit-6">
+<!-- Expense Breakdown Donut Chart -->
+<div class="bg-[#1f2833] border border-[#45a29e]/30 rounded-xl shadow-[0_0_20px_#0b0c10] p-4 flex flex-col h-72 relative">
+<div class="absolute bottom-0 left-0 w-16 h-1 bg-[#66fcf1] shadow-[0_0_10px_#66fcf1]"></div>
+<h3 class="font-title-sm text-title-sm text-white mb-2 drop-shadow-[0_0_2px_#ffffff]">Expense Breakdown</h3>
+<div class="flex-1 flex items-center justify-center relative">
+<!-- Abstract Donut using CSS -->
+<div class="w-40 h-40 rounded-full border-[16px] border-[#0b0c10] relative overflow-hidden" style="border-top-color: #ff2d78; border-right-color: #66fcf1; border-bottom-color: #45a29e; border-left-color: #1f2833; transform: rotate(45deg); box-shadow: 0 0 20px rgba(102, 252, 241, 0.2);">
+<div class="absolute inset-0 bg-transparent rounded-full flex items-center justify-center" style="transform: rotate(-45deg);">
+<div class="text-center bg-[#1f2833] rounded-full w-24 h-24 flex flex-col items-center justify-center shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] border border-[#45a29e]/20">
+<span class="text-xs text-[#45a29e]">Total</span>
+<span class="font-data-tabular font-bold text-sm text-white drop-shadow-[0_0_2px_#ffffff]">820k</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-2">
+<div class="flex items-center gap-2 text-xs text-[#c5c6c7]">
+<span class="w-2 h-2 rounded-full bg-[#ff2d78] shadow-[0_0_5px_#ff2d78]"></span> <span class="truncate">Staff (55%)</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-[#c5c6c7]">
+<span class="w-2 h-2 rounded-full bg-[#66fcf1] shadow-[0_0_5px_#66fcf1]"></span> <span class="truncate">Rent (25%)</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-[#c5c6c7]">
+<span class="w-2 h-2 rounded-full bg-[#45a29e]"></span> <span class="truncate">Mktg (12%)</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-[#c5c6c7]">
+<span class="w-2 h-2 rounded-full bg-[#1f2833] border border-[#45a29e]"></span> <span class="truncate">Util (8%)</span>
+</div>
+</div>
+</div>
+<!-- Recent Expenses List -->
+<div class="bg-[#1f2833] border border-[#45a29e]/30 rounded-xl shadow-[0_0_20px_#0b0c10] flex flex-col flex-1 overflow-hidden relative">
+<div class="absolute top-0 right-0 w-16 h-1 bg-[#ff2d78] shadow-[0_0_10px_#ff2d78]"></div>
+<div class="p-4 border-b border-[#45a29e]/30 bg-[#0b0c10]/50 flex justify-between items-center">
+<h3 class="font-title-sm text-title-sm text-white drop-shadow-[0_0_2px_#ffffff]">Recent Expenses</h3>
+<a class="text-xs font-medium text-[#66fcf1] hover:text-[#ff2d78] hover:underline transition-colors drop-shadow-[0_0_2px_#66fcf1]" href="#">View All</a>
+</div>
+<div class="flex-1 overflow-y-auto p-2">
+<ul class="flex flex-col gap-1">
+<!-- Item 1 -->
+<li class="p-2 hover:bg-[#0b0c10] rounded-lg flex justify-between items-center transition-all border border-transparent hover:border-[#66fcf1]/30 hover:shadow-[inset_0_0_10px_rgba(102,252,241,0.1)]">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-[#45a29e]/20 flex items-center justify-center text-[#66fcf1] mt-0.5 border border-[#45a29e]/30">
+<span class="material-symbols-outlined text-[16px]">groups</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-white font-medium leading-none mb-1">Payroll - Jun</p>
+<div class="flex items-center gap-2 text-[11px] text-[#45a29e]">
+<span>Oct 24</span> • <span>HQ &amp; All Branches</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium text-[#c5c6c7]">450,000.00</div>
+</li>
+<!-- Item 2 -->
+<li class="p-2 hover:bg-[#0b0c10] rounded-lg flex justify-between items-center transition-all border border-transparent hover:border-[#66fcf1]/30 hover:shadow-[inset_0_0_10px_rgba(102,252,241,0.1)]">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-[#45a29e]/20 flex items-center justify-center text-[#66fcf1] mt-0.5 border border-[#45a29e]/30">
+<span class="material-symbols-outlined text-[16px]">real_estate_agent</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-white font-medium leading-none mb-1">Warehouse Rent</p>
+<div class="flex items-center gap-2 text-[11px] text-[#45a29e]">
+<span>Oct 22</span> • <span>Bole Branch</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium text-[#c5c6c7]">85,000.00</div>
+</li>
+<!-- Item 3 -->
+<li class="p-2 hover:bg-[#0b0c10] rounded-lg flex justify-between items-center transition-all border border-transparent hover:border-[#66fcf1]/30 hover:shadow-[inset_0_0_10px_rgba(102,252,241,0.1)]">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-[#45a29e]/20 flex items-center justify-center text-[#66fcf1] mt-0.5 border border-[#45a29e]/30">
+<span class="material-symbols-outlined text-[16px]">campaign</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-white font-medium leading-none mb-1">FB Ad Campaign</p>
+<div class="flex items-center gap-2 text-[11px] text-[#45a29e]">
+<span>Oct 20</span> • <span>Marketing HQ</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium text-[#c5c6c7]">45,000.00</div>
+</li>
+<!-- Item 4 -->
+<li class="p-2 hover:bg-[#0b0c10] rounded-lg flex justify-between items-center transition-all border border-transparent hover:border-[#66fcf1]/30 hover:shadow-[inset_0_0_10px_rgba(102,252,241,0.1)]">
+<div class="flex items-start gap-3">
+<div class="w-8 h-8 rounded bg-[#45a29e]/20 flex items-center justify-center text-[#66fcf1] mt-0.5 border border-[#45a29e]/30">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-white font-medium leading-none mb-1">Electricity Bill</p>
+<div class="flex items-center gap-2 text-[11px] text-[#45a29e]">
+<span>Oct 18</span> • <span>Factory 1</span>
+</div>
+</div>
+</div>
+<div class="font-data-tabular text-sm font-medium text-[#c5c6c7]">32,500.00</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

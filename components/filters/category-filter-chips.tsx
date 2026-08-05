@@ -43,16 +43,14 @@ export function CategoryFilterChips({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wide text-muted">
-        {label}
-      </span>
+      <span className="label-caps">{label}</span>
       <Link
         href={hrefWithQuery(path, currentParams, { [paramKey]: undefined })}
         className={cn(
-          "rounded-lg px-3 py-1.5 text-sm",
+          "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
           !active
-            ? "bg-primary text-on-primary"
-            : "bg-page text-muted hover:text-[var(--text-primary)]",
+            ? "bg-[var(--primary-container)] text-white"
+            : "bg-[var(--surface-container)] text-muted hover:text-[var(--text-primary)]",
         )}
       >
         All
@@ -62,10 +60,10 @@ export function CategoryFilterChips({
           key={c.id}
           href={hrefWithQuery(path, currentParams, { [paramKey]: c.id })}
           className={cn(
-            "rounded-lg px-3 py-1.5 text-sm",
+            "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
             active === c.id
-              ? "bg-primary/15 font-medium text-primary"
-              : "bg-page text-muted hover:text-[var(--text-primary)]",
+              ? "bg-[var(--secondary-fixed)] font-semibold text-[var(--on-secondary-fixed)]"
+              : "bg-[var(--surface-container)] text-muted hover:text-[var(--text-primary)]",
           )}
         >
           {c.name}
