@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -38,13 +38,16 @@ export function VariantForm({
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
+  type FormValues = VariantInput | ShopVariantInput;
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<VariantInput | ShopVariantInput>({
-    resolver: zodResolver(shopMode ? shopVariantSchema : variantSchema),
+  } = useForm<FormValues>({
+    resolver: zodResolver(
+      shopMode ? shopVariantSchema : variantSchema,
+    ) as Resolver<FormValues>,
     defaultValues: {
       size: "",
       color: "",
@@ -55,7 +58,7 @@ export function VariantForm({
     },
   });
 
-  const onSubmit = handleSubmit(async (values) => {
+  const onSubmit = handleSubmit(async (values: FormValues) => {
     setServerError(null);
     const result =
       mode === "create"

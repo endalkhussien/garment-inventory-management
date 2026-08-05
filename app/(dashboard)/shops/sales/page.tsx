@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import {
+  CategoryFilterChips,
+  hrefWithQuery,
+} from "@/components/filters/category-filter-chips";
 import { ImportSalesForm } from "@/components/shops/import-sales-form";
 import { Card } from "@/components/ui/card";
 import { formatEtb, toNumber } from "@/lib/format";
@@ -11,16 +15,30 @@ import {
   requireSession,
 } from "@/lib/rbac";
 
-export default async function ImportSalesPage() {
+export default async function ImportSalesPage({
+  searchParams,
+}: {
+  searchParams?: { category?: string; branchId?: string };
+}) {
   const session = await requireSession();
   const shopOnly = isShopRole(session.user.role.name);
   const lockedBranchId = getShopBranchId(session);
 
   if (!shopOnly && !isAdminRole(session.user.role.name)) {
-    return (
-      <p className="text-sm text-danger">You cannot import sales.</p>
-    );
+    return <p className="text-sm text-danger">Not allowed.</p>;
   }
+
+  const categories = await prisma.productCategory.findMany({
+    where: { isActive: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+
+  const categoryId =
+    searchParams?.category &&
+    categories.some((c) => c.id === searchParams.category)
+      ? searchParams.category
+      : undefined;
 
   const branches = await prisma.branch.findMany({
     where: shopOnly
@@ -30,52 +48,107 @@ export default async function ImportSalesPage() {
     select: { id: true, name: true },
   });
 
+  const branchFilter: string | undefined = shopOnly
+    ? lockedBranchId ?? undefined
+    : searchParams?.branchId &&
+        branches.some((b) => b.id === searchParams.branchId)
+      ? searchParams.branchId
+      : undefined;
+
   const latestSales = await prisma.sale.findMany({
-    where: shopOnly && lockedBranchId ? { branchId: lockedBranchId } : undefined,
+    where: {
+      ...(branchFilter ? { branchId: branchFilter } : undefined),
+      ...(categoryId
+        ? {
+            items: {
+              some: { variant: { product: { categoryId } } },
+            },
+          }
+        : {}),
+    },
     include: {
       branch: true,
       items: {
-        include: { variant: { include: { product: true } } },
+        include: {
+          variant: { include: { product: { include: { category: true } } } },
+        },
       },
     },
     orderBy: { createdAt: "desc" },
-    take: 15,
+    take: 40,
   });
+
+  const queryBase: Record<string, string | undefined> = {
+    category: categoryId,
+    branchId: shopOnly ? undefined : branchFilter,
+  };
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Import sales</h1>
-        <p className="mt-1 text-sm text-muted">
-          {shopOnly
-            ? "Bring in sales from your external POS — stock and finance update for this shop only."
-            : "Import external POS sales into any shop. Stock is deducted and finance / product insights update."}
-        </p>
-        <p className="mt-2 text-sm">
-          <Link href="/central" className="text-secondary hover:underline">
-            ← Central inventory
-          </Link>
-          {" · "}
-          <Link
-            href="/shops/finance"
-            className="text-secondary hover:underline"
-          >
-            Finance
-          </Link>
-        </p>
+      <div className="page-header">
+        <h1 className="page-title">Sales</h1>
+        <Link
+          href="/shops/stock"
+          className="text-sm text-secondary hover:underline"
+        >
+          Stock
+        </Link>
       </div>
+
+      <Card className="space-y-3">
+        {!shopOnly && branches.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted">
+              Shop
+            </span>
+            <Link
+              href={hrefWithQuery("/shops/sales", queryBase, {
+                branchId: undefined,
+              })}
+              className={`rounded-lg px-3 py-1.5 text-sm ${
+                !branchFilter
+                  ? "bg-primary text-on-primary"
+                  : "bg-page text-muted"
+              }`}
+            >
+              All
+            </Link>
+            {branches.map((b) => (
+              <Link
+                key={b.id}
+                href={hrefWithQuery("/shops/sales", queryBase, {
+                  branchId: b.id,
+                })}
+                className={`rounded-lg px-3 py-1.5 text-sm ${
+                  branchFilter === b.id
+                    ? "bg-primary/15 text-primary"
+                    : "bg-page text-muted"
+                }`}
+              >
+                {b.name}
+              </Link>
+            ))}
+          </div>
+        )}
+        <CategoryFilterChips
+          path="/shops/sales"
+          categories={categories}
+          activeId={categoryId}
+          currentParams={queryBase}
+        />
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <ImportSalesForm
             branches={branches}
             lockedBranchId={shopOnly ? lockedBranchId : null}
-            defaultBranchId={branches[0]?.id}
+            defaultBranchId={branchFilter ?? branches[0]?.id}
           />
         </Card>
         <Card>
           <h2 className="mb-3 text-sm font-semibold">Recent sales</h2>
-          <ul className="space-y-2 text-sm">
+          <ul className="max-h-[28rem] space-y-2 overflow-y-auto text-sm">
             {latestSales.map((s) => {
               const item = s.items[0];
               return (
@@ -83,25 +156,26 @@ export default async function ImportSalesPage() {
                   key={s.id}
                   className="flex justify-between gap-2 border-b border-border/40 pb-2"
                 >
-                  <span>
+                  <span className="min-w-0">
                     <span className="font-medium">{s.receiptNumber}</span>
-                    <span className="text-muted">
-                      {" "}
-                      ·{" "}
+                    <span className="block truncate text-muted">
                       {item
                         ? `${item.variant.product.name} ×${item.quantity}`
                         : "—"}
+                      {item?.variant.product.category?.name
+                        ? ` · ${item.variant.product.category.name}`
+                        : ""}
                       {!shopOnly ? ` · ${s.branch.name}` : ""}
                     </span>
                   </span>
-                  <span className="shrink-0">
+                  <span className="shrink-0 tabular-nums">
                     {formatEtb(toNumber(s.total))}
                   </span>
                 </li>
               );
             })}
             {latestSales.length === 0 && (
-              <li className="text-muted">No sales imported yet.</li>
+              <li className="text-muted">No sales for this filter.</li>
             )}
           </ul>
         </Card>

@@ -83,10 +83,11 @@ export function RestockForms({
 
   const shopLocked = Boolean(lockedBranchId);
 
-  const pasteLines = useMemo(() => {
-    const text = importForm.watch("csvText") ?? "";
-    return parseCodeQuantityText(text);
-  }, [importForm.watch("csvText")]);
+  const importCsvText = importForm.watch("csvText") ?? "";
+  const pasteLines = useMemo(
+    () => parseCodeQuantityText(importCsvText),
+    [importCsvText],
+  );
 
   const previewLines = fileLines.length > 0 ? fileLines : pasteLines;
 

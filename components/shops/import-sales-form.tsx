@@ -112,10 +112,11 @@ export function ImportSalesForm({
   });
 
   const [fileName, setFileName] = useState<string | null>(null);
+  const csvText = watch("csvText") ?? "";
 
   const preview = useMemo(
-    () => parseExternalSalesCsv(watch("csvText") ?? ""),
-    [watch("csvText")],
+    () => parseExternalSalesCsv(csvText),
+    [csvText],
   );
 
   async function onFileChange(file: File | null) {

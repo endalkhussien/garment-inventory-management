@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireAdminOrShop, isShopRole } from "@/lib/rbac";
 import {
   bomLineSchema,
+  normalizeVariantAttr,
   pricingSchema,
   productSchema,
   productWithVariantSchema,
@@ -98,8 +99,8 @@ export async function createProductWithVariant(
 
   const data = parsed.data;
   const code = data.code.trim().toUpperCase();
-  const size = data.size;
-  const color = data.color;
+  const size = normalizeVariantAttr(data.size);
+  const color = normalizeVariantAttr(data.color);
   const sku =
     emptyToNull(data.sku) ??
     `${code}-${size}-${color}`.replace(/\s+/g, "-").toUpperCase();
@@ -107,10 +108,12 @@ export async function createProductWithVariant(
   // Shops never set cost — admin fills buying price later.
   const buyingPrice = shopUser
     ? 0
-    : "buyingPrice" in data
-      ? Number(data.buyingPrice)
-      : 0;
-  const sellingPrice = data.sellingPrice;
+    : Number(
+        "buyingPrice" in data && data.buyingPrice != null
+          ? data.buyingPrice
+          : 0,
+      );
+  const sellingPrice = Number(data.sellingPrice);
 
   try {
     const existingCode = await prisma.product.findFirst({
@@ -227,22 +230,26 @@ export async function addProductVariant(
   }
 
   try {
-    const buyingPrice = shopUser
+    const size = normalizeVariantAttr(parsed.data.size);
+    const color = normalizeVariantAttr(parsed.data.color);
+    const buyingPriceNum = shopUser
       ? 0
-      : "buyingPrice" in parsed.data
-        ? parsed.data.buyingPrice
-        : 0;
-    const buying = new Prisma.Decimal(buyingPrice);
+      : Number(
+          "buyingPrice" in parsed.data && parsed.data.buyingPrice != null
+            ? parsed.data.buyingPrice
+            : 0,
+        );
+    const buying = new Prisma.Decimal(buyingPriceNum);
     const variant = await prisma.productVariant.create({
       data: {
         productId,
-        size: parsed.data.size,
-        color: parsed.data.color,
+        size,
+        color,
         sku: parsed.data.sku,
         buyingPrice: buying,
         totalCostCached: buying,
         materialCostCached: buying,
-        sellingPrice: new Prisma.Decimal(parsed.data.sellingPrice),
+        sellingPrice: new Prisma.Decimal(Number(parsed.data.sellingPrice)),
         laborCostPerUnit: new Prisma.Decimal(0),
         overheadPercent: new Prisma.Decimal(0),
       },
@@ -288,17 +295,21 @@ export async function updateProductVariant(
       const buying = shopUser
         ? existing.buyingPrice
         : new Prisma.Decimal(
-            "buyingPrice" in parsed.data ? parsed.data.buyingPrice : 0,
+            Number(
+              "buyingPrice" in parsed.data && parsed.data.buyingPrice != null
+                ? parsed.data.buyingPrice
+                : 0,
+            ),
           );
 
       const updated = await tx.productVariant.update({
         where: { id: variantId },
         data: {
-          size: parsed.data.size,
-          color: parsed.data.color,
+          size: normalizeVariantAttr(parsed.data.size),
+          color: normalizeVariantAttr(parsed.data.color),
           sku: parsed.data.sku,
           buyingPrice: buying,
-          sellingPrice: new Prisma.Decimal(parsed.data.sellingPrice),
+          sellingPrice: new Prisma.Decimal(Number(parsed.data.sellingPrice)),
           ...(!shopUser
             ? {
                 totalCostCached: buying,

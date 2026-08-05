@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type ComponentProps } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -78,10 +78,9 @@ export function ProductForm(props: ProductFormProps) {
     ? shopProductWithVariantSchema
     : productWithVariantSchema;
 
-  const createForm = useForm<
-    ProductWithVariantInput | ShopProductWithVariantInput
-  >({
-    resolver: zodResolver(createSchema),
+  type CreateValues = ProductWithVariantInput | ShopProductWithVariantInput;
+  const createForm = useForm<CreateValues>({
+    resolver: zodResolver(createSchema) as Resolver<CreateValues>,
     defaultValues: {
       name: "",
       code: "",

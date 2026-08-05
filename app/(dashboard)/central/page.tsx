@@ -7,6 +7,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { CategoryFilterChips } from "@/components/filters/category-filter-chips";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -37,6 +38,7 @@ export default async function CentralInventoryPage({
     shops?: string;
     days?: string;
     view?: string;
+    category?: string;
   };
 }) {
   await requireAdmin();
@@ -45,6 +47,18 @@ export default async function CentralInventoryPage({
     where: { isShop: true, isActive: true },
     orderBy: { name: "asc" },
   });
+
+  const categories = await prisma.productCategory.findMany({
+    where: { isActive: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+
+  const categoryId =
+    searchParams?.category &&
+    categories.some((c) => c.id === searchParams.category)
+      ? searchParams.category
+      : undefined;
 
   const selectedIds = parseShopIds(searchParams?.shops);
   const filterIds =
@@ -65,7 +79,12 @@ export default async function CentralInventoryPage({
 
   const [stocks, sales, movements, expenses] = await Promise.all([
     prisma.finishedGoodsStock.findMany({
-      where: shopWhere,
+      where: {
+        ...shopWhere,
+        ...(categoryId
+          ? { variant: { product: { categoryId } } }
+          : {}),
+      },
       include: {
         variant: { include: { product: { include: { category: true } } } },
         branch: true,
@@ -77,10 +96,19 @@ export default async function CentralInventoryPage({
         ...shopWhere,
         createdAt: { gte: since },
         isReturn: false,
+        ...(categoryId
+          ? {
+              items: {
+                some: { variant: { product: { categoryId } } },
+              },
+            }
+          : {}),
       },
       include: {
         items: {
-          include: { variant: { include: { product: true } } },
+          include: {
+            variant: { include: { product: { include: { category: true } } } },
+          },
         },
         branch: true,
       },
@@ -89,9 +117,12 @@ export default async function CentralInventoryPage({
       where: {
         ...shopWhere,
         createdAt: { gte: since },
+        ...(categoryId
+          ? { variant: { product: { categoryId } } }
+          : {}),
       },
       include: {
-        variant: { include: { product: true } },
+        variant: { include: { product: { include: { category: true } } } },
         branch: true,
       },
       orderBy: { createdAt: "desc" },
@@ -125,13 +156,25 @@ export default async function CentralInventoryPage({
     string,
     { name: string; code: string; qty: number; revenue: number; cogs: number }
   >();
+  const shopRevenue = new Map<string, number>();
 
   for (const sale of sales) {
-    revenue += toNumber(sale.total);
     for (const item of sale.items) {
+      if (
+        categoryId &&
+        item.variant.product.categoryId !== categoryId
+      ) {
+        continue;
+      }
       const buy = toNumber(item.variant.buyingPrice);
       const lineCogs = buy * item.quantity;
+      const lineRev = toNumber(item.lineTotal);
+      revenue += lineRev;
       cogs += lineCogs;
+      shopRevenue.set(
+        sale.branchId,
+        (shopRevenue.get(sale.branchId) ?? 0) + lineRev,
+      );
       const key = item.variant.productId;
       const prev = productSales.get(key) ?? {
         name: item.variant.product.name,
@@ -141,7 +184,7 @@ export default async function CentralInventoryPage({
         cogs: 0,
       };
       prev.qty += item.quantity;
-      prev.revenue += toNumber(item.lineTotal);
+      prev.revenue += lineRev;
       prev.cogs += lineCogs;
       productSales.set(key, prev);
     }
@@ -151,8 +194,9 @@ export default async function CentralInventoryPage({
     (sum, e) => sum + toNumber(e.amount),
     0,
   );
+  // Expenses are not product-category specific — omit from net when category filter is on
   const grossProfit = revenue - cogs;
-  const netProfit = grossProfit - expenseTotal;
+  const netProfit = categoryId ? grossProfit : grossProfit - expenseTotal;
 
   const ranked = Array.from(productSales.values()).sort(
     (a, b) => b.qty - a.qty,
@@ -169,20 +213,30 @@ export default async function CentralInventoryPage({
         0,
       );
       const low = shopStocks.filter((s) => s.quantity <= s.reorderAt).length;
+      const shopRev = shopRevenue.get(shop.id) ?? 0;
       const shopSales = sales.filter((s) => s.branchId === shop.id);
-      const shopRev = shopSales.reduce(
-        (sum, s) => sum + toNumber(s.total),
-        0,
-      );
-      return { shop, units, value, low, shopRev, receipts: shopSales.length };
+      return {
+        shop,
+        units,
+        value,
+        low,
+        shopRev,
+        receipts: shopSales.length,
+      };
     });
 
   const shopsParam = searchParams?.shops ?? "all";
-  const qs = (patch: Record<string, string>) => {
+  const qs = (patch: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    p.set("shops", patch.shops ?? shopsParam);
-    p.set("days", patch.days ?? String(days));
-    p.set("view", patch.view ?? view);
+    const shops = patch.shops ?? shopsParam;
+    const d = patch.days ?? String(days);
+    const v = patch.view ?? view;
+    const cat = patch.category !== undefined ? patch.category : categoryId;
+    if (shops && shops !== "all") p.set("shops", shops);
+    else if (!shops || shops === "all") p.set("shops", "all");
+    p.set("days", d);
+    p.set("view", v);
+    if (cat) p.set("category", cat);
     return `/central?${p.toString()}`;
   };
 
@@ -297,6 +351,19 @@ export default async function CentralInventoryPage({
               {label}
             </Link>
           ))}
+        </div>
+        <div className="border-t border-border/40 pt-3">
+          <CategoryFilterChips
+            path="/central"
+            categories={categories}
+            activeId={categoryId}
+            currentParams={{
+              shops: shopsParam,
+              days: String(days),
+              view,
+              category: categoryId,
+            }}
+          />
         </div>
       </Card>
 

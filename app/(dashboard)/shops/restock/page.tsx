@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CategoryFilterChips } from "@/components/filters/category-filter-chips";
 import { RestockForms } from "@/components/shops/restock-forms";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
@@ -10,16 +11,30 @@ import {
   requireSession,
 } from "@/lib/rbac";
 
-export default async function RestockPage() {
+export default async function RestockPage({
+  searchParams,
+}: {
+  searchParams?: { category?: string };
+}) {
   const session = await requireSession();
   const shopOnly = isShopRole(session.user.role.name);
   const lockedBranchId = getShopBranchId(session);
 
   if (!shopOnly && !isAdminRole(session.user.role.name)) {
-    return (
-      <p className="text-sm text-danger">You cannot restock inventory.</p>
-    );
+    return <p className="text-sm text-danger">Not allowed.</p>;
   }
+
+  const categories = await prisma.productCategory.findMany({
+    where: { isActive: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+
+  const categoryId =
+    searchParams?.category &&
+    categories.some((c) => c.id === searchParams.category)
+      ? searchParams.category
+      : undefined;
 
   const branches = await prisma.branch.findMany({
     where: shopOnly
@@ -30,7 +45,13 @@ export default async function RestockPage() {
   });
 
   const variants = await prisma.productVariant.findMany({
-    where: { isActive: true, product: { isActive: true } },
+    where: {
+      isActive: true,
+      product: {
+        isActive: true,
+        ...(categoryId ? { categoryId } : {}),
+      },
+    },
     include: { product: true },
     orderBy: [{ product: { name: "asc" } }, { size: "asc" }],
   });
@@ -52,6 +73,9 @@ export default async function RestockPage() {
           "TRANSFER_IN",
         ],
       },
+      ...(categoryId
+        ? { variant: { product: { categoryId } } }
+        : {}),
     },
     include: {
       variant: { include: { product: true } },
@@ -65,10 +89,22 @@ export default async function RestockPage() {
     <div className="space-y-4">
       <div className="page-header">
         <h1 className="page-title">Restock</h1>
-        <Link href="/shops/stock" className="text-sm text-secondary hover:underline">
+        <Link
+          href="/shops/stock"
+          className="text-sm text-secondary hover:underline"
+        >
           Stock
         </Link>
       </div>
+
+      <Card>
+        <CategoryFilterChips
+          path="/shops/restock"
+          categories={categories}
+          activeId={categoryId}
+          currentParams={{ category: categoryId }}
+        />
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -81,7 +117,7 @@ export default async function RestockPage() {
           />
         </Card>
         <Card>
-          <h2 className="mb-3 text-sm font-semibold">Recent stock you added</h2>
+          <h2 className="mb-3 text-sm font-semibold">Recent restock</h2>
           <ul className="space-y-2 text-sm">
             {recent.map((m) => (
               <li
@@ -89,13 +125,10 @@ export default async function RestockPage() {
                 className="flex justify-between gap-2 border-b border-border/40 pb-2"
               >
                 <span>
-                  <span className="font-medium">
-                    {m.variant.product.name}
-                  </span>
+                  <span className="font-medium">{m.variant.product.name}</span>
                   <span className="text-muted">
                     {" "}
-                    · +{m.quantity} ·{" "}
-                    {m.type.replace(/_/g, " ").toLowerCase()}
+                    · +{m.quantity}
                     {!shopOnly ? ` · ${m.branch.name}` : ""}
                   </span>
                 </span>
@@ -105,7 +138,7 @@ export default async function RestockPage() {
               </li>
             ))}
             {recent.length === 0 && (
-              <li className="text-muted">No stock-ins yet.</li>
+              <li className="text-muted">No restock for this filter.</li>
             )}
           </ul>
         </Card>

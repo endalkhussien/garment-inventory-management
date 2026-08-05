@@ -35,8 +35,10 @@ export function ShopOrderForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  const catalog =
-    catalogByWarehouse?.[warehouseId] ?? initialCatalog ?? [];
+  const catalog = useMemo(
+    () => catalogByWarehouse?.[warehouseId] ?? initialCatalog ?? [],
+    [catalogByWarehouse, warehouseId, initialCatalog],
+  );
 
   const [lines, setLines] = useState<
     { variantId: string; quantityRequested: number }[]

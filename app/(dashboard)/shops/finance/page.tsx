@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { CategoryFilterChips } from "@/components/filters/category-filter-chips";
 import {
   FinancePieChart,
   FinanceShopCompareChart,
@@ -30,7 +31,7 @@ function toggleShop(current: string[], shopId: string): string {
 export default async function FinancePage({
   searchParams,
 }: {
-  searchParams?: { shops?: string; days?: string };
+  searchParams?: { shops?: string; days?: string; category?: string };
 }) {
   const session = await requireSession();
   if (!isAdminRole(session.user.role.name)) {
@@ -41,6 +42,18 @@ export default async function FinancePage({
     where: { isActive: true, isShop: true },
     orderBy: { name: "asc" },
   });
+
+  const categories = await prisma.productCategory.findMany({
+    where: { isActive: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+
+  const categoryId =
+    searchParams?.category &&
+    categories.some((c) => c.id === searchParams.category)
+      ? searchParams.category
+      : undefined;
 
   const selectedIds = parseShopIds(searchParams?.shops);
   const filterIds =
@@ -60,10 +73,24 @@ export default async function FinancePage({
 
   const [sales, expenses, staff] = await Promise.all([
     prisma.sale.findMany({
-      where: { ...shopWhere, createdAt: { gte: since } },
+      where: {
+        ...shopWhere,
+        createdAt: { gte: since },
+        ...(categoryId
+          ? {
+              items: {
+                some: { variant: { product: { categoryId } } },
+              },
+            }
+          : {}),
+      },
       include: {
         payments: true,
-        items: { include: { variant: true } },
+        items: {
+          include: {
+            variant: { include: { product: true } },
+          },
+        },
         branch: true,
       },
       orderBy: { createdAt: "desc" },
@@ -80,20 +107,33 @@ export default async function FinancePage({
     }),
   ]);
 
-  const salesOnly = sales.filter((s) => !s.isReturn);
-  const returns = sales.filter((s) => s.isReturn);
-  const revenue = salesOnly.reduce((sum, s) => sum + toNumber(s.total), 0);
-  const returnTotal = returns.reduce(
-    (sum, s) => sum + Math.abs(toNumber(s.total)),
-    0,
-  );
-
+  // Line-level revenue/cogs so category filters stay accurate
+  let revenue = 0;
+  let returnTotal = 0;
   let cogs = 0;
-  for (const s of salesOnly) {
+  const saleTotalsFiltered = new Map<string, number>();
+
+  for (const s of sales) {
     for (const item of s.items) {
-      cogs += toNumber(item.variant.buyingPrice) * item.quantity;
+      if (categoryId && item.variant.product.categoryId !== categoryId) {
+        continue;
+      }
+      const line = toNumber(item.lineTotal);
+      const buy = toNumber(item.variant.buyingPrice) * item.quantity;
+      if (s.isReturn) {
+        returnTotal += Math.abs(line);
+      } else {
+        revenue += line;
+        cogs += buy;
+      }
+      saleTotalsFiltered.set(
+        s.id,
+        (saleTotalsFiltered.get(s.id) ?? 0) + (s.isReturn ? -Math.abs(line) : line),
+      );
     }
   }
+
+  const salesOnly = sales.filter((s) => !s.isReturn);
 
   const expenseTotal = expenses.reduce(
     (sum, e) => sum + toNumber(e.amount),
@@ -114,29 +154,41 @@ export default async function FinancePage({
   const staffCost = salaryPortion + commissionPortion;
   const netAfterStaff = netBeforeStaff - staffCost;
 
-  const unitsSold = salesOnly.reduce(
-    (sum, s) => sum + s.items.reduce((a, i) => a + i.quantity, 0),
-    0,
-  );
+  const unitsSold = salesOnly.reduce((sum, s) => {
+    return (
+      sum +
+      s.items.reduce((a, i) => {
+        if (categoryId && i.variant.product.categoryId !== categoryId) {
+          return a;
+        }
+        return a + i.quantity;
+      }, 0)
+    );
+  }, 0);
 
   const byMethod: Record<string, number> = {
     CASH: 0,
     MOBILE_MONEY: 0,
     BANK_TRANSFER: 0,
   };
-  for (const s of salesOnly) {
-    for (const p of s.payments) {
-      byMethod[p.method] =
-        (byMethod[p.method] ?? 0) + toNumber(p.amount);
+  // Payments are whole-receipt: only show when no category filter
+  if (!categoryId) {
+    for (const s of salesOnly) {
+      for (const p of s.payments) {
+        byMethod[p.method] =
+          (byMethod[p.method] ?? 0) + toNumber(p.amount);
+      }
     }
   }
 
   const byExpenseCat = new Map<string, number>();
-  for (const e of expenses) {
-    byExpenseCat.set(
-      e.category,
-      (byExpenseCat.get(e.category) ?? 0) + toNumber(e.amount),
-    );
+  if (!categoryId) {
+    for (const e of expenses) {
+      byExpenseCat.set(
+        e.category,
+        (byExpenseCat.get(e.category) ?? 0) + toNumber(e.amount),
+      );
+    }
   }
 
   // Daily trend
@@ -156,15 +208,18 @@ export default async function FinancePage({
       day: "numeric",
     });
     const row = dayMap.get(key);
-    if (row) row.sales += toNumber(s.total);
+    const amt = saleTotalsFiltered.get(s.id);
+    if (row && amt !== undefined && amt > 0) row.sales += amt;
   }
-  for (const e of expenses) {
-    const key = e.expenseDate.toLocaleDateString("en-ET", {
-      month: "short",
-      day: "numeric",
-    });
-    const row = dayMap.get(key);
-    if (row) row.expenses += toNumber(e.amount);
+  if (!categoryId) {
+    for (const e of expenses) {
+      const key = e.expenseDate.toLocaleDateString("en-ET", {
+        month: "short",
+        day: "numeric",
+      });
+      const row = dayMap.get(key);
+      if (row) row.expenses += toNumber(e.amount);
+    }
   }
   const trend = Array.from(dayMap.entries()).map(([date, v]) => ({
     date,
@@ -176,11 +231,14 @@ export default async function FinancePage({
   const shopCompare = allShops
     .filter((s) => filterIds.includes(s.id))
     .map((shop) => {
-      const shopSales = salesOnly.filter((s) => s.branchId === shop.id);
-      const rev = shopSales.reduce((sum, s) => sum + toNumber(s.total), 0);
+      let rev = 0;
       let shopCogs = 0;
-      for (const s of shopSales) {
+      for (const s of salesOnly.filter((x) => x.branchId === shop.id)) {
         for (const item of s.items) {
+          if (categoryId && item.variant.product.categoryId !== categoryId) {
+            continue;
+          }
+          rev += toNumber(item.lineTotal);
           shopCogs += toNumber(item.variant.buyingPrice) * item.quantity;
         }
       }
@@ -196,10 +254,21 @@ export default async function FinancePage({
   const netMarginPct = revenue > 0 ? (netAfterStaff / revenue) * 100 : 0;
 
   const shopsParam = searchParams?.shops ?? "all";
-  const qs = (patch: { shops?: string; days?: string }) => {
+  const qs = (patch: {
+    shops?: string;
+    days?: string;
+    category?: string | null;
+  }) => {
     const p = new URLSearchParams();
     p.set("shops", patch.shops ?? shopsParam);
     p.set("days", patch.days ?? String(days));
+    const cat =
+      patch.category === null
+        ? undefined
+        : patch.category !== undefined
+          ? patch.category
+          : categoryId;
+    if (cat) p.set("category", cat);
     return `/shops/finance?${p.toString()}`;
   };
 
@@ -289,6 +358,22 @@ export default async function FinancePage({
             </Link>
           ))}
         </div>
+        <CategoryFilterChips
+          path="/shops/finance"
+          categories={categories}
+          activeId={categoryId}
+          currentParams={{
+            shops: shopsParam,
+            days: String(days),
+            category: categoryId,
+          }}
+        />
+        {categoryId && (
+          <p className="text-xs text-muted">
+            Product category filter — sales &amp; COGS only. Expenses/payments
+            apply to all products when unfiltered.
+          </p>
+        )}
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
