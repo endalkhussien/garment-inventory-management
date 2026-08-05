@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Layers,
   Package,
-  PackagePlus,
   RefreshCw,
   Settings,
   Shirt,
