@@ -89,16 +89,20 @@ export function PosSaleForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Shop</Label>
-          <Select {...register("branchId")}>
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </Select>
-        </div>
+        {branches.length > 1 ? (
+          <div className="space-y-2">
+            <Label>Shop</Label>
+            <Select {...register("branchId")}>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : (
+          <input type="hidden" {...register("branchId")} />
+        )}
         <div className="space-y-2">
           <Label>Product</Label>
           <Select {...register("variantId")}>

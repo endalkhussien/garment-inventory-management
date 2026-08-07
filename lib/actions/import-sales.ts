@@ -10,16 +10,23 @@ import { prisma } from "@/lib/prisma";
 import { isAdminRole, isShopRole } from "@/lib/rbac";
 import {
   importSalesSchema,
+  type ImportSaleLineInput,
   type ImportSalesInput,
 } from "@/lib/validations/import-sales";
+import { PAYMENT_METHODS } from "@/lib/validations/sales";
 
 export type ActionResult = {
   success: boolean;
   error?: string;
+  /** Number of Sale records created. */
   imported?: number;
+  /** Number of product lines imported across all sales. */
+  lineCount?: number;
   skipped?: string[];
   totalRevenue?: number;
 };
+
+type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function emptyToNull(value?: string | null) {
   if (!value || value.trim() === "") return null;
@@ -95,9 +102,86 @@ async function nextImportReceipt(
   return `IMP-${String(count + 1).padStart(6, "0")}`;
 }
 
+type ResolvedItem = {
+  code: string;
+  variantId: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  soldAt: Date;
+  paymentMethod: PaymentMethod;
+  externalReceipt: string | null;
+};
+
+type SaleGroup = {
+  externalReceipt: string | null;
+  items: ResolvedItem[];
+  soldAt: Date;
+  paymentMethod: PaymentMethod;
+  subtotal: number;
+};
+
+function parseSoldAt(raw?: string | null): Date | null {
+  if (!raw || !raw.trim()) return new Date();
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
+/**
+ * Group resolved lines: same non-empty externalReceipt → one multi-item sale.
+ * Lines without receipt → each becomes its own sale.
+ */
+function groupIntoSales(items: ResolvedItem[]): SaleGroup[] {
+  const grouped = new Map<string, ResolvedItem[]>();
+  const singles: ResolvedItem[] = [];
+
+  for (const item of items) {
+    const key = item.externalReceipt?.trim();
+    if (key) {
+      const list = grouped.get(key) ?? [];
+      list.push(item);
+      grouped.set(key, list);
+    } else {
+      singles.push(item);
+    }
+  }
+
+  const groups: SaleGroup[] = [];
+
+  for (const [receipt, lines] of grouped) {
+    const soldAt = lines.reduce(
+      (earliest, line) =>
+        line.soldAt.getTime() < earliest.getTime() ? line.soldAt : earliest,
+      lines[0]!.soldAt,
+    );
+    const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
+    groups.push({
+      externalReceipt: receipt,
+      items: lines,
+      soldAt,
+      paymentMethod: lines[0]!.paymentMethod,
+      subtotal,
+    });
+  }
+
+  for (const line of singles) {
+    groups.push({
+      externalReceipt: null,
+      items: [line],
+      soldAt: line.soldAt,
+      paymentMethod: line.paymentMethod,
+      subtotal: line.lineTotal,
+    });
+  }
+
+  return groups;
+}
+
 /**
  * Import sales from external POS / spreadsheet.
- * Deducts shop stock and records revenue for finance & insights.
+ * Lines sharing the same receipt become one multi-item Sale.
+ * Deducts shop stock and records revenue. Transaction is all-or-nothing.
  */
 export async function importExternalSales(
   input: ImportSalesInput,
@@ -111,9 +195,55 @@ export async function importExternalSales(
   if (resolved.error) return { success: false, error: resolved.error };
 
   const skipped: string[] = [];
-  let imported = 0;
-  let totalRevenue = 0;
   const batchNote = emptyToNull(parsed.data.note);
+
+  // Resolve variants outside the txn (reads only)
+  const resolvedItems: ResolvedItem[] = [];
+  for (const line of parsed.data.lines as ImportSaleLineInput[]) {
+    const match = await findVariantByCode(line.code);
+    if (!match) {
+      skipped.push(line.code);
+      continue;
+    }
+
+    const soldAt = parseSoldAt(line.soldAt);
+    if (!soldAt) {
+      skipped.push(`${line.code} (bad date)`);
+      continue;
+    }
+
+    const unitPrice =
+      line.unitPrice != null && line.unitPrice > 0
+        ? line.unitPrice
+        : Number(match.variant.sellingPrice.toString());
+    const lineTotal = unitPrice * line.quantity;
+
+    resolvedItems.push({
+      code: line.code,
+      variantId: match.variant.id,
+      quantity: line.quantity,
+      unitPrice,
+      lineTotal,
+      soldAt,
+      paymentMethod: (line.paymentMethod ?? "CASH") as PaymentMethod,
+      externalReceipt: emptyToNull(line.externalReceipt),
+    });
+  }
+
+  if (resolvedItems.length === 0) {
+    return {
+      success: false,
+      error: skipped.length
+        ? `No matching products for: ${skipped.slice(0, 8).join(", ")}`
+        : "Nothing to import.",
+      skipped,
+    };
+  }
+
+  const saleGroups = groupIntoSales(resolvedItems);
+  let imported = 0;
+  let lineCount = 0;
+  let totalRevenue = 0;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -127,29 +257,10 @@ export async function importExternalSales(
         },
       });
 
-      for (const line of parsed.data.lines) {
-        const match = await findVariantByCode(line.code);
-        if (!match) {
-          skipped.push(line.code);
-          continue;
-        }
-
-        const unitPrice =
-          line.unitPrice != null && line.unitPrice > 0
-            ? line.unitPrice
-            : Number(match.variant.sellingPrice.toString());
-        const lineTotal = unitPrice * line.quantity;
-        const soldAt = line.soldAt
-          ? new Date(line.soldAt)
-          : new Date();
-        if (Number.isNaN(soldAt.getTime())) {
-          skipped.push(`${line.code} (bad date)`);
-          continue;
-        }
-
+      for (const group of saleGroups) {
         const receiptNumber = await nextImportReceipt(
           tx,
-          line.externalReceipt,
+          group.externalReceipt,
         );
 
         const sale = await tx.sale.create({
@@ -157,59 +268,63 @@ export async function importExternalSales(
             receiptNumber,
             branchId: resolved.branchId,
             customerId: walkIn.id,
-            subtotal: new Prisma.Decimal(lineTotal),
-            total: new Prisma.Decimal(lineTotal),
+            subtotal: new Prisma.Decimal(group.subtotal),
+            total: new Prisma.Decimal(group.subtotal),
             soldById: resolved.userId,
-            createdAt: soldAt,
+            createdAt: group.soldAt,
             items: {
-              create: {
-                variantId: match.variant.id,
-                quantity: line.quantity,
-                unitPrice: new Prisma.Decimal(unitPrice),
-                lineTotal: new Prisma.Decimal(lineTotal),
-              },
+              create: group.items.map((item) => ({
+                variantId: item.variantId,
+                quantity: item.quantity,
+                unitPrice: new Prisma.Decimal(item.unitPrice),
+                lineTotal: new Prisma.Decimal(item.lineTotal),
+              })),
             },
             payments: {
               create: {
-                method: line.paymentMethod ?? "CASH",
-                amount: new Prisma.Decimal(lineTotal),
+                method: group.paymentMethod,
+                amount: new Prisma.Decimal(group.subtotal),
               },
             },
           },
         });
 
-        await adjustFinishedGoodsWithMovement(tx, {
-          variantId: match.variant.id,
-          branchId: resolved.branchId,
-          delta: -line.quantity,
-          type: "SALE",
-          note:
-            batchNote ??
-            `External POS import · ${receiptNumber}`,
-          referenceType: "Sale",
-          referenceId: sale.id,
-          createdById: resolved.userId,
-        });
+        for (const item of group.items) {
+          await adjustFinishedGoodsWithMovement(tx, {
+            variantId: item.variantId,
+            branchId: resolved.branchId,
+            delta: -item.quantity,
+            type: "SALE",
+            note: batchNote ?? `External POS import · ${receiptNumber}`,
+            referenceType: "Sale",
+            referenceId: sale.id,
+            createdById: resolved.userId,
+          });
+        }
 
         imported += 1;
-        totalRevenue += lineTotal;
+        lineCount += group.items.length;
+        totalRevenue += group.subtotal;
       }
 
       if (imported === 0) {
-        throw new Error(
-          skipped.length
-            ? `No matching products for: ${skipped.slice(0, 8).join(", ")}`
-            : "Nothing to import.",
-        );
+        throw new Error("Nothing to import.");
       }
     });
 
     revalidatePath("/shops/sales");
+    revalidatePath("/sales");
     revalidatePath("/shops/stock");
     revalidatePath("/shops/finance");
     revalidatePath("/central");
     revalidatePath("/");
-    return { success: true, imported, skipped, totalRevenue };
+    return {
+      success: true,
+      imported,
+      lineCount,
+      skipped,
+      totalRevenue,
+    };
   } catch (error) {
     return {
       success: false,

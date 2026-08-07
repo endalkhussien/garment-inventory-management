@@ -65,16 +65,21 @@ export default async function SalesPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Sales (POS)</h1>
+          <h1 className="text-2xl font-semibold">Direct sale</h1>
           <p className="mt-1 text-sm text-muted">
             {shopOnly
-              ? "Selling from your assigned shop only."
+              ? "Register a sale from your shop — product, quantity, and payment."
               : "Pick shop + product — price filled from pricing."}
           </p>
         </div>
-        <Button asChild variant="secondary">
-          <Link href="/shops/stock">Shop stock</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/shops/sales">Bulk sales</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/shops/stock">Stock</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

@@ -191,6 +191,7 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
     }
 
     revalidatePath("/sales");
+    revalidatePath("/shops/sales");
     revalidatePath("/shops/stock");
     revalidatePath("/shops/finance");
     revalidatePath("/central");

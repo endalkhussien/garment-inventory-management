@@ -86,13 +86,27 @@ export default async function ImportSalesPage({
   return (
     <div className="space-y-4">
       <div className="page-header">
-        <h1 className="page-title">Sales</h1>
-        <Link
-          href="/shops/stock"
-          className="text-sm text-secondary hover:underline"
-        >
-          Stock
-        </Link>
+        <div>
+          <h1 className="page-title">Bulk sales</h1>
+          <p className="mt-1 text-sm text-muted">
+            Import multi-line receipts from external POS. Lines sharing the same
+            receipt are saved as one sale.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/sales"
+            className="text-sm text-secondary hover:underline"
+          >
+            Direct sale
+          </Link>
+          <Link
+            href="/shops/stock"
+            className="text-sm text-secondary hover:underline"
+          >
+            Stock
+          </Link>
+        </div>
       </div>
 
       <Card className="space-y-3">
@@ -150,7 +164,9 @@ export default async function ImportSalesPage({
           <h2 className="mb-3 text-sm font-semibold">Recent sales</h2>
           <ul className="max-h-[28rem] space-y-2 overflow-y-auto text-sm">
             {latestSales.map((s) => {
-              const item = s.items[0];
+              const itemCount = s.items.length;
+              const totalQty = s.items.reduce((sum, i) => sum + i.quantity, 0);
+              const first = s.items[0];
               return (
                 <li
                   key={s.id}
@@ -159,11 +175,13 @@ export default async function ImportSalesPage({
                   <span className="min-w-0">
                     <span className="font-medium">{s.receiptNumber}</span>
                     <span className="block truncate text-muted">
-                      {item
-                        ? `${item.variant.product.name} ×${item.quantity}`
-                        : "—"}
-                      {item?.variant.product.category?.name
-                        ? ` · ${item.variant.product.category.name}`
+                      {itemCount > 1
+                        ? `${itemCount} items · ${totalQty} units`
+                        : first
+                          ? `${first.variant.product.name} ×${first.quantity}`
+                          : "—"}
+                      {first?.variant.product.category?.name
+                        ? ` · ${first.variant.product.category.name}`
                         : ""}
                       {!shopOnly ? ` · ${s.branch.name}` : ""}
                     </span>

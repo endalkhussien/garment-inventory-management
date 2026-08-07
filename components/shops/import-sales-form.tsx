@@ -44,6 +44,7 @@ function parsePayment(raw?: string): (typeof PAYMENT_METHODS)[number] | undefine
 /**
  * CSV columns (header optional):
  * code, quantity [, unit_price] [, date] [, receipt] [, payment]
+ * Rows with the same receipt become one multi-item sale.
  */
 export function parseExternalSalesCsv(text: string): ParsedLine[] {
   const lines: ParsedLine[] = [];
@@ -82,6 +83,38 @@ export function parseExternalSalesCsv(text: string): ParsedLine[] {
   return lines;
 }
 
+/** Preview counts after receipt grouping (matches import logic). */
+export function previewImportStats(lines: ParsedLine[]) {
+  const receiptKeys = new Set<string>();
+  let loneLines = 0;
+  let totalUnits = 0;
+  let revenueEstimate = 0;
+
+  for (const line of lines) {
+    totalUnits += line.quantity;
+    if (line.unitPrice != null && line.unitPrice > 0) {
+      revenueEstimate += line.unitPrice * line.quantity;
+    }
+    const key = line.externalReceipt?.trim();
+    if (key) {
+      receiptKeys.add(key);
+    } else {
+      loneLines += 1;
+    }
+  }
+
+  return {
+    lineCount: lines.length,
+    saleCount: receiptKeys.size + loneLines,
+    totalUnits,
+    /** Only includes lines with unit_price; server may use catalog price for others. */
+    revenueEstimate,
+    hasPricelessLines: lines.some(
+      (l) => l.unitPrice == null || l.unitPrice <= 0,
+    ),
+  };
+}
+
 export function ImportSalesForm({
   branches,
   lockedBranchId,
@@ -107,17 +140,15 @@ export function ImportSalesForm({
       branchId: lockedBranchId ?? defaultBranchId ?? branches[0]?.id ?? "",
       note: "",
       csvText:
-        "code,quantity,unit_price,date,receipt,payment\nMCS-001,2,1500,2026-08-01,POS-1001,CASH\n",
+        "code,quantity,unit_price,date,receipt,payment\nMCS-001,2,1500,2026-08-01,POS-1001,CASH\nMCS-002,1,800,2026-08-01,POS-1001,CASH\n",
     },
   });
 
   const [fileName, setFileName] = useState<string | null>(null);
   const csvText = watch("csvText") ?? "";
 
-  const preview = useMemo(
-    () => parseExternalSalesCsv(csvText),
-    [csvText],
-  );
+  const preview = useMemo(() => parseExternalSalesCsv(csvText), [csvText]);
+  const stats = useMemo(() => previewImportStats(preview), [preview]);
 
   async function onFileChange(file: File | null) {
     setError(null);
@@ -161,7 +192,9 @@ export function ImportSalesForm({
 
     const result = await importExternalSales({
       branchId: values.branchId,
-      note: values.note || (fileName ? `Bulk sales ${fileName}` : "External POS import"),
+      note:
+        values.note ||
+        (fileName ? `Bulk sales ${fileName}` : "External POS import"),
       lines: lines.map((l) => ({
         code: l.code,
         quantity: l.quantity,
@@ -181,8 +214,12 @@ export function ImportSalesForm({
       result.skipped && result.skipped.length > 0
         ? ` Skipped: ${result.skipped.slice(0, 6).join(", ")}.`
         : "";
+    const linesNote =
+      result.lineCount != null && result.lineCount !== result.imported
+        ? ` (${result.lineCount} lines)`
+        : "";
     setOk(
-      `Imported ${result.imported} sale line(s)${
+      `Imported ${result.imported} sale${result.imported === 1 ? "" : "s"}${linesNote}${
         result.totalRevenue != null
           ? ` · ${formatEtb(result.totalRevenue)}`
           : ""
@@ -227,6 +264,9 @@ export function ImportSalesForm({
           <code className="text-secondary">
             code, quantity [, unit_price] [, date] [, receipt] [, payment]
           </code>
+          . Rows with the same receipt are grouped into one
+          multi-item sale (total = sum of lines). Rows without a receipt create
+          one sale each.
         </p>
         <Textarea
           rows={8}
@@ -241,9 +281,22 @@ export function ImportSalesForm({
       </div>
 
       {preview.length > 0 && (
-        <p className="text-xs text-muted">
-          Parsed {preview.length} sale line(s) ready to import.
-        </p>
+        <div className="rounded-xl border border-border bg-page/60 px-3 py-2 text-xs text-muted">
+          <p className="font-medium text-[#0F1B33]">
+            Ready: {stats.saleCount} sale{stats.saleCount === 1 ? "" : "s"} ·{" "}
+            {stats.lineCount} line{stats.lineCount === 1 ? "" : "s"} ·{" "}
+            {stats.totalUnits} unit{stats.totalUnits === 1 ? "" : "s"}
+          </p>
+          <p className="mt-0.5">
+            Revenue estimate:{" "}
+            {stats.revenueEstimate > 0
+              ? formatEtb(stats.revenueEstimate)
+              : "—"}
+            {stats.hasPricelessLines
+              ? " (missing unit prices use product sell price on import)"
+              : ""}
+          </p>
+        </div>
       )}
       {error && <p className="text-sm text-danger">{error}</p>}
       {ok && <p className="text-sm text-success">{ok}</p>}

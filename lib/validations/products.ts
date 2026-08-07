@@ -26,6 +26,14 @@ export const productWithVariantSchema = productSchema.extend({
   sku: z.string().trim().optional().nullable(),
   buyingPrice: nonNegativeNumber,
   sellingPrice: nonNegativeNumber,
+  /** Opening stock quantity (0 = none). */
+  openingQuantity: z.coerce
+    .number({ error: "Enter a valid quantity" })
+    .int("Must be a whole number")
+    .min(0, "Cannot be negative")
+    .optional(),
+  /** Branch for opening stock. Shop users ignore (own branch). */
+  openingBranchId: z.string().optional().nullable(),
 });
 
 /** Shop create: sell only (admin sets buy later). */
@@ -34,6 +42,11 @@ export const shopProductWithVariantSchema = productSchema.extend({
   color: optionalAttr,
   sku: z.string().trim().optional().nullable(),
   sellingPrice: nonNegativeNumber,
+  openingQuantity: z.coerce
+    .number({ error: "Enter a valid quantity" })
+    .int("Must be a whole number")
+    .min(0, "Cannot be negative")
+    .optional(),
 });
 
 export const variantSchema = z.object({

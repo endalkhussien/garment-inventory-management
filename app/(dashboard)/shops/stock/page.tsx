@@ -5,6 +5,7 @@ import {
   StatusFilterChips,
   hrefWithQuery,
 } from "@/components/filters/category-filter-chips";
+import { ShopAddQtyEditor } from "@/components/shops/shop-add-qty-editor";
 import { ShopReorderEditor } from "@/components/shops/shop-reorder-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,12 +91,13 @@ export default async function ShopStockPage({
         <h1 className="page-title">{shopOnly ? "Stock" : "Shop stock"}</h1>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/shops/restock">
-              {shopOnly ? "Restock" : "Restock"}
-            </Link>
+            <Link href="/shops/restock">Restock</Link>
           </Button>
           <Button asChild variant="secondary">
-            <Link href="/shops/sales">Sales</Link>
+            <Link href="/sales">Direct sale</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/shops/sales">Bulk sales</Link>
           </Button>
         </div>
       </div>
@@ -164,6 +166,7 @@ export default async function ShopStockPage({
               <th className="px-3 py-3">Code</th>
               {!shopOnly && <th className="px-3 py-3">Shop</th>}
               <th className="px-3 py-3">Qty</th>
+              <th className="px-3 py-3">Add qty</th>
               <th className="px-3 py-3">Alert</th>
               <th className="px-3 py-3">Status</th>
             </tr>
@@ -186,7 +189,19 @@ export default async function ShopStockPage({
                 {!shopOnly && (
                   <td className="px-3 py-3 text-muted">{s.branch.name}</td>
                 )}
-                <td className="px-3 py-3 tabular-nums">{s.quantity}</td>
+                <td className="px-3 py-3 tabular-nums font-medium">
+                  {s.quantity}
+                </td>
+                <td className="px-3 py-3">
+                  {shopOnly || isAdminRole(session.user.role.name) ? (
+                    <ShopAddQtyEditor
+                      variantId={s.variantId}
+                      branchId={s.branchId}
+                    />
+                  ) : (
+                    "—"
+                  )}
+                </td>
                 <td className="px-3 py-3">
                   {shopOnly || isAdminRole(session.user.role.name) ? (
                     <ShopReorderEditor
@@ -209,10 +224,11 @@ export default async function ShopStockPage({
             {stocks.length === 0 && (
               <tr>
                 <td
-                  colSpan={shopOnly ? 6 : 7}
+                  colSpan={shopOnly ? 7 : 8}
                   className="px-3 py-6 text-muted"
                 >
-                  No stock for this filter.
+                  No stock for this filter. Use Restock or set opening qty when
+                  creating a product.
                 </td>
               </tr>
             )}

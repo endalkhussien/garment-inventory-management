@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import {
   calculateCostBreakdown,
   calculateMaterialCost,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/pricing";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireAdminOrShop, isShopRole } from "@/lib/rbac";
+import { getAppSettings } from "@/lib/settings";
 import {
   bomLineSchema,
   normalizeVariantAttr,
@@ -114,6 +116,33 @@ export async function createProductWithVariant(
           : 0,
       );
   const sellingPrice = Number(data.sellingPrice);
+  const openingQuantity =
+    "openingQuantity" in data && data.openingQuantity != null
+      ? Math.floor(Number(data.openingQuantity))
+      : 0;
+
+  let openingBranchId: string | null = null;
+  if (openingQuantity > 0) {
+    if (shopUser) {
+      openingBranchId = session.user.branch?.id ?? null;
+      if (!openingBranchId) {
+        return {
+          success: false,
+          error: "Shop user has no branch for opening stock.",
+        };
+      }
+    } else {
+      const requested =
+        "openingBranchId" in data ? emptyToNull(data.openingBranchId) : null;
+      if (!requested) {
+        return {
+          success: false,
+          error: "Select a shop for opening stock quantity.",
+        };
+      }
+      openingBranchId = requested;
+    }
+  }
 
   try {
     const existingCode = await prisma.product.findFirst({
@@ -123,11 +152,13 @@ export async function createProductWithVariant(
       return { success: false, error: "Product code already exists." };
     }
 
+    const settings = await getAppSettings();
+
     const created = await prisma.$transaction(async (tx) => {
       const maxNo = await tx.product.aggregate({ _max: { productNo: true } });
       const nextNo = (maxNo._max.productNo ?? 0) + 1;
       const buying = new Prisma.Decimal(buyingPrice);
-      return tx.product.create({
+      const product = await tx.product.create({
         data: {
           productNo: nextNo,
           name: data.name,
@@ -151,9 +182,26 @@ export async function createProductWithVariant(
         },
         include: { variants: true },
       });
+
+      const variant = product.variants[0];
+      if (variant && openingQuantity > 0 && openingBranchId) {
+        await adjustFinishedGoodsWithMovement(tx, {
+          variantId: variant.id,
+          branchId: openingBranchId,
+          delta: openingQuantity,
+          type: "RESTOCK_MANUAL",
+          note: "Opening stock on product create",
+          createdById: session.user.id,
+          defaultReorderAt: settings.defaultFinishedGoodsReorderAt,
+        });
+      }
+
+      return product;
     });
 
     revalidatePath("/products");
+    revalidatePath("/shops/stock");
+    revalidatePath("/shops/restock");
     revalidatePath("/central");
     return {
       success: true,
@@ -170,7 +218,11 @@ export async function createProductWithVariant(
         error: "Code, SKU, or size/color already exists.",
       };
     }
-    return { success: false, error: "Could not create product." };
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Could not create product.",
+    };
   }
 }
 

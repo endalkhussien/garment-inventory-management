@@ -31,6 +31,9 @@ type ProductFormProps =
       categories: Option[];
       /** When true: hide buying price; admin sets cost later. */
       shopMode?: boolean;
+      /** Shops for optional opening stock (admin create). */
+      branches?: Option[];
+      defaultBranchId?: string | null;
     }
   | {
       mode: "edit";
@@ -73,6 +76,10 @@ export function ProductForm(props: ProductFormProps) {
   const isCreate = props.mode === "create";
   const shopMode = isCreate && Boolean(props.shopMode);
   const categories = props.categories;
+  const branches = isCreate ? (props.branches ?? []) : [];
+  const defaultBranchId = isCreate
+    ? props.defaultBranchId ?? branches[0]?.id ?? ""
+    : "";
 
   const createSchema = shopMode
     ? shopProductWithVariantSchema
@@ -91,7 +98,10 @@ export function ProductForm(props: ProductFormProps) {
       color: "",
       sku: "",
       sellingPrice: 0,
-      ...(shopMode ? {} : { buyingPrice: 0 }),
+      openingQuantity: 0,
+      ...(shopMode
+        ? {}
+        : { buyingPrice: 0, openingBranchId: defaultBranchId }),
     },
   });
 
@@ -209,6 +219,41 @@ export function ProductForm(props: ProductFormProps) {
             <Label htmlFor="sku">SKU</Label>
             <Input id="sku" {...register("sku")} placeholder="Optional" />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="openingQuantity">Opening stock qty</Label>
+            <Input
+              id="openingQuantity"
+              type="number"
+              min={0}
+              step={1}
+              {...register("openingQuantity", { valueAsNumber: true })}
+              placeholder="0"
+            />
+            <p className="text-xs text-muted">
+              Units to add now (0 = none). Use Stock page later to add more.
+            </p>
+            {"openingQuantity" in errors && errors.openingQuantity && (
+              <p className="text-xs text-danger">
+                {errors.openingQuantity.message}
+              </p>
+            )}
+          </div>
+          {!shopMode && branches.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="openingBranchId">Opening stock shop</Label>
+              <Select id="openingBranchId" {...register("openingBranchId")}>
+                <option value="">Select shop</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs text-muted">
+                Required only if opening qty is greater than 0.
+              </p>
+            </div>
+          )}
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="garmentInfo">Notes</Label>
             <Input
