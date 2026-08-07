@@ -50,7 +50,7 @@ export default async function ShopStaffPage({
   }
 
   const branchId = shopOnly
-    ? locked
+    ? locked ?? undefined
     : searchParams?.branchId && shops.some((s) => s.id === searchParams.branchId)
       ? searchParams.branchId
       : undefined;
