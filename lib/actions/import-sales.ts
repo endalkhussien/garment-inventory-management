@@ -149,7 +149,7 @@ function groupIntoSales(items: ResolvedItem[]): SaleGroup[] {
 
   const groups: SaleGroup[] = [];
 
-  for (const [receipt, lines] of grouped) {
+  for (const [receipt, lines] of Array.from(grouped.entries())) {
     const soldAt = lines.reduce(
       (earliest, line) =>
         line.soldAt.getTime() < earliest.getTime() ? line.soldAt : earliest,

@@ -132,8 +132,9 @@ export async function createProductWithVariant(
         };
       }
     } else {
-      const requested =
-        "openingBranchId" in data ? emptyToNull(data.openingBranchId) : null;
+      // Admin schema includes openingBranchId; shop parse path never reaches here.
+      const adminData = data as ProductWithVariantInput;
+      const requested = emptyToNull(adminData.openingBranchId);
       if (!requested) {
         return {
           success: false,
