@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { computeShopCommission } from "@/lib/commission";
 import { toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
@@ -63,6 +64,7 @@ export async function createPayrollRun(
     const run = await prisma.$transaction(async (tx) => {
       const employees = await tx.employee.findMany({
         where: { isActive: true },
+        include: { branch: { select: { id: true, isShop: true } } },
       });
 
       const outputs = await tx.productionOutput.groupBy({
@@ -78,6 +80,43 @@ export async function createPayrollRun(
         outputs.map((o) => [o.employeeId!, o._sum.quantityGood ?? 0]),
       );
 
+      // Shop sales for commission (branch-level; Sale.soldById is User, not Employee)
+      const shopBranchIds = Array.from(
+        new Set(
+          employees
+            .filter((e) => e.branch?.isShop && e.branchId)
+            .map((e) => e.branchId!),
+        ),
+      );
+
+      const shopSalesByBranch = new Map<
+        string,
+        { revenue: number; unitsSold: number }
+      >();
+      if (shopBranchIds.length > 0) {
+        const sales = await tx.sale.findMany({
+          where: {
+            branchId: { in: shopBranchIds },
+            isReturn: false,
+            createdAt: { gte: periodStart, lte: periodEnd },
+          },
+          select: {
+            branchId: true,
+            total: true,
+            items: { select: { quantity: true } },
+          },
+        });
+        for (const s of sales) {
+          const agg = shopSalesByBranch.get(s.branchId) ?? {
+            revenue: 0,
+            unitsSold: 0,
+          };
+          agg.revenue += toNumber(s.total);
+          agg.unitsSold += s.items.reduce((n, i) => n + i.quantity, 0);
+          shopSalesByBranch.set(s.branchId, agg);
+        }
+      }
+
       let totalNet = 0;
       const lines = employees.map((e) => {
         const goodUnits = goodByEmployee.get(e.id) ?? 0;
@@ -87,15 +126,29 @@ export async function createPayrollRun(
           periodEnd,
           settings.payrollDaysPerMonth,
         );
-        const piecePay =
-          Math.round(toNumber(e.pieceRatePerUnit) * goodUnits * 100) / 100;
+
+        let pieceUnits = goodUnits;
+        let piecePay: number;
+
+        if (e.branch?.isShop && e.branchId) {
+          const shopSales = shopSalesByBranch.get(e.branchId) ?? {
+            revenue: 0,
+            unitsSold: 0,
+          };
+          pieceUnits = shopSales.unitsSold;
+          piecePay = computeShopCommission(e, shopSales);
+        } else {
+          piecePay =
+            Math.round(toNumber(e.pieceRatePerUnit) * goodUnits * 100) / 100;
+        }
+
         const netPay = Math.round((baseSalary + piecePay) * 100) / 100;
         totalNet += netPay;
 
         return {
           employeeId: e.id,
           baseSalary: new Prisma.Decimal(baseSalary),
-          goodUnits,
+          goodUnits: pieceUnits,
           piecePay: new Prisma.Decimal(piecePay),
           bonus: new Prisma.Decimal(0),
           deductions: new Prisma.Decimal(0),

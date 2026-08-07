@@ -23,9 +23,22 @@ function emptyToNull(value?: string | null) {
   return value;
 }
 
-/** Map commission % onto pieceRatePerUnit (shop retail interpretation). */
-function commissionToDb(commissionPercent: number) {
-  return new Prisma.Decimal(commissionPercent);
+function commissionFields(data: {
+  commissionMode: "PER_PIECE" | "PERCENT_OF_REVENUE";
+  pieceRatePerUnit?: number;
+  commissionPercent?: number;
+}) {
+  return {
+    commissionMode: data.commissionMode,
+    pieceRatePerUnit: new Prisma.Decimal(
+      data.commissionMode === "PER_PIECE" ? (data.pieceRatePerUnit ?? 0) : 0,
+    ),
+    commissionPercent: new Prisma.Decimal(
+      data.commissionMode === "PERCENT_OF_REVENUE"
+        ? (data.commissionPercent ?? 0)
+        : 0,
+    ),
+  };
 }
 
 async function resolveShopBranch(requestedBranchId?: string | null) {
@@ -70,8 +83,7 @@ export async function createShopStaff(
         phone: emptyToNull(parsed.data.phone),
         code: emptyToNull(parsed.data.code),
         monthlyBaseSalary: new Prisma.Decimal(parsed.data.monthlyBaseSalary),
-        // Stores commission % of sales for shop staff
-        pieceRatePerUnit: commissionToDb(parsed.data.commissionPercent),
+        ...commissionFields(parsed.data),
         branchId: resolved.branchId,
         isActive: true,
         hireDate: new Date(),
@@ -121,7 +133,7 @@ export async function updateShopStaff(
         phone: emptyToNull(parsed.data.phone),
         code: emptyToNull(parsed.data.code),
         monthlyBaseSalary: new Prisma.Decimal(parsed.data.monthlyBaseSalary),
-        pieceRatePerUnit: commissionToDb(parsed.data.commissionPercent),
+        ...commissionFields(parsed.data),
       },
     });
     revalidatePath("/shops/staff");

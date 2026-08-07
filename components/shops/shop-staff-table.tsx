@@ -4,6 +4,7 @@ import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { setShopStaffActive } from "@/lib/actions/shop-staff";
+import { formatCommissionRate } from "@/lib/commission";
 import { formatEtb } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ export type ShopStaffRow = {
   phone: string | null;
   jobTitle: string | null;
   monthlyBaseSalary: number;
+  commissionMode: "PER_PIECE" | "PERCENT_OF_REVENUE";
+  pieceRatePerUnit: number;
   commissionPercent: number;
   isActive: boolean;
   hireDate: Date | null;
@@ -112,10 +115,7 @@ export function ShopStaffTable({
                 {formatEtb(s.monthlyBaseSalary)}
               </td>
               <td className="text-right font-data tabular-nums">
-                {s.commissionPercent.toLocaleString(undefined, {
-                  maximumFractionDigits: 2,
-                })}
-                %
+                {formatCommissionRate(s)}
               </td>
               <td>
                 <Badge variant={s.isActive ? "success" : "danger"}>

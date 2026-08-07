@@ -89,7 +89,9 @@ export default async function ShopStaffPage({
     select: {
       isActive: true,
       monthlyBaseSalary: true,
+      commissionMode: true,
       pieceRatePerUnit: true,
+      commissionPercent: true,
     },
   });
 
@@ -98,13 +100,18 @@ export default async function ShopStaffPage({
   const payrollMonthly = rosterForKpis
     .filter((s) => s.isActive)
     .reduce((sum, s) => sum + toNumber(s.monthlyBaseSalary), 0);
-  const avgCommission =
-    activeCount > 0
-      ? rosterForKpis
-          .filter((s) => s.isActive)
-          .reduce((sum, s) => sum + toNumber(s.pieceRatePerUnit), 0) /
-        activeCount
+  const activeRoster = rosterForKpis.filter((s) => s.isActive);
+  const percentStaff = activeRoster.filter(
+    (s) => s.commissionMode === "PERCENT_OF_REVENUE",
+  );
+  const avgCommissionPct =
+    percentStaff.length > 0
+      ? percentStaff.reduce((sum, s) => sum + toNumber(s.commissionPercent), 0) /
+        percentStaff.length
       : 0;
+  const perPieceCount = activeRoster.filter(
+    (s) => s.commissionMode === "PER_PIECE",
+  ).length;
 
   const queryBase: Record<string, string | undefined> = {
     branchId: shopOnly ? undefined : branchId,
@@ -124,7 +131,9 @@ export default async function ShopStaffPage({
     phone: s.phone,
     jobTitle: s.jobTitle,
     monthlyBaseSalary: toNumber(s.monthlyBaseSalary),
-    commissionPercent: toNumber(s.pieceRatePerUnit),
+    commissionMode: s.commissionMode,
+    pieceRatePerUnit: toNumber(s.pieceRatePerUnit),
+    commissionPercent: toNumber(s.commissionPercent),
     isActive: s.isActive,
     hireDate: s.hireDate,
     branchName: s.branch?.name ?? null,
@@ -175,11 +184,19 @@ export default async function ShopStaffPage({
           accent="violet"
         />
         <KpiCard
-          label="Avg commission"
-          value={`${avgCommission.toLocaleString(undefined, {
-            maximumFractionDigits: 1,
-          })}%`}
-          hint="Of shop sales estimate"
+          label="Avg commission %"
+          value={
+            percentStaff.length > 0
+              ? `${avgCommissionPct.toLocaleString(undefined, {
+                  maximumFractionDigits: 1,
+                })}%`
+              : "—"
+          }
+          hint={
+            perPieceCount > 0
+              ? `${perPieceCount} on ETB/piece`
+              : "Revenue-share staff"
+          }
           icon={BadgePercent}
           accent="amber"
         />

@@ -355,6 +355,14 @@ enum PayrollStatus {
   PAID
 }
 
+/// Shop staff sales commission basis (factory employees ignore this).
+enum ShopCommissionMode {
+  /// Commission = shop units sold × pieceRatePerUnit (ETB per piece).
+  PER_PIECE
+  /// Commission = shop sales revenue × commissionPercent / 100.
+  PERCENT_OF_REVENUE
+}
+
 model Employee {
   id                 String             @id @default(cuid())
   name               String
@@ -364,8 +372,12 @@ model Employee {
   jobTitle           String?
   hireDate           DateTime?
   monthlyBaseSalary  Decimal            @default(0) @db.Decimal(12, 2)
-  /// For factory: piece rate. For shop staff: commission % of sales.
+  /// Factory: ETB per good unit produced. Shop + PER_PIECE: ETB per unit sold.
   pieceRatePerUnit   Decimal            @default(0) @db.Decimal(12, 2)
+  /// Shop staff only: which commission formula to use.
+  commissionMode     ShopCommissionMode @default(PERCENT_OF_REVENUE)
+  /// Shop staff + PERCENT_OF_REVENUE: percent of that shop's sales revenue.
+  commissionPercent  Decimal            @default(0) @db.Decimal(5, 2)
   isActive           Boolean            @default(true)
   branchId           String?
   branch             Branch?            @relation(fields: [branchId], references: [id])

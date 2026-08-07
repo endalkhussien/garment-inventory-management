@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 
 export function ShopStaffForm({
   mode,
@@ -37,6 +38,7 @@ export function ShopStaffForm({
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ShopStaffInput>({
@@ -47,10 +49,15 @@ export function ShopStaffForm({
       jobTitle: "",
       code: "",
       monthlyBaseSalary: 0,
+      commissionMode: "PERCENT_OF_REVENUE",
+      pieceRatePerUnit: 0,
       commissionPercent: 0,
       ...defaultValues,
     },
   });
+
+  const commissionMode = useWatch({ control, name: "commissionMode" });
+  const isPerPiece = commissionMode === "PER_PIECE";
 
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
@@ -80,6 +87,8 @@ export function ShopStaffForm({
         jobTitle: "",
         code: "",
         monthlyBaseSalary: 0,
+        commissionMode: "PERCENT_OF_REVENUE",
+        pieceRatePerUnit: 0,
         commissionPercent: 0,
       });
     }
@@ -146,25 +155,57 @@ export function ShopStaffForm({
           )}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="staff-commission">Commission %</Label>
-          <Input
-            id="staff-commission"
-            type="number"
-            step="0.01"
-            min={0}
-            max={100}
-            className="font-data"
-            {...register("commissionPercent", { valueAsNumber: true })}
-          />
-          {errors.commissionPercent && (
-            <p className="text-xs text-danger">
-              {errors.commissionPercent.message}
-            </p>
-          )}
+          <Label htmlFor="staff-commission-mode">Commission type</Label>
+          <Select id="staff-commission-mode" {...register("commissionMode")}>
+            <option value="PERCENT_OF_REVENUE">% of sales revenue</option>
+            <option value="PER_PIECE">ETB per piece sold</option>
+          </Select>
           <p className="text-xs text-muted">
-            Used in Finance for period cost estimates
+            Applied to this shop&apos;s period sales (not per cashier)
           </p>
         </div>
+        {isPerPiece ? (
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="staff-piece-rate">Rate (ETB per piece)</Label>
+            <Input
+              id="staff-piece-rate"
+              type="number"
+              step="0.01"
+              min={0}
+              className="font-data"
+              {...register("pieceRatePerUnit", { valueAsNumber: true })}
+            />
+            {errors.pieceRatePerUnit && (
+              <p className="text-xs text-danger">
+                {errors.pieceRatePerUnit.message}
+              </p>
+            )}
+            <p className="text-xs text-muted">
+              Commission = units sold at the shop × this rate
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="staff-commission">Commission %</Label>
+            <Input
+              id="staff-commission"
+              type="number"
+              step="0.01"
+              min={0}
+              max={100}
+              className="font-data"
+              {...register("commissionPercent", { valueAsNumber: true })}
+            />
+            {errors.commissionPercent && (
+              <p className="text-xs text-danger">
+                {errors.commissionPercent.message}
+              </p>
+            )}
+            <p className="text-xs text-muted">
+              Commission = shop sales revenue × this percent
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (

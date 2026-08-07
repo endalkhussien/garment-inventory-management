@@ -9,6 +9,10 @@ import {
 } from "@/components/finance/finance-charts";
 import { ExpenseForm } from "@/components/shops/expense-form";
 import { Card } from "@/components/ui/card";
+import {
+  computeShopCommission,
+  formatCommissionRate,
+} from "@/lib/commission";
 import { formatEtb, toNumber } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { isAdminRole, requireSession } from "@/lib/rbac";
@@ -142,13 +146,43 @@ export default async function FinancePage({
   const grossProfit = revenue - returnTotal - cogs;
   const netBeforeStaff = grossProfit - expenseTotal;
 
-  // Staff cost estimate: monthly salary * (days/30) + commission% of revenue (each staff's % applied — total can exceed 100 intentionally as each has own %)
+  // Staff cost estimate: monthly salary * (days/30) + commission on that staff's shop sales.
+  // Commission is branch-level (Sale.soldById is User, not Employee) — see lib/commission.ts.
   const salaryPortion =
     staff.reduce((sum, e) => sum + toNumber(e.monthlyBaseSalary), 0) *
     (days / 30);
-  // Shop staff: pieceRatePerUnit holds commission % of sales
-  const commissionPortion = staff.reduce(
-    (sum, e) => sum + (revenue * toNumber(e.pieceRatePerUnit)) / 100,
+
+  const salesByBranch = new Map<string, { unitsSold: number; revenue: number }>();
+  for (const s of sales) {
+    if (s.isReturn) continue;
+    let units = 0;
+    let rev = 0;
+    for (const item of s.items) {
+      if (categoryId && item.variant.product.categoryId !== categoryId) {
+        continue;
+      }
+      units += item.quantity;
+      rev += toNumber(item.lineTotal);
+    }
+    const cur = salesByBranch.get(s.branchId) ?? {
+      unitsSold: 0,
+      revenue: 0,
+    };
+    cur.unitsSold += units;
+    cur.revenue += rev;
+    salesByBranch.set(s.branchId, cur);
+  }
+
+  const commissionByStaff = new Map(
+    staff.map((e) => {
+      const shopSales = e.branchId
+        ? salesByBranch.get(e.branchId) ?? { unitsSold: 0, revenue: 0 }
+        : { unitsSold: 0, revenue: 0 };
+      return [e.id, computeShopCommission(e, shopSales)] as const;
+    }),
+  );
+  const commissionPortion = Array.from(commissionByStaff.values()).reduce(
+    (sum, c) => sum + c,
     0,
   );
   const staffCost = salaryPortion + commissionPortion;
@@ -506,20 +540,25 @@ export default async function FinancePage({
           <ul className="max-h-72 space-y-2 overflow-y-auto text-sm">
             {staff.map((e) => {
               const sal = toNumber(e.monthlyBaseSalary) * (days / 30);
-              const comm = (revenue * toNumber(e.pieceRatePerUnit)) / 100;
+              const comm = commissionByStaff.get(e.id) ?? 0;
               return (
                 <li
                   key={e.id}
-                  className="flex justify-between border-b border-border/40 pb-2"
+                  className="flex justify-between gap-3 border-b border-border/40 pb-2"
                 >
-                  <span>
+                  <span className="min-w-0">
                     <span className="font-medium">{e.name}</span>
                     <span className="text-muted">
                       {" "}
-                      · {toNumber(e.pieceRatePerUnit)}%
+                      · {formatCommissionRate(e)}
                     </span>
+                    <p className="text-xs text-muted">
+                      Salary {formatEtb(sal)} + commission {formatEtb(comm)}
+                    </p>
                   </span>
-                  <span className="tabular-nums">{formatEtb(sal + comm)}</span>
+                  <span className="shrink-0 font-data tabular-nums">
+                    {formatEtb(sal + comm)}
+                  </span>
                 </li>
               );
             })}

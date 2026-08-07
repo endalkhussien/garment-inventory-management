@@ -80,8 +80,8 @@ export default async function PayrollDetailPage({ params }: PageProps) {
             <tr>
               <th className="px-3 py-3">Employee</th>
               <th className="px-3 py-3">Base</th>
-              <th className="px-3 py-3">Good units</th>
-              <th className="px-3 py-3">Piece pay</th>
+              <th className="px-3 py-3">Units</th>
+              <th className="px-3 py-3">Piece / commission</th>
               <th className="px-3 py-3">Bonus</th>
               <th className="px-3 py-3">Deductions</th>
               <th className="px-3 py-3">Net pay</th>
