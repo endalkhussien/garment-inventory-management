@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Download } from "lucide-react";
 import { z } from "zod";
 
 import { restockImport, restockManually } from "@/lib/actions/restock";
@@ -39,7 +40,6 @@ type Props = {
 const importFormSchema = z.object({
   branchId: z.string().min(1),
   note: z.string().optional(),
-  csvText: z.string().optional(),
 });
 
 export function RestockForms({
@@ -77,19 +77,10 @@ export function RestockForms({
     defaultValues: {
       branchId: branchDefault,
       note: "",
-      csvText: "code,quantity\nMCS-001,10\n",
     },
   });
 
   const shopLocked = Boolean(lockedBranchId);
-
-  const importCsvText = importForm.watch("csvText") ?? "";
-  const pasteLines = useMemo(
-    () => parseCodeQuantityText(importCsvText),
-    [importCsvText],
-  );
-
-  const previewLines = fileLines.length > 0 ? fileLines : pasteLines;
 
   const onManual = manualForm.handleSubmit(async (values) => {
     setManualError(null);
@@ -111,7 +102,7 @@ export function RestockForms({
     if (!file) return;
 
     if (!isSpreadsheetFile(file.name)) {
-      setImportError("Use a .csv, .xlsx, or .xls file.");
+      setImportError("Use a .csv, .xlsx, or .xls file from the restock template.");
       return;
     }
 
@@ -120,12 +111,13 @@ export function RestockForms({
         const text = await file.text();
         const lines = parseCodeQuantityText(text);
         if (lines.length === 0) {
-          setImportError("No valid rows in CSV. Need code + quantity columns.");
+          setImportError(
+            "No valid rows. Fill the quantity column on the template (code + quantity).",
+          );
           return;
         }
         setFileLines(lines);
         setFileName(file.name);
-        importForm.setValue("csvText", text);
         return;
       }
 
@@ -133,40 +125,30 @@ export function RestockForms({
       const lines = await parseCodeQuantitySpreadsheet(buffer);
       if (lines.length === 0) {
         setImportError(
-          "No valid rows in Excel. Use columns code + quantity (or qty).",
+          "No valid rows. Download the template, fill quantity, then upload again.",
         );
         return;
       }
       setFileLines(lines);
       setFileName(file.name);
-      importForm.setValue(
-        "csvText",
-        ["code,quantity", ...lines.map((l) => `${l.code},${l.quantity}`)].join(
-          "\n",
-        ),
-      );
     } catch {
-      setImportError("Could not read that file. Try CSV or a simple Excel sheet.");
+      setImportError("Could not read that file. Use the Excel template (.xlsx).");
     }
   }
 
   const onImport = importForm.handleSubmit(async (values) => {
     setImportError(null);
     setImportOk(null);
-    const lines =
-      fileLines.length > 0
-        ? fileLines
-        : parseCodeQuantityText(values.csvText ?? "");
-    if (lines.length === 0) {
+    if (fileLines.length === 0) {
       setImportError(
-        "Could not parse any lines. Use: code, quantity — CSV, Excel, or paste.",
+        "Upload the filled restock template (.xlsx or .csv) first.",
       );
       return;
     }
     const result = await restockImport({
       branchId: values.branchId,
       note: values.note || (fileName ? `Import ${fileName}` : "Stock import"),
-      lines,
+      lines: fileLines,
     });
     if (!result.success) {
       setImportError(result.error ?? "Import failed.");
@@ -197,7 +179,7 @@ export function RestockForms({
           variant={tab === "import" ? "default" : "secondary"}
           onClick={() => setTab("import")}
         >
-          Import CSV / Excel
+          Import from template
         </Button>
       </div>
 
@@ -271,13 +253,29 @@ export function RestockForms({
             </div>
           )}
 
+          <div className="rounded-xl border border-border bg-page/60 p-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium">1. Download product template</p>
+              <p className="mt-1 text-xs text-muted">
+                Excel lists every product the same way they are created in the
+                catalog (code, name, size, color). Fill only the{" "}
+                <code className="text-secondary">quantity</code> column for
+                items you received.
+              </p>
+            </div>
+            <Button type="button" variant="secondary" asChild>
+              <a href="/api/export/restock-template" download>
+                <Download className="mr-2 h-4 w-4" />
+                Download restock template
+              </a>
+            </Button>
+          </div>
+
           <div className="space-y-2">
-            <Label>Upload file (CSV or Excel)</Label>
+            <Label>2. Upload filled file</Label>
             <p className="text-xs text-muted">
-              Columns:{" "}
-              <code className="text-secondary">code</code> (or SKU) and{" "}
-              <code className="text-secondary">quantity</code>. First sheet is
-              used for Excel.
+              Accepts the template as .xlsx, .xls, or .csv. Rows with blank or
+              zero quantity are skipped.
             </p>
             <Input
               type="file"
@@ -287,34 +285,20 @@ export function RestockForms({
               }}
             />
             {fileName && (
-              <p className="text-xs text-success">Loaded: {fileName}</p>
+              <p className="text-xs text-success">
+                Loaded: {fileName} · {fileLines.length} line(s) with quantity
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label>Or paste CSV lines</Label>
-            <Textarea
-              rows={6}
-              className="font-mono text-xs"
-              {...importForm.register("csvText")}
-              onChange={(e) => {
-                importForm.register("csvText").onChange(e);
-                setFileLines([]);
-                setFileName(null);
-              }}
+            <Label>Note (optional)</Label>
+            <Input
+              {...importForm.register("note")}
+              placeholder="e.g. Weekly warehouse delivery"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Note (optional)</Label>
-            <Input {...importForm.register("note")} />
-          </div>
-
-          {previewLines.length > 0 && (
-            <p className="text-xs text-muted">
-              {previewLines.length} product line(s) ready to add to stock.
-            </p>
-          )}
           {importError && (
             <p className="text-sm text-danger">{importError}</p>
           )}
@@ -323,7 +307,9 @@ export function RestockForms({
           )}
           <Button
             type="submit"
-            disabled={importForm.formState.isSubmitting}
+            disabled={
+              importForm.formState.isSubmitting || fileLines.length === 0
+            }
           >
             {importForm.formState.isSubmitting
               ? "Importing..."

@@ -53,9 +53,19 @@ async function resolveRestockBranch(
   return { branchId: requestedBranchId };
 }
 
-/** Match product code, variant SKU, or product name (case-insensitive). */
+/** Match product code, variant SKU, or product name (case-insensitive). Prefers SKU so restock templates resolve size/color correctly. */
 async function findVariantByCode(code: string) {
   const normalized = code.trim();
+  if (!normalized) return null;
+
+  const bySku = await prisma.productVariant.findFirst({
+    where: {
+      isActive: true,
+      sku: { equals: normalized, mode: "insensitive" },
+    },
+  });
+  if (bySku) return bySku;
+
   const byProductCode = await prisma.product.findFirst({
     where: {
       isActive: true,
@@ -70,14 +80,6 @@ async function findVariantByCode(code: string) {
     },
   });
   if (byProductCode?.variants[0]) return byProductCode.variants[0];
-
-  const bySku = await prisma.productVariant.findFirst({
-    where: {
-      isActive: true,
-      sku: { equals: normalized, mode: "insensitive" },
-    },
-  });
-  if (bySku) return bySku;
 
   return null;
 }

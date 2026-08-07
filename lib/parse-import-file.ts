@@ -55,13 +55,20 @@ export async function parseCodeQuantitySpreadsheet(
   let start = 0;
 
   if (hasHeader) {
+    // Prefer explicit sku (template uses SKU in `code` for size/color accuracy).
+    const skuOnly = first.findIndex((h) => h === "sku");
     const c = first.findIndex(
-      (h) => h === "code" || h === "sku" || h === "product" || h.includes("code"),
+      (h) =>
+        h === "code" ||
+        h === "sku" ||
+        h === "product" ||
+        (h.includes("code") && !h.includes("product_code") && h !== "product_code"),
     );
     const q = first.findIndex(
       (h) => h === "quantity" || h === "qty" || h.includes("qty"),
     );
-    if (c >= 0) codeIdx = c;
+    if (skuOnly >= 0) codeIdx = skuOnly;
+    else if (c >= 0) codeIdx = c;
     if (q >= 0) qtyIdx = q;
     start = 1;
   }
