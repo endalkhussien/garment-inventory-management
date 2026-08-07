@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { recordActionResult } from "@/lib/activity-log";
 import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import { prisma } from "@/lib/prisma";
 import { isAdminRole, isShopRole } from "@/lib/rbac";
@@ -188,11 +189,24 @@ export async function importExternalSales(
 ): Promise<ActionResult> {
   const parsed = importSalesSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      { action: "IMPORT", entityType: "Sale", title: "Bulk sales import" },
+    );
   }
 
   const resolved = await resolveBranch(parsed.data.branchId);
-  if (resolved.error) return { success: false, error: resolved.error };
+  if (resolved.error) {
+    return recordActionResult(
+      { success: false, error: resolved.error },
+      {
+        action: "IMPORT",
+        entityType: "Sale",
+        title: "Bulk sales import",
+        branchId: parsed.data.branchId,
+      },
+    );
+  }
 
   const skipped: string[] = [];
   const batchNote = emptyToNull(parsed.data.note);
@@ -231,15 +245,22 @@ export async function importExternalSales(
   }
 
   if (resolvedItems.length === 0) {
-    return {
-      success: false,
-      error: skipped.length
-        ? `No matching products for: ${skipped.slice(0, 8).join(", ")}`
-        : "Nothing to import.",
-      skipped,
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error: skipped.length
+          ? `No matching products for: ${skipped.slice(0, 8).join(", ")}`
+          : "Nothing to import.",
+        skipped,
+      },
+      {
+        action: "IMPORT",
+        entityType: "Sale",
+        title: "Bulk sales import",
+        branchId: resolved.branchId,
+      },
+    );
   }
-
   const saleGroups = groupIntoSales(resolvedItems);
   let imported = 0;
   let lineCount = 0;
@@ -318,21 +339,46 @@ export async function importExternalSales(
     revalidatePath("/shops/finance");
     revalidatePath("/central");
     revalidatePath("/");
-    return {
-      success: true,
-      imported,
-      lineCount,
-      skipped,
-      totalRevenue,
-    };
+    return recordActionResult(
+      {
+        success: true,
+        imported,
+        lineCount,
+        skipped,
+        totalRevenue,
+      },
+      {
+        action: "IMPORT",
+        entityType: "Sale",
+        title: `Bulk sales · ${imported} sale(s)`,
+        successMessage: `${lineCount} line(s) · revenue ETB ${totalRevenue.toLocaleString("en-ET", { minimumFractionDigits: 2 })}${
+          skipped.length
+            ? ` · skipped ${skipped.length}`
+            : ""
+        }`,
+        branchId: resolved.branchId,
+        href: "/shops/sales",
+        userId: resolved.userId,
+        metadata: { imported, lineCount, totalRevenue, skipped },
+      },
+    );
   } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Import failed. No sales were saved.",
-      skipped,
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Import failed. No sales were saved.",
+        skipped,
+      },
+      {
+        action: "IMPORT",
+        entityType: "Sale",
+        title: "Bulk sales import",
+        branchId: resolved.branchId,
+        userId: resolved.userId,
+      },
+    );
   }
 }

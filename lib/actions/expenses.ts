@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { recordActionResult } from "@/lib/activity-log";
 import { prisma } from "@/lib/prisma";
 import { isAdminRole, isShopRole } from "@/lib/rbac";
 import {
@@ -77,9 +78,28 @@ export async function createExpense(
     revalidatePath("/shops/finance");
     revalidatePath("/central");
     revalidatePath("/");
-    return { success: true, id: expense.id };
+    return recordActionResult(
+      { success: true, id: expense.id },
+      {
+        action: "CREATE",
+        entityType: "Expense",
+        entityId: expense.id,
+        title: `Expense · ${parsed.data.title}`,
+        successMessage: `${parsed.data.category} · ETB ${Number(parsed.data.amount).toLocaleString("en-ET", { minimumFractionDigits: 2 })}`,
+        branchId: resolved.branchId,
+        href: "/shops/finance",
+      },
+    );
   } catch {
-    return { success: false, error: "Could not save expense." };
+    return recordActionResult(
+      { success: false, error: "Could not save expense." },
+      {
+        action: "CREATE",
+        entityType: "Expense",
+        title: "Create expense",
+        branchId: resolved.branchId,
+      },
+    );
   }
 }
 

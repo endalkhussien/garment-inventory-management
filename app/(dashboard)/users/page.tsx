@@ -1,7 +1,11 @@
 import Link from "next/link";
 
-import { CreateUserForm } from "@/components/users/user-forms";
+import {
+  CreateUserForm,
+  UserLifecycleActions,
+} from "@/components/users/user-forms";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +20,7 @@ export default async function UsersPage({
   const [users, roles, branches] = await Promise.all([
     prisma.user.findMany({
       include: { role: true, branch: true },
-      orderBy: { email: "asc" },
+      orderBy: [{ isActive: "desc" }, { name: "asc" }],
     }),
     prisma.role.findMany({ orderBy: { name: "asc" } }),
     prisma.branch.findMany({
@@ -31,19 +35,48 @@ export default async function UsersPage({
       branches.some((b) => b.id === defaultBranchId && b.isShop),
   );
 
+  const shopUsers = users.filter((u) => u.role.name === "Shop");
+  const adminUsers = users.filter((u) => u.role.name === "Admin");
+  const otherUsers = users.filter(
+    (u) => u.role.name !== "Shop" && u.role.name !== "Admin",
+  );
+
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Users & roles</h1>
-        <p className="mt-1 text-sm text-muted">
-          <strong>Admin</strong> — factory, stock, payroll, all shops.{" "}
-          <strong>Shop</strong> — POS and their shop stock only (must assign a
-          branch). Prefer{" "}
-          <Link href="/setup/shops" className="text-secondary hover:underline">
-            Initiate shop
-          </Link>{" "}
-          to create shop + first login together.
-        </p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Users & logins</h1>
+          <p className="mt-1 text-sm text-muted">
+            Full create, edit, password reset, activate, and delete for non-admin
+            accounts.{" "}
+            <strong>Admin</strong> accounts cannot be deleted (last active Admin
+            cannot be deactivated).
+          </p>
+        </div>
+        <Button asChild variant="secondary">
+          <Link href="/setup/shops">Shop management</Link>
+        </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card>
+          <p className="text-xs uppercase text-muted">All users</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {users.length}
+          </p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase text-muted">Shop logins</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {shopUsers.length}
+          </p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase text-muted">Admins</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {adminUsers.length}
+          </p>
+        </Card>
       </div>
 
       <Card>
@@ -57,45 +90,101 @@ export default async function UsersPage({
       </Card>
 
       <Card className="overflow-x-auto p-0">
+        <div className="border-b border-border px-4 py-3 text-sm font-semibold">
+          All accounts
+        </div>
         <table className="min-w-full text-left text-sm">
           <thead className="bg-page/40 text-xs uppercase text-muted">
             <tr>
               <th className="px-3 py-3">User</th>
               <th className="px-3 py-3">Username</th>
               <th className="px-3 py-3">Role</th>
-              <th className="px-3 py-3">Branch</th>
+              <th className="px-3 py-3">Shop</th>
               <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-t border-border/60">
-                <td className="px-3 py-3">
-                  <Link
-                    href={`/users/${u.id}`}
-                    className="text-secondary hover:underline"
-                  >
-                    {u.name ?? u.email}
-                  </Link>
-                  <p className="text-xs text-muted">{u.email}</p>
-                </td>
-                <td className="px-3 py-3 font-medium">
-                  {u.username ? `@${u.username}` : "—"}
-                </td>
-                <td className="px-3 py-3">{u.role.name}</td>
-                <td className="px-3 py-3 text-muted">
-                  {u.branch?.name ?? "—"}
-                </td>
-                <td className="px-3 py-3">
-                  <Badge variant={u.isActive ? "success" : "danger"}>
-                    {u.isActive ? "Active" : "Off"}
-                  </Badge>
+            {users.map((u) => {
+              const isAdminAccount = u.role.name === "Admin";
+              return (
+                <tr key={u.id} className="border-t border-border/60">
+                  <td className="px-3 py-3">
+                    <Link
+                      href={`/users/${u.id}`}
+                      className="font-medium text-secondary hover:underline"
+                    >
+                      {u.name ?? u.email}
+                    </Link>
+                    <p className="text-xs text-muted">{u.email}</p>
+                  </td>
+                  <td className="px-3 py-3 font-medium">
+                    {u.username ? `@${u.username}` : "—"}
+                  </td>
+                  <td className="px-3 py-3">
+                    <Badge
+                      variant={
+                        isAdminAccount
+                          ? "default"
+                          : u.role.name === "Shop"
+                            ? "secondary"
+                            : "default"
+                      }
+                    >
+                      {u.role.name}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-3 text-muted">
+                    {u.branch ? (
+                      <Link
+                        href={`/setup/shops/${u.branch.id}`}
+                        className="text-secondary hover:underline"
+                      >
+                        {u.branch.name}
+                      </Link>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-3 py-3">
+                    <Badge variant={u.isActive ? "success" : "danger"}>
+                      {u.isActive ? "Active" : "Off"}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex flex-col gap-2">
+                      <Button asChild size="sm" variant="secondary">
+                        <Link href={`/users/${u.id}`}>
+                          Edit / password
+                        </Link>
+                      </Button>
+                      <UserLifecycleActions
+                        userId={u.id}
+                        isActive={u.isActive}
+                        canDelete={!isAdminAccount}
+                        userLabel={u.name ?? u.username ?? u.email}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-8 text-center text-muted">
+                  No users yet.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </Card>
+
+      {otherUsers.length > 0 && (
+        <p className="text-xs text-muted">
+          Also includes {otherUsers.length} non-Admin/Shop role user(s).
+        </p>
+      )}
     </div>
   );
 }

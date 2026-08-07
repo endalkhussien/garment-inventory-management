@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { ShopEditForm } from "@/components/shops/shop-edit-form";
 import { ShopLifecycleActions } from "@/components/shops/shop-lifecycle-actions";
+import {
+  CreateShopLoginForm,
+  EditShopLoginForm,
+} from "@/components/users/user-forms";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -97,40 +101,63 @@ export default async function ShopDetailPage({ params }: PageProps) {
 
       <Card>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">Staff at this shop</h2>
+          <div>
+            <h2 className="text-sm font-semibold">Shop logins</h2>
+            <p className="text-xs text-muted">
+              Create or update shop user accounts and reset passwords (admin
+              only).
+            </p>
+          </div>
           <Button asChild size="sm" variant="secondary">
-            <Link href={`/users?branchId=${shop.id}`}>Add / manage users</Link>
+            <Link href={`/users?branchId=${shop.id}`}>All users</Link>
           </Button>
         </div>
+
         {shop.users.length === 0 ? (
-          <p className="text-sm text-muted">
-            No users yet. Add a Shop-role user and assign this branch.
+          <p className="mb-4 text-sm text-muted">
+            No logins for this shop yet. Create one below.
           </p>
         ) : (
-          <ul className="divide-y divide-border/60 text-sm">
+          <ul className="mb-6 divide-y divide-border/60 text-sm">
             {shop.users.map((u) => (
-              <li
-                key={u.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-2"
-              >
-                <div>
+              <li key={u.id} className="space-y-2 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-medium">{u.name ?? u.email}</p>
+                    <p className="text-xs text-muted">
+                      {u.username ? `@${u.username}` : u.email} · {u.role.name}
+                    </p>
+                  </div>
+                  <Badge variant={u.isActive ? "success" : "danger"}>
+                    {u.isActive ? "Active" : "Off"}
+                  </Badge>
+                </div>
+                {u.role.name !== "Admin" ? (
+                  <EditShopLoginForm
+                    user={{
+                      id: u.id,
+                      name: u.name,
+                      username: u.username,
+                      isActive: u.isActive,
+                    }}
+                  />
+                ) : (
                   <Link
                     href={`/users/${u.id}`}
-                    className="font-medium text-secondary hover:underline"
+                    className="text-xs text-secondary hover:underline"
                   >
-                    {u.name ?? u.email}
+                    Manage Admin on Users page
                   </Link>
-                  <p className="text-xs text-muted">
-                    {u.email} · {u.role.name}
-                  </p>
-                </div>
-                <Badge variant={u.isActive ? "success" : "danger"}>
-                  {u.isActive ? "Active" : "Off"}
-                </Badge>
+                )}
               </li>
             ))}
           </ul>
         )}
+
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-2 text-sm font-medium">Add shop login</h3>
+          <CreateShopLoginForm branchId={shop.id} shopName={shop.name} />
+        </div>
       </Card>
 
       <Card>

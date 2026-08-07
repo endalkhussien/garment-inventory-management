@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/lib/auth";
+import { logFailure, logSuccess } from "@/lib/activity-log";
 import { buildDataExport } from "@/lib/export/data-export";
 import { prisma } from "@/lib/prisma";
 import { isAdminRole, isShopRole } from "@/lib/rbac-shared";
@@ -90,6 +91,16 @@ export async function GET(request: Request) {
       scopeLabel,
     });
 
+    await logSuccess({
+      action: "EXPORT",
+      entityType: "Data",
+      title: "Excel backup downloaded",
+      message: `${filename} · ${scopeLabel}`,
+      branchId,
+      userId: session.user.id,
+      href: "/setup/settings",
+    });
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
@@ -101,6 +112,15 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     console.error("[export/data]", err);
+    await logFailure({
+      action: "EXPORT",
+      entityType: "Data",
+      title: "Excel backup failed",
+      message: "Failed to build export",
+      error: err instanceof Error ? err.message : "Failed to build export",
+      branchId,
+      userId: session.user.id,
+    });
     return NextResponse.json(
       { error: "Failed to build export" },
       { status: 500 },

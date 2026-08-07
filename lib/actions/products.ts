@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { recordActionResult } from "@/lib/activity-log";
 import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import {
   calculateCostBreakdown,
@@ -96,7 +97,15 @@ export async function createProductWithVariant(
     ? shopProductWithVariantSchema.safeParse(input)
     : productWithVariantSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      {
+        action: "CREATE",
+        entityType: "Product",
+        title: "Create product",
+        branchId: session.user.branch?.id,
+      },
+    );
   }
 
   const data = parsed.data;
@@ -126,20 +135,34 @@ export async function createProductWithVariant(
     if (shopUser) {
       openingBranchId = session.user.branch?.id ?? null;
       if (!openingBranchId) {
-        return {
-          success: false,
-          error: "Shop user has no branch for opening stock.",
-        };
+        return recordActionResult(
+          {
+            success: false,
+            error: "Shop user has no branch for opening stock.",
+          },
+          {
+            action: "CREATE",
+            entityType: "Product",
+            title: "Create product",
+          },
+        );
       }
     } else {
       // Admin schema includes openingBranchId; shop parse path never reaches here.
       const adminData = data as ProductWithVariantInput;
       const requested = emptyToNull(adminData.openingBranchId);
       if (!requested) {
-        return {
-          success: false,
-          error: "Select a shop for opening stock quantity.",
-        };
+        return recordActionResult(
+          {
+            success: false,
+            error: "Select a shop for opening stock quantity.",
+          },
+          {
+            action: "CREATE",
+            entityType: "Product",
+            title: "Create product",
+          },
+        );
       }
       openingBranchId = requested;
     }
@@ -150,7 +173,15 @@ export async function createProductWithVariant(
       where: { code: { equals: code, mode: "insensitive" }, isActive: true },
     });
     if (existingCode) {
-      return { success: false, error: "Product code already exists." };
+      return recordActionResult(
+        { success: false, error: "Product code already exists." },
+        {
+          action: "CREATE",
+          entityType: "Product",
+          title: `Create product ${code}`,
+          branchId: openingBranchId ?? session.user.branch?.id,
+        },
+      );
     }
 
     const settings = await getAppSettings();
@@ -204,26 +235,54 @@ export async function createProductWithVariant(
     revalidatePath("/shops/stock");
     revalidatePath("/shops/restock");
     revalidatePath("/central");
-    return {
-      success: true,
-      id: created.id,
-      productId: created.id,
-    };
+    return recordActionResult(
+      {
+        success: true,
+        id: created.id,
+        productId: created.id,
+      },
+      {
+        action: "CREATE",
+        entityType: "Product",
+        entityId: created.id,
+        title: `Product created · ${created.code}`,
+        successMessage: `${created.name} (${created.code}) added to catalog${
+          openingQuantity > 0 ? ` · opening stock +${openingQuantity}` : ""
+        }`,
+        href: `/products/${created.id}`,
+        branchId: openingBranchId ?? session.user.branch?.id,
+        userId: session.user.id,
+      },
+    );
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      return {
-        success: false,
-        error: "Code, SKU, or size/color already exists.",
-      };
+      return recordActionResult(
+        {
+          success: false,
+          error: "Code, SKU, or size/color already exists.",
+        },
+        {
+          action: "CREATE",
+          entityType: "Product",
+          title: `Create product ${code}`,
+        },
+      );
     }
-    return {
-      success: false,
-      error:
-        error instanceof Error ? error.message : "Could not create product.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Could not create product.",
+      },
+      {
+        action: "CREATE",
+        entityType: "Product",
+        title: `Create product ${code}`,
+      },
+    );
   }
 }
 
@@ -234,7 +293,16 @@ export async function updateProduct(
   await requireAdminOrShop();
   const parsed = productSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      {
+        action: "UPDATE",
+        entityType: "Product",
+        entityId: id,
+        title: "Update product",
+        href: `/products/${id}`,
+      },
+    );
   }
 
   try {
@@ -247,7 +315,16 @@ export async function updateProduct(
       },
     });
     if (clash) {
-      return { success: false, error: "Product code already exists." };
+      return recordActionResult(
+        { success: false, error: "Product code already exists." },
+        {
+          action: "UPDATE",
+          entityType: "Product",
+          entityId: id,
+          title: "Update product",
+          href: `/products/${id}`,
+        },
+      );
     }
 
     await prisma.product.update({
@@ -261,12 +338,31 @@ export async function updateProduct(
       },
     });
   } catch {
-    return { success: false, error: "Product not found." };
+    return recordActionResult(
+      { success: false, error: "Product not found." },
+      {
+        action: "UPDATE",
+        entityType: "Product",
+        entityId: id,
+        title: "Update product",
+        href: `/products/${id}`,
+      },
+    );
   }
 
   revalidatePath("/products");
   revalidatePath(`/products/${id}`);
-  return { success: true, id };
+  return recordActionResult(
+    { success: true, id },
+    {
+      action: "UPDATE",
+      entityType: "Product",
+      entityId: id,
+      title: `Product updated · ${parsed.data.code.trim().toUpperCase()}`,
+      successMessage: `${parsed.data.name} details saved`,
+      href: `/products/${id}`,
+    },
+  );
 }
 
 export async function addProductVariant(
@@ -613,6 +709,22 @@ export async function setProductActive(
 ): Promise<ActionResult> {
   await requireAdminOrShop();
   try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true, name: true, code: true },
+    });
+    if (!product) {
+      return recordActionResult(
+        { success: false, error: "Product not found." },
+        {
+          action: isActive ? "ACTIVATE" : "DEACTIVATE",
+          entityType: "Product",
+          entityId: id,
+          title: isActive ? "Activate product" : "Deactivate product",
+        },
+      );
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.product.update({
         where: { id },
@@ -625,9 +737,29 @@ export async function setProductActive(
     });
     revalidatePath("/products");
     revalidatePath(`/products/${id}`);
-    return { success: true, id };
+    return recordActionResult(
+      { success: true, id },
+      {
+        action: isActive ? "ACTIVATE" : "DEACTIVATE",
+        entityType: "Product",
+        entityId: id,
+        title: isActive
+          ? `Product activated · ${product.code}`
+          : `Product cancelled · ${product.code}`,
+        successMessage: `${product.name} is now ${isActive ? "active" : "inactive"}`,
+        href: `/products/${id}`,
+      },
+    );
   } catch {
-    return { success: false, error: "Product not found." };
+    return recordActionResult(
+      { success: false, error: "Product not found." },
+      {
+        action: isActive ? "ACTIVATE" : "DEACTIVATE",
+        entityType: "Product",
+        entityId: id,
+        title: isActive ? "Activate product" : "Deactivate product",
+      },
+    );
   }
 }
 
@@ -660,7 +792,15 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
   });
 
   if (!product) {
-    return { success: false, error: "Product not found." };
+    return recordActionResult(
+      { success: false, error: "Product not found." },
+      {
+        action: "DELETE",
+        entityType: "Product",
+        entityId: id,
+        title: "Delete product",
+      },
+    );
   }
 
   const blocked = product.variants.some((v) => {
@@ -677,11 +817,20 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
   });
 
   if (blocked) {
-    return {
-      success: false,
-      error:
-        "This product has stock, sales, or history. Use Cancel to remove it from the catalog instead of Delete.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error:
+          "This product has stock, sales, or history. Use Cancel to remove it from the catalog instead of Delete.",
+      },
+      {
+        action: "DELETE",
+        entityType: "Product",
+        entityId: id,
+        title: `Delete product · ${product.code}`,
+        href: `/products/${id}`,
+      },
+    );
   }
 
   try {
@@ -704,13 +853,30 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 
     revalidatePath("/products");
     revalidatePath("/central");
-    return { success: true, id };
+    return recordActionResult(
+      { success: true, id },
+      {
+        action: "DELETE",
+        entityType: "Product",
+        entityId: id,
+        title: `Product deleted · ${product.code}`,
+        successMessage: `${product.name} permanently removed from catalog`,
+      },
+    );
   } catch {
-    return {
-      success: false,
-      error:
-        "Could not delete product. Cancel it instead, or remove linked stock first.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error:
+          "Could not delete product. Cancel it instead, or remove linked stock first.",
+      },
+      {
+        action: "DELETE",
+        entityType: "Product",
+        entityId: id,
+        title: `Delete product · ${product.code}`,
+      },
+    );
   }
 }
 

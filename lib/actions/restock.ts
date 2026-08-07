@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { recordActionResult } from "@/lib/activity-log";
 import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import { prisma } from "@/lib/prisma";
 import { isAdminRole, isShopRole } from "@/lib/rbac";
@@ -89,21 +90,43 @@ export async function restockManually(
 ): Promise<ActionResult> {
   const parsed = manualRestockSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      { action: "RESTOCK", entityType: "Stock", title: "Manual restock" },
+    );
   }
 
   const session = await getServerSession(authOptions);
   const resolved = await resolveRestockBranch(parsed.data.branchId);
-  if (resolved.error) return { success: false, error: resolved.error };
+  if (resolved.error) {
+    return recordActionResult(
+      { success: false, error: resolved.error },
+      {
+        action: "RESTOCK",
+        entityType: "Stock",
+        title: "Manual restock",
+        branchId: parsed.data.branchId,
+      },
+    );
+  }
 
   const settings = await getAppSettings();
 
   try {
     const variant = await prisma.productVariant.findFirst({
       where: { id: parsed.data.variantId, isActive: true },
+      include: { product: true },
     });
     if (!variant) {
-      return { success: false, error: "Product not found." };
+      return recordActionResult(
+        { success: false, error: "Product not found." },
+        {
+          action: "RESTOCK",
+          entityType: "Stock",
+          title: "Manual restock",
+          branchId: resolved.branchId,
+        },
+      );
     }
 
     await prisma.$transaction(async (tx) => {
@@ -122,12 +145,30 @@ export async function restockManually(
     revalidatePath("/shops/restock");
     revalidatePath("/central");
     revalidatePath("/");
-    return { success: true };
+    return recordActionResult(
+      { success: true },
+      {
+        action: "RESTOCK",
+        entityType: "Stock",
+        title: `Restock · +${parsed.data.quantity} ${variant.product.name}`,
+        successMessage: `${variant.product.code ?? variant.sku} · +${parsed.data.quantity} units`,
+        branchId: resolved.branchId,
+        href: "/shops/stock",
+      },
+    );
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Restock failed.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Restock failed.",
+      },
+      {
+        action: "RESTOCK",
+        entityType: "Stock",
+        title: "Manual restock",
+        branchId: resolved.branchId,
+      },
+    );
   }
 }
 
@@ -136,12 +177,25 @@ export async function restockImport(
 ): Promise<ActionResult> {
   const parsed = importRestockSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      { action: "IMPORT", entityType: "Stock", title: "Import restock" },
+    );
   }
 
   const session = await getServerSession(authOptions);
   const resolved = await resolveRestockBranch(parsed.data.branchId);
-  if (resolved.error) return { success: false, error: resolved.error };
+  if (resolved.error) {
+    return recordActionResult(
+      { success: false, error: resolved.error },
+      {
+        action: "IMPORT",
+        entityType: "Stock",
+        title: "Import restock",
+        branchId: parsed.data.branchId,
+      },
+    );
+  }
 
   const settings = await getAppSettings();
   const skipped: string[] = [];
@@ -183,12 +237,34 @@ export async function restockImport(
     revalidatePath("/shops/restock");
     revalidatePath("/central");
     revalidatePath("/");
-    return { success: true, imported, skipped };
+    return recordActionResult(
+      { success: true, imported, skipped },
+      {
+        action: "IMPORT",
+        entityType: "Stock",
+        title: `Restock import · ${imported} line(s)`,
+        successMessage:
+          skipped.length > 0
+            ? `Imported ${imported} line(s); skipped: ${skipped.slice(0, 5).join(", ")}`
+            : `Imported ${imported} product line(s) into stock`,
+        branchId: resolved.branchId,
+        href: "/shops/stock",
+        metadata: { imported, skipped },
+      },
+    );
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Import restock failed.",
-      skipped,
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Import restock failed.",
+        skipped,
+      },
+      {
+        action: "IMPORT",
+        entityType: "Stock",
+        title: "Import restock",
+        branchId: resolved.branchId,
+      },
+    );
   }
 }

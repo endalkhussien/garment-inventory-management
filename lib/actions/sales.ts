@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { recordActionResult } from "@/lib/activity-log";
 import { adjustFinishedGoodsWithMovement } from "@/lib/finished-goods-stock";
 import { createNotificationForAdmins } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
@@ -90,22 +91,43 @@ export async function transferFinishedGoods(
     revalidatePath("/shops/stock");
     revalidatePath("/shops/transfers");
     revalidatePath("/central");
-    return { success: true, id: transfer.id };
+    return recordActionResult(
+      { success: true, id: transfer.id },
+      {
+        action: "TRANSFER",
+        entityType: "Transfer",
+        entityId: transfer.id,
+        title: `Stock transfer · ${data.quantity} unit(s)`,
+        successMessage: `Moved ${data.quantity} unit(s) between shops`,
+        branchId: data.toBranchId,
+      },
+    );
   } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Transfer failed. No stock was moved.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Transfer failed. No stock was moved.",
+      },
+      {
+        action: "TRANSFER",
+        entityType: "Transfer",
+        title: "Stock transfer",
+        branchId: data.toBranchId,
+      },
+    );
   }
 }
 
 export async function createSale(input: SaleInput): Promise<ActionResult> {
   const parsed = saleSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      { action: "SALE", entityType: "Sale", title: "Direct sale" },
+    );
   }
 
   const session = await getServerSession(authOptions);
@@ -113,7 +135,10 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
 
   if (session?.user?.role?.name === "Shop") {
     if (!session.user.branch?.id) {
-      return { success: false, error: "Shop user has no branch assigned." };
+      return recordActionResult(
+        { success: false, error: "Shop user has no branch assigned." },
+        { action: "SALE", entityType: "Sale", title: "Direct sale" },
+      );
     }
     data.branchId = session.user.branch.id;
   }
@@ -196,22 +221,45 @@ export async function createSale(input: SaleInput): Promise<ActionResult> {
     revalidatePath("/shops/finance");
     revalidatePath("/central");
     revalidatePath("/");
-    return { success: true, id: sale.id };
+    return recordActionResult(
+      { success: true, id: sale.id },
+      {
+        action: "SALE",
+        entityType: "Sale",
+        entityId: sale.id,
+        title: `Sale · ${sale.receiptNumber}`,
+        successMessage: `${data.quantity} unit(s) · ETB ${lineTotal.toLocaleString("en-ET", { minimumFractionDigits: 2 })}`,
+        href: `/sales/${sale.id}`,
+        branchId: data.branchId,
+        userId: session?.user?.id,
+      },
+    );
   } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Sale failed. Stock was not changed.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Sale failed. Stock was not changed.",
+      },
+      {
+        action: "SALE",
+        entityType: "Sale",
+        title: "Direct sale",
+        branchId: data.branchId,
+      },
+    );
   }
 }
 
 export async function createReturn(input: ReturnInput): Promise<ActionResult> {
   const parsed = returnSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      { action: "RETURN", entityType: "Sale", title: "Sale return" },
+    );
   }
 
   const session = await getServerSession(authOptions);
@@ -270,7 +318,7 @@ export async function createReturn(input: ReturnInput): Promise<ActionResult> {
         });
       }
 
-      return created;
+      return { created, original };
     });
 
     revalidatePath("/sales");
@@ -278,11 +326,30 @@ export async function createReturn(input: ReturnInput): Promise<ActionResult> {
     revalidatePath("/shops/stock");
     revalidatePath("/shops/finance");
     revalidatePath("/central");
-    return { success: true, id: result.id };
+    return recordActionResult(
+      { success: true, id: result.created.id },
+      {
+        action: "RETURN",
+        entityType: "Sale",
+        entityId: result.created.id,
+        title: `Return · ${result.created.receiptNumber}`,
+        successMessage: `Return of ${result.original.receiptNumber}${parsed.data.reason ? ` · ${parsed.data.reason}` : ""}`,
+        href: `/sales/${result.created.id}`,
+        branchId: result.original.branchId,
+      },
+    );
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Return failed.",
-    };
+    return recordActionResult(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Return failed.",
+      },
+      {
+        action: "RETURN",
+        entityType: "Sale",
+        entityId: parsed.data.saleId,
+        title: "Sale return",
+      },
+    );
   }
 }

@@ -54,6 +54,7 @@ model Branch {
   shopOrdersAsWarehouse ShopStockOrder[] @relation("ShopOrderWarehouse")
   finishedGoodsMovements FinishedGoodsMovement[]
   expenses       Expense[]
+  activityLogs   ActivityLog[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -84,6 +85,7 @@ model User {
   shopOrdersReviewed   ShopStockOrder[] @relation("ShopOrderReviewer")
   finishedGoodsMovements FinishedGoodsMovement[]
   expensesRecorded Expense[]
+  activityLogs    ActivityLog[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -798,4 +800,36 @@ model ShopStockOrderLine {
 
   @@index([orderId])
   @@index([variantId])
+}
+
+enum ActivityStatus {
+  SUCCESS
+  FAILURE
+}
+
+/// Application-wide activity feed (success and failure of business operations).
+model ActivityLog {
+  id         String         @id @default(cuid())
+  status     ActivityStatus
+  /// CREATE | UPDATE | DELETE | SALE | RETURN | RESTOCK | IMPORT | TRANSFER | EXPORT | ACTIVATE | DEACTIVATE | OTHER
+  action     String
+  /// Product | Sale | Stock | Staff | Shop | User | Expense | Category | Settings | Data …
+  entityType String
+  entityId   String?
+  title      String
+  message    String
+  metadata   Json?
+  href       String?
+  userId     String?
+  user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  branchId   String?
+  branch     Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([entityType, createdAt])
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+  @@index([branchId, createdAt])
 }

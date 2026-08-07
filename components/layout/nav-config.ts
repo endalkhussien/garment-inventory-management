@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Activity,
   LayoutDashboard,
   Layers,
   Package,
@@ -39,6 +40,7 @@ const adminSections: NavSection[] = [
       { label: "Central Inventory", href: "/central", icon: Warehouse },
       { label: "Finance", href: "/shops/finance", icon: WalletCards },
       { label: "Products", href: "/products", icon: Shirt },
+      { label: "Activity", href: "/activity", icon: Activity },
       { label: "Shop Management", href: "/setup/shops", icon: Store },
     ],
   },
@@ -75,6 +77,7 @@ const shopSections: NavSection[] = [
       { label: "Direct sale", href: "/sales", icon: ShoppingCart },
       { label: "Bulk sales", href: "/shops/sales", icon: Upload },
       { label: "Staff", href: "/shops/staff", icon: Users },
+      { label: "Activity", href: "/activity", icon: Activity },
     ],
   },
   {

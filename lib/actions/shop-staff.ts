@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { recordActionResult } from "@/lib/activity-log";
 import { prisma } from "@/lib/prisma";
 import { isAdminRole, isShopRole } from "@/lib/rbac";
 import {
@@ -69,11 +70,19 @@ export async function createShopStaff(
 ): Promise<ActionResult> {
   const parsed = shopStaffSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      { action: "CREATE", entityType: "Staff", title: "Add staff" },
+    );
   }
 
   const resolved = await resolveShopBranch(input.branchId);
-  if (resolved.error) return { success: false, error: resolved.error };
+  if (resolved.error) {
+    return recordActionResult(
+      { success: false, error: resolved.error },
+      { action: "CREATE", entityType: "Staff", title: "Add staff" },
+    );
+  }
 
   try {
     const staff = await prisma.employee.create({
@@ -92,15 +101,44 @@ export async function createShopStaff(
     revalidatePath("/shops/staff");
     revalidatePath("/shops/finance");
     revalidatePath("/central");
-    return { success: true, id: staff.id };
+    return recordActionResult(
+      { success: true, id: staff.id },
+      {
+        action: "CREATE",
+        entityType: "Staff",
+        entityId: staff.id,
+        title: `Staff added · ${staff.name}`,
+        successMessage: staff.jobTitle
+          ? `${staff.name} · ${staff.jobTitle}`
+          : staff.name,
+        href: `/shops/staff/${staff.id}`,
+        branchId: resolved.branchId,
+      },
+    );
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      return { success: false, error: "Staff code already exists." };
+      return recordActionResult(
+        { success: false, error: "Staff code already exists." },
+        {
+          action: "CREATE",
+          entityType: "Staff",
+          title: "Add staff",
+          branchId: resolved.branchId,
+        },
+      );
     }
-    return { success: false, error: "Could not save staff." };
+    return recordActionResult(
+      { success: false, error: "Could not save staff." },
+      {
+        action: "CREATE",
+        entityType: "Staff",
+        title: "Add staff",
+        branchId: resolved.branchId,
+      },
+    );
   }
 }
 
@@ -110,18 +148,54 @@ export async function updateShopStaff(
 ): Promise<ActionResult> {
   const parsed = shopStaffSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message };
+    return recordActionResult(
+      { success: false, error: parsed.error.issues[0]?.message },
+      {
+        action: "UPDATE",
+        entityType: "Staff",
+        entityId: id,
+        title: "Update staff",
+      },
+    );
   }
 
   const existing = await prisma.employee.findUnique({ where: { id } });
   if (!existing?.branchId) {
-    return { success: false, error: "Staff not found." };
+    return recordActionResult(
+      { success: false, error: "Staff not found." },
+      {
+        action: "UPDATE",
+        entityType: "Staff",
+        entityId: id,
+        title: "Update staff",
+      },
+    );
   }
 
   const resolved = await resolveShopBranch(existing.branchId);
-  if (resolved.error) return { success: false, error: resolved.error };
+  if (resolved.error) {
+    return recordActionResult(
+      { success: false, error: resolved.error },
+      {
+        action: "UPDATE",
+        entityType: "Staff",
+        entityId: id,
+        title: "Update staff",
+        branchId: existing.branchId,
+      },
+    );
+  }
   if (resolved.branchId !== existing.branchId) {
-    return { success: false, error: "Not allowed for this shop." };
+    return recordActionResult(
+      { success: false, error: "Not allowed for this shop." },
+      {
+        action: "UPDATE",
+        entityType: "Staff",
+        entityId: id,
+        title: "Update staff",
+        branchId: existing.branchId,
+      },
+    );
   }
 
   try {
@@ -138,9 +212,29 @@ export async function updateShopStaff(
     });
     revalidatePath("/shops/staff");
     revalidatePath("/shops/finance");
-    return { success: true, id };
+    return recordActionResult(
+      { success: true, id },
+      {
+        action: "UPDATE",
+        entityType: "Staff",
+        entityId: id,
+        title: `Staff updated · ${parsed.data.name.trim()}`,
+        successMessage: "Staff details saved",
+        href: `/shops/staff/${id}`,
+        branchId: existing.branchId,
+      },
+    );
   } catch {
-    return { success: false, error: "Could not update staff." };
+    return recordActionResult(
+      { success: false, error: "Could not update staff." },
+      {
+        action: "UPDATE",
+        entityType: "Staff",
+        entityId: id,
+        title: "Update staff",
+        branchId: existing.branchId,
+      },
+    );
   }
 }
 
@@ -150,13 +244,41 @@ export async function setShopStaffActive(
 ): Promise<ActionResult> {
   const existing = await prisma.employee.findUnique({ where: { id } });
   if (!existing?.branchId) {
-    return { success: false, error: "Staff not found." };
+    return recordActionResult(
+      { success: false, error: "Staff not found." },
+      {
+        action: isActive ? "ACTIVATE" : "DEACTIVATE",
+        entityType: "Staff",
+        entityId: id,
+        title: isActive ? "Activate staff" : "Deactivate staff",
+      },
+    );
   }
 
   const resolved = await resolveShopBranch(existing.branchId);
-  if (resolved.error) return { success: false, error: resolved.error };
+  if (resolved.error) {
+    return recordActionResult(
+      { success: false, error: resolved.error },
+      {
+        action: isActive ? "ACTIVATE" : "DEACTIVATE",
+        entityType: "Staff",
+        entityId: id,
+        title: isActive ? "Activate staff" : "Deactivate staff",
+        branchId: existing.branchId,
+      },
+    );
+  }
   if (resolved.branchId !== existing.branchId) {
-    return { success: false, error: "Not allowed." };
+    return recordActionResult(
+      { success: false, error: "Not allowed." },
+      {
+        action: isActive ? "ACTIVATE" : "DEACTIVATE",
+        entityType: "Staff",
+        entityId: id,
+        title: isActive ? "Activate staff" : "Deactivate staff",
+        branchId: existing.branchId,
+      },
+    );
   }
 
   await prisma.employee.update({
@@ -164,5 +286,18 @@ export async function setShopStaffActive(
     data: { isActive },
   });
   revalidatePath("/shops/staff");
-  return { success: true, id };
+  return recordActionResult(
+    { success: true, id },
+    {
+      action: isActive ? "ACTIVATE" : "DEACTIVATE",
+      entityType: "Staff",
+      entityId: id,
+      title: isActive
+        ? `Staff activated · ${existing.name}`
+        : `Staff deactivated · ${existing.name}`,
+      successMessage: `${existing.name} is now ${isActive ? "active" : "inactive"}`,
+      href: `/shops/staff/${id}`,
+      branchId: existing.branchId,
+    },
+  );
 }
